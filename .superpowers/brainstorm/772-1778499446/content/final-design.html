@@ -1,0 +1,134 @@
+<h2>🎯 最终版设计 — 同好会含头像 + 角色颜色</h2>
+<p class="subtitle">角色颜色沿用之前的配色：成员🟢 管理员🔵 会长🟠 超级管理员💗</p>
+
+<div class="section">
+  <h3>角色配色对照</h3>
+  <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap; font-size:12px;">
+    <span style="display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#888;"></span> 访客</span>
+    <span style="display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#4caf50;"></span> 成员</span>
+    <span style="display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#2196f3;"></span> 管理员</span>
+    <span style="display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#ff9800;"></span> 会长</span>
+    <span style="display:inline-flex; align-items:center; gap:4px;"><span style="display:inline-block; width:14px; height:14px; border-radius:4px; background:#e91e63;"></span> 超级管理员</span>
+  </div>
+</div>
+
+<div class="mockup" style="max-width: 420px; margin: 0 auto;">
+
+  <!-- 整体卡片 -->
+  <div style="border-radius:20px; overflow:hidden; box-shadow:0 2px 20px rgba(231,76,60,0.12); background:white;">
+    <!-- 装饰条 -->
+    <div style="height:5px; background:linear-gradient(90deg, #ffcdc9, #e74c3c, #ffcdc9);"></div>
+
+    <!-- ===== 头部：头像 + 信息 ===== -->
+    <div style="padding:20px 20px 16px; display:flex; gap:16px; align-items:flex-start;">
+      <!-- 圆形头像 -->
+      <div style="width:80px; height:80px; border-radius:50%; overflow:hidden; border:3px solid #e74c3c; flex-shrink:0; box-shadow:0 4px 16px rgba(231,76,60,0.12);">
+        <div style="width:100%; height:100%; background:#e74c3c; display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:700;">U</div>
+      </div>
+      <!-- 右侧 -->
+      <div style="flex:1; min-width:0;">
+        <div style="font-size:22px; font-weight:700; color:#1a1a1a;">用户名</div>
+        <div style="font-size:12px; color:#e74c3c; letter-spacing:2px; font-weight:500; margin-top:2px;">—— 同好会成员 ——</div>
+        <!-- 签名 -->
+        <div style="font-size:12px; color:#888; margin-top:8px; border-left:2px solid #e0e0e0; padding-left:10px; line-height:1.5;">
+          "今日也在寻找好看的视觉小说"
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 所属同好会（含头像） ===== -->
+    <div style="margin:0 16px; border-radius:12px; border:1px solid #e8e8e8; overflow:hidden;">
+      <!-- 标题栏 -->
+      <div style="background:#f8f8f8; padding:8px 14px; font-size:11px; font-weight:600; color:#888; letter-spacing:2px; border-bottom:1px solid #e8e8e8;">
+        所属同好会
+      </div>
+      <!-- 列表 -->
+      <div style="padding:4px 0;">
+
+        <!-- 条目 1：会长 -->
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid #f5f5f5;">
+          <!-- 同好会头像（圆形） -->
+          <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid #e8e8e8; flex-shrink:0; background:linear-gradient(135deg,#ffcdc9,#e74c3c); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:600; overflow:hidden; background:#f0f0f0;">
+            <span style="color:#888; font-size:12px;">X</span>
+          </div>
+          <!-- 名称 -->
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">XX大学视觉小说同好会</div>
+            <div style="font-size:11px; color:#999; margin-top:1px;">2024.03 加入</div>
+          </div>
+          <!-- 角色标签（会长 - 橙色） -->
+          <span style="font-size:10px; padding:3px 10px; border-radius:6px; background:rgba(255,152,0,0.12); color:#ff9800; font-weight:600; border:1px solid rgba(255,152,0,0.2); flex-shrink:0;">会长</span>
+        </div>
+
+        <!-- 条目 2：管理员 -->
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px; border-bottom:1px solid #f5f5f5;">
+          <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid #e8e8e8; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:600; background:#f0f0f0;">
+            <span style="color:#888; font-size:12px;">G</span>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Galgame 同好联盟</div>
+            <div style="font-size:11px; color:#999; margin-top:1px;">2025.01 加入</div>
+          </div>
+          <!-- 管理员 - 蓝色 -->
+          <span style="font-size:10px; padding:3px 10px; border-radius:6px; background:rgba(33,150,243,0.12); color:#2196f3; font-weight:600; border:1px solid rgba(33,150,243,0.2); flex-shrink:0;">管理员</span>
+        </div>
+
+        <!-- 条目 3：普通成员 -->
+        <div style="display:flex; align-items:center; gap:12px; padding:10px 14px;">
+          <div style="width:36px; height:36px; border-radius:50%; overflow:hidden; border:1px solid #e8e8e8; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:600; background:#f0f0f0;">
+            <span style="color:#888; font-size:12px;">V</span>
+          </div>
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:13px; font-weight:600; color:#1a1a1a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">VN 同好交流群</div>
+            <div style="font-size:11px; color:#999; margin-top:1px;">2025.03 加入</div>
+          </div>
+          <!-- 成员 - 绿色 -->
+          <span style="font-size:10px; padding:3px 10px; border-radius:6px; background:rgba(76,175,80,0.12); color:#4caf50; font-weight:600; border:1px solid rgba(76,175,80,0.2); flex-shrink:0;">成员</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===== 统计 ===== -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px;">
+      <div style="background:#f8f8f8; border-radius:10px; padding:10px 4px; text-align:center;">
+        <div style="font-size:18px; font-weight:700; color:#e74c3c;">3</div>
+        <div style="font-size:11px; color:#888; margin-top:2px;">同好会</div>
+      </div>
+      <div style="background:#f8f8f8; border-radius:10px; padding:10px 4px; text-align:center;">
+        <div style="font-size:18px; font-weight:700; color:#e74c3c;">1</div>
+        <div style="font-size:11px; color:#888; margin-top:2px;">刊物</div>
+      </div>
+      <div style="background:#f8f8f8; border-radius:10px; padding:10px 4px; text-align:center;">
+        <div style="font-size:18px; font-weight:700; color:#e74c3c;">3</div>
+        <div style="font-size:11px; color:#888; margin-top:2px;">活动</div>
+      </div>
+      <div style="background:#f8f8f8; border-radius:10px; padding:10px 4px; text-align:center;">
+        <div style="font-size:18px; font-weight:700; color:#e74c3c;">45</div>
+        <div style="font-size:11px; color:#888; margin-top:2px;">天</div>
+      </div>
+    </div>
+
+    <!-- ===== 底部 ===== -->
+    <div style="padding:10px 20px; background:#f8f8f8; font-size:12px; color:#999; display:flex; justify-content:space-between; border-top:1px solid #e8e8e8;">
+      <span>2024.03.15 加入</span>
+      <span>3天前活跃</span>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>设计要点总结</h3>
+  <div style="background:#f8f8f8; padding:14px 18px; border-radius:12px; font-size:12px; line-height:1.8; color:#333;">
+    <div>✅ 同好会条目显示 <strong>圆形头像</strong>（有图则显示图片，无图显示首字母）</div>
+    <div>✅ 角色标签颜色对应：<span style="color:#4caf50;">成员🟢</span> <span style="color:#2196f3;">管理员🔵</span> <span style="color:#ff9800;">会长🟠</span></div>
+    <div>✅ 去掉了 progress 条、bio、emoji、成就</div>
+    <div>✅ 使用站点配色：<span style="color:#e74c3c;">红</span> + <span style="color:#888;">灰</span> + 白</div>
+    <div>✅ 信息紧凑，一个卡片展示所有核心数据</div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>这个最终版可以吗？</h3>
+  <p class="subtitle">没问题就写设计文档进入实装了</p>
+</div>

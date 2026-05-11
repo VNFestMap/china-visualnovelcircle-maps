@@ -1,0 +1,148 @@
+<h2>档案面板 — 布局方案</h2>
+<p class="subtitle">去掉简介和进度条后，这是几个方向，看看哪个更合你意</p>
+
+<div class="section">
+  <h3>方案 A：学生证卡片</h3>
+  <p class="subtitle">紧凑 ID 卡布局，左头像右信息，底部统计</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border:1px solid #e0e0e0; border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+      <div style="height:3px; background:linear-gradient(90deg,#e74c3c,#c0392b);"></div>
+      <div style="padding:20px;">
+        <div style="display:flex; gap:16px; align-items:center;">
+          <!-- 头像 -->
+          <div style="width:72px; height:72px; border-radius:50%; border:3px solid #e74c3c; padding:2px; flex-shrink:0; overflow:hidden;">
+            <div style="width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:24px; font-weight:700;">U</div>
+          </div>
+          <!-- 信息 -->
+          <div style="flex:1; min-width:0;">
+            <div style="font-size:20px; font-weight:700;">用户名</div>
+            <div style="font-size:12px; color:#e74c3c; letter-spacing:2px; margin:2px 0 4px;">—— 同好会成员 ——</div>
+            <!-- 所属同好会标签 -->
+            <div style="display:flex; gap:4px; flex-wrap:wrap;">
+              <span style="font-size:10px; padding:2px 8px; border-radius:8px; background:rgba(231,76,60,0.1); color:#e74c3c; border:1px solid rgba(231,76,60,0.2);">XX大学同好会</span>
+            </div>
+          </div>
+        </div>
+        <!-- 分隔线 -->
+        <div style="height:1px; background:#e0e0e0; margin:16px 0;"></div>
+        <!-- 统计 -->
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; text-align:center;">
+          <div><span style="display:block; font-size:20px; font-weight:700; color:#e74c3c;">2</span><span style="font-size:10px; color:#888;">同好会</span></div>
+          <div><span style="display:block; font-size:20px; font-weight:700; color:#e74c3c;">1</span><span style="font-size:10px; color:#888;">刊物</span></div>
+          <div><span style="display:block; font-size:20px; font-weight:700; color:#e74c3c;">3</span><span style="font-size:10px; color:#888;">活动</span></div>
+          <div><span style="display:block; font-size:20px; font-weight:700; color:#e74c3c;">45</span><span style="font-size:10px; color:#888;">天</span></div>
+        </div>
+        <!-- 底部信息 -->
+        <div style="display:flex; justify-content:space-between; margin-top:12px; font-size:11px; color:#999;">
+          <span>加入时间: 2025-08-15</span>
+          <span>上次活跃: 3天前</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 B：角色档案卡（Galgame风格）</h3>
+  <p class="subtitle">更像游戏角色档案，属性值 + 所属 + 个人签名</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border:2px solid #e74c3c; border-radius:16px; overflow:hidden; box-shadow:0 4px 20px rgba(231,76,60,0.15);">
+      <!-- Header 装饰 -->
+      <div style="background:linear-gradient(135deg,#c0392b,#e74c3c); padding:20px; color:white; text-align:center;">
+        <div style="width:80px; height:80px; border-radius:50%; border:3px solid rgba(255,255,255,0.6); margin:0 auto 10px; overflow:hidden; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700;">U</div>
+        <div style="font-size:22px; font-weight:700;">用户名</div>
+        <div style="font-size:12px; opacity:0.8; letter-spacing:2px; margin-top:2px;">—— 同好会成员 ——</div>
+      </div>
+      <!-- Body -->
+      <div style="padding:16px 20px; background:white;">
+        <!-- 所属 -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px; font-weight:600; color:#999; letter-spacing:2px; margin-bottom:4px;">所属</div>
+          <div style="display:flex; gap:4px; flex-wrap:wrap;">
+            <span style="font-size:11px; padding:2px 10px; border-radius:8px; background:rgba(231,76,60,0.08); color:#e74c3c; border:1px solid rgba(231,76,60,0.15);">XX大学同好会</span>
+          </div>
+        </div>
+        <!-- 属性值 -->
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px; font-weight:600; color:#999; letter-spacing:2px; margin-bottom:6px;">记录</div>
+          <div style="display:grid; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+              <span style="width:36px; color:#888;">同好会</span>
+              <div style="flex:1; height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:40%; height:100%; background:linear-gradient(90deg,#e74c3c,#e67e22); border-radius:3px;"></div></div>
+              <span style="font-weight:600; color:#e74c3c;">2</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+              <span style="width:36px; color:#888;">刊物</span>
+              <div style="flex:1; height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:20%; height:100%; background:linear-gradient(90deg,#3498db,#2ecc71); border-radius:3px;"></div></div>
+              <span style="font-weight:600; color:#27ae60;">1</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px;">
+              <span style="width:36px; color:#888;">活动</span>
+              <div style="flex:1; height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:60%; height:100%; background:linear-gradient(90deg,#9b59b6,#e74c3c); border-radius:3px;"></div></div>
+              <span style="font-weight:600; color:#8e44ad;">3</span>
+            </div>
+          </div>
+        </div>
+        <!-- 社交 & 时间 -->
+        <div style="display:flex; gap:12px; font-size:11px; color:#999; border-top:1px solid #f0f0f0; padding-top:12px;">
+          <span>📅 2025-08-15 加入</span>
+          <span>🔗 QQ 已绑定</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 C：极简仪表盘</h3>
+  <p class="subtitle">干净简洁，突出头像和关键数据</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border-radius:16px; box-shadow:0 2px 12px rgba(0,0,0,0.08); overflow:hidden;">
+      <!-- 大背景 -->
+      <div style="background:linear-gradient(135deg, #fdf2f2, #fff); padding:24px; text-align:center;">
+        <div style="width:72px; height:72px; border-radius:50%; margin:0 auto 12px; overflow:hidden; border:3px solid #e74c3c; padding:2px;">
+          <div style="width:100%; height:100%; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:24px; font-weight:700;">U</div>
+        </div>
+        <div style="font-size:20px; font-weight:700;">用户名</div>
+        <div style="font-size:12px; color:#e74c3c; letter-spacing:2px;">同好会成员</div>
+        <div style="display:flex; justify-content:center; gap:6px; margin-top:8px; flex-wrap:wrap;">
+          <span style="font-size:10px; padding:2px 10px; border-radius:8px; background:#f5f5f5; color:#888; border:1px solid #e0e0e0;">XX大学同好会</span>
+        </div>
+      </div>
+      <!-- 数据行 -->
+      <div style="display:flex; border-top:1px solid #f0f0f0; background:white;">
+        <div style="flex:1; padding:14px 0; text-align:center; border-right:1px solid #f0f0f0;">
+          <div style="font-size:18px; font-weight:700; color:#e74c3c;">2</div>
+          <div style="font-size:10px; color:#999;">同好会</div>
+        </div>
+        <div style="flex:1; padding:14px 0; text-align:center; border-right:1px solid #f0f0f0;">
+          <div style="font-size:18px; font-weight:700; color:#e74c3c;">1</div>
+          <div style="font-size:10px; color:#999;">刊物</div>
+        </div>
+        <div style="flex:1; padding:14px 0; text-align:center; border-right:1px solid #f0f0f0;">
+          <div style="font-size:18px; font-weight:700; color:#e74c3c;">3</div>
+          <div style="font-size:10px; color:#999;">活动</div>
+        </div>
+        <div style="flex:1; padding:14px 0; text-align:center;">
+          <div style="font-size:18px; font-weight:700; color:#e74c3c;">45</div>
+          <div style="font-size:10px; color:#999;">天</div>
+        </div>
+      </div>
+      <!-- 底部 -->
+      <div style="padding:10px 20px; background:#fafafa; font-size:11px; color:#999; display:flex; justify-content:space-between; border-top:1px solid #f0f0f0;">
+        <span>📅 2025-08-15 加入</span>
+        <span>🟢 在线</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>你倾向于哪个方向？</h3>
+  <p class="subtitle">或者混合几个方案的优点也行，告诉我你的想法</p>
+  <ul>
+    <li><strong>A - 学生证</strong>：紧凑 ID 卡风格，信息密度高</li>
+    <li><strong>B - 角色档案</strong>：Galgame 角色属性风格，有视觉冲击力</li>
+    <li><strong>C - 极简</strong>：干净清爽，突出头像和数据</li>
+  </ul>
+</div>

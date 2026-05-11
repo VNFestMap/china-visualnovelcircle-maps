@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>审核中心 - 管理后台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f2f5;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container { max-width: 1200px; margin: 0 auto; }
+
+/* 顶部导航 */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border-radius: 16px;
+  color: white;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.top-bar h1 {
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-bar .header-links {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.top-bar .header-links a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  transition: background 0.2s;
+}
+
+.top-bar .header-links a:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+/* 统计 */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 120px;
+  background: white;
+  border-radius: 12px;
+  padding: 14px 20px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.stat-card .num {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.stat-card .label {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* Tab 导航 */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: white;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { background: #f5f5f5; }
+.tab-btn.active {
+  background: #1a1a2e;
+  color: white;
+}
+
+/* 列表 */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-left: 4px solid #f59e0b;
+  transition: all 0.2s;
+}
+
+.card.approved {
+  border-left-color: #10b981;
+  opacity: 0.7;
+  background: #f0fdf4;
+}
+
+.card.rejected {
+  border-left-color: #ef4444;
+  opacity: 0.7;
+  background: #fef2f2;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.badge {
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.badge-pending { background: #f59e0b; color: white; }
+.badge-approved { background: #10b981; color: white; }
+.badge-rejected { background: #ef4444; color: white; }
+
+.card-body {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.7;
+}
+
+.card-body .row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.card-body .label {
+  color: #999;
+  min-width: 70px;
+  flex-shrink: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 7px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-approve { background: #10b981; color: white; }
+.btn-approve:hover { background: #059669; }
+.btn-reject { background: #ef4444; color: white; }
+.btn-reject:hover { background: #dc2626; }
+.btn-delete { background: #9ca3af; color: white; }
+.btn-delete:hover { background: #6b7280; }
+.btn-refresh { background: #3b82f6; color: white; }
+.btn-refresh:hover { background: #2563eb; }
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+/* Toast 消息 */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #10b981; }
+.toast.error { background: #ef4444; }
+
+@media (max-width: 640px) {
+  body { padding: 12px; }
+  .top-bar { padding: 14px 16px; }
+  .top-bar h1 { font-size: 18px; }
+  .stat-card { min-width: 80px; padding: 10px 12px; }
+  .stat-card .num { font-size: 22px; }
+  .card { padding: 14px 16px; }
+  .tabs { padding: 3px; }
+  .tab-btn { padding: 8px 12px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="top-bar">
+    <h1>📋 审核中心</h1>
+    <div class="header-links">
+      <a href="submissions.html">同好会申请旧版</a>
+      <a href="submissions_event.html">活动申请旧版</a>
+      <a href="events.php">活动管理</a>
+      <a href="../index.html">← 返回地图</a>
+    </div>
+  </div>
+
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="num" id="statPending">0</div><div class="label">待审核</div></div>
+    <div class="stat-card"><div class="num" id="statApproved">0</div><div class="label">已通过</div></div>
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总计</div></div>
+  </div>
+
+  <div class="tabs" id="tabBar">
+    <button class="tab-btn active" data-tab="club">🏫 同好会申请</button>
+    <button class="tab-btn" data-tab="event">📅 活动申请</button>
+    <button class="tab-btn" data-tab="publication">📖 刊物征集</button>
+    <button class="tab-btn" data-tab="membership">👥 成员绑定</button>
+  </div>
+
+  <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
+    <button class="btn btn-refresh" onclick="loadCurrentTab()">🔄 刷新</button>
+  </div>
+
+  <div id="listContainer" class="list"><div class="empty">加载中...</div></div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ====== 权限与数据 ======
+const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+let currentUser = null;
+let currentTab = 'club';
+
+// 各 tab 数据
+let clubSubmissions = [];
+let eventSubmissions = [];
+let membershipPending = [];
+let membershipAll = []; // 已审批的记录缓存
+
+// 同好会名称映射 {club_id: name}
+let clubNameMap = {};
+
+// ====== 工具 ======
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  try { return new Date(d).toISOString().split('T')[0]; } catch { return d; }
+}
+
+// ====== 登录检查 ======
+async function checkAuth() {
+  try {
+    const r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.logged_in) { window.location.href = '../index.html?need_login=1'; return false; }
+    if ((ROLE_LEVEL[data.user.role] ?? -1) < 2) { alert('权限不足'); window.location.href = '../index.html'; return false; }
+    currentUser = data.user;
+    return true;
+  } catch {
+    window.location.href = '../index.html';
+    return false;
+  }
+}
+
+// ====== 加载同好会名称映射 ======
+let clubNameMapCn = {};
+let clubNameMapJp = {};
+async function loadClubNames() {
+  try {
+    const [cn, jp] = await Promise.all([
+      fetch('../data/clubs.json?t=' + Date.now()).then(r => r.json()),
+      fetch('../data/clubs_japan.json?t=' + Date.now()).then(r => r.json())
+    ]);
+    clubNameMapCn = {};
+    clubNameMapJp = {};
+    (cn.data || []).forEach(c => { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
+    (jp.data || []).forEach(c => { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
+    // 合并映射（中文优先）作为兼容备选
+    clubNameMap = { ...clubNameMapJp, ...clubNameMapCn };
+  } catch { clubNameMapCn = {}; clubNameMapJp = {}; clubNameMap = {}; }
+}
+
+// ====== Tab 1: 同好会申请 ======
+async function loadClubSubmissions() {
+  try {
+    const r = await fetch('../data/submissions.json?t=' + Date.now());
+    clubSubmissions = r.ok ? (await r.json()) : [];
+    if (!Array.isArray(clubSubmissions)) clubSubmissions = [];
+  } catch { clubSubmissions = []; }
+}
+
+async function saveClubSubmissions() {
+  try {
+    await fetch('../api/submit.php?action=save', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(clubSubmissions)
+    });
+  } catch { showToast('保存失败', 'error'); }
+}
+
+async function approveClub(id) {
+  const idx = clubSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const sub = clubSubmissions[idx];
+  const clubData = {
+    name: sub.name, school: sub.school || sub.name, info: sub.info,
+    type: sub.type || 'school', created_at: sub.created_at || '', remark: sub.remark || '',
+    verified: 1, country: sub.country
+  };
+  if (sub.country === 'japan') { clubData.prefecture = sub.prefecture; clubData.province = sub.prefecture; }
+  else { clubData.province = sub.province; }
+  const apiUrl = sub.country === 'japan' ? '../api/clubs_japan.php' : '../api/clubs.php';
+  try {
+    const r = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(clubData) });
+    const data = await r.json();
+    if (data.success) {
+      clubSubmissions[idx].status = 'approved';
+      clubSubmissions[idx].approved_at = new Date().toISOString();
+      await saveClubSubmissions();
+      showToast('✅ 已通过：' + sub.name, 'success');
+      loadCurrentTab();
+    } else { showToast('审批失败：' + (data.message || ''), 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function rejectClub(id) {
+  if (!confirm('确定拒绝这条提交吗？')) return;
+  const idx = clubSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  clubSubmissions[idx].status = 'rejected';
+  clubSubmissions[idx].rejected_at = new Date().toISOString();
+  await saveClubSubmissions();
+  showToast('已拒绝', 'success');
+  loadCurrentTab();
+}
+
+async function deleteClubSubmission(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  clubSubmissions = clubSubmissions.filter(s => s.id !== id);
+  await saveClubSubmissions();
+  loadCurrentTab();
+}
+
+// ====== Tab 2: 活动申请 ======
+async function loadEventSubmissions() {
+  try {
+    const r = await fetch('../data/submissions_event.json?t=' + Date.now());
+    eventSubmissions = r.ok ? (await r.json()) : [];
+    if (!Array.isArray(eventSubmissions)) eventSubmissions = [];
+  } catch { eventSubmissions = []; }
+}
+
+async function saveEventSubmissions() {
+  try {
+    await fetch('../api/submit_event.php?action=save', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(eventSubmissions)
+    });
+  } catch { showToast('保存失败', 'error'); }
+}
+
+async function approveEvent(id) {
+  const idx = eventSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const sub = eventSubmissions[idx];
+  const eventData = {
+    id: sub.id, event: sub.event, date: sub.date, image: sub.image || '',
+    raw_text: sub.clubName + (sub.location ? ' @ ' + sub.location : ''),
+    offical: 0, description: sub.description, link: sub.link || ''
+  };
+  try {
+    const r = await fetch('../api/events.php', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ events: [eventData] })
+    });
+    const data = await r.json();
+    if (data.success !== false) {
+      eventSubmissions[idx].status = 'approved';
+      await saveEventSubmissions();
+      showToast('✅ 活动已通过：' + sub.event, 'success');
+      loadCurrentTab();
+    } else { showToast('审批失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function rejectEvent(id) {
+  if (!confirm('确定拒绝这个活动吗？')) return;
+  const idx = eventSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  eventSubmissions[idx].status = 'rejected';
+  await saveEventSubmissions();
+  loadCurrentTab();
+}
+
+async function deleteEventSubmission(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  eventSubmissions = eventSubmissions.filter(s => s.id !== id);
+  await saveEventSubmissions();
+  loadCurrentTab();
+}
+
+// ====== Tab 3: 成员绑定 ======
+async function loadMembershipData() {
+  try {
+    const r = await fetch('../api/membership.php?action=pending', { credentials: 'same-origin' });
+    const data = await r.json();
+    // pending 接口返回所有状态？实际上只返回 pending 状态的
+    // 我们需要加载所有已审批的记录，这里先只加载 pending
+    membershipPending = data.success ? (data.memberships || []) : [];
+
+    // 对于已通过/已拒绝的记录，API 没有直接提供列表，我们在本地缓存
+    // 但可以通过多次调用来获取不同状态... 简化处理：只展示 pending
+    // 补充已审批的展示：记录审批操作后的状态
+  } catch { membershipPending = []; }
+}
+
+async function approveMembership(id) {
+  try {
+    const r = await fetch('../api/membership.php?action=approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 已批准绑定', 'success');
+      loadCurrentTab();
+    } else { showToast(data.message || '审批失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function rejectMembership(id) {
+  if (!confirm('确定拒绝此绑定申请吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('已拒绝', 'success');
+      loadCurrentTab();
+    } else { showToast(data.message || '操作失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+// ====== Tab 4: 刊物征集 ======
+let publicationSubmissions = [];
+
+async function loadPublicationSubmissions() {
+  try {
+    const r = await fetch('../data/submissions_publication.json?t=' + Date.now());
+    publicationSubmissions = r.ok ? (await r.json()) : [];
+    if (!Array.isArray(publicationSubmissions)) publicationSubmissions = [];
+  } catch { publicationSubmissions = []; }
+}
+
+async function savePublicationSubmissions() {
+  try {
+    await fetch('../api/submit_publication.php?action=save', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(publicationSubmissions)
+    });
+  } catch { showToast('保存失败', 'error'); }
+}
+
+async function approvePublication(id) {
+  const idx = publicationSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  const sub = publicationSubmissions[idx];
+  const pubData = {
+    clubName: sub.clubName,
+    publicationName: sub.publicationName,
+    status: 'writing',
+    submitContact: sub.submitContact || '',
+    submitLink: sub.submitLink || '',
+    deadline: sub.deadline || '',
+    description: sub.description || '',
+    image_url: sub.image_url || ''
+  };
+  try {
+    const r = await fetch('../api/publications.php', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pubData)
+    });
+    const data = await r.json();
+    if (data.success) {
+      publicationSubmissions[idx].status = 'approved';
+      publicationSubmissions[idx].approved_at = new Date().toISOString();
+      publicationSubmissions[idx].publication_id = data.data?.id || null;
+      await savePublicationSubmissions();
+      showToast('✅ 已通过：' + sub.publicationName, 'success');
+      loadCurrentTab();
+    } else { showToast('审批失败：' + (data.message || ''), 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function rejectPublication(id) {
+  if (!confirm('确定拒绝这条投稿吗？')) return;
+  const idx = publicationSubmissions.findIndex(s => s.id === id);
+  if (idx === -1) return;
+  publicationSubmissions[idx].status = 'rejected';
+  publicationSubmissions[idx].rejected_at = new Date().toISOString();
+  await savePublicationSubmissions();
+  showToast('已拒绝', 'success');
+  loadCurrentTab();
+}
+
+async function deletePublicationSubmission(id) {
+  if (!confirm('确定删除这条记录吗？')) return;
+  publicationSubmissions = publicationSubmissions.filter(s => s.id !== id);
+  await savePublicationSubmissions();
+  loadCurrentTab();
+}
+
+function renderPublicationTab(filter) {
+  const filtered = publicationSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
+  const container = document.getElementById('listContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    updateStats(publicationSubmissions);
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const imgHtml = item.image_url
+      ? `<img src="${escapeHtml(item.image_url)}" style="width:100%;max-height:300px;object-fit:contain;border-radius:12px;margin-bottom:12px;background:var(--md-surface-container);">`
+      : '';
+    return `
+      <div class="card ${item.status || 'pending'}">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(item.publicationName)}</span>
+          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+        </div>
+        <div class="card-body">
+          ${imgHtml}
+          <div class="row"><span class="label">🏫 同好会：</span>${escapeHtml(item.clubName)}</div>
+          <div class="row"><span class="label">📧 联系方式：</span>${escapeHtml(item.submitContact || '未填写')}</div>
+          ${item.deadline ? `<div class="row"><span class="label">⏰ 截止：</span>${escapeHtml(item.deadline)}</div>` : ''}
+          <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
+          ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">📝 介绍：</span>${escapeHtml(item.description)}</div>` : ''}
+        </div>
+        <div class="card-actions">
+          ${(item.status || 'pending') === 'pending' ? `
+            <button class="btn btn-approve" onclick="approvePublication(${item.id})">✓ 通过</button>
+            <button class="btn btn-reject" onclick="rejectPublication(${item.id})">✗ 拒绝</button>
+          ` : ''}
+          <button class="btn btn-delete" onclick="deletePublicationSubmission(${item.id})">🗑️ 删除</button>
+        </div>
+      </div>`;
+  }).join('');
+  updateStats(publicationSubmissions);
+}
+
+// ====== 渲染 ======
+function renderClubTab(filter) {
+  const filtered = clubSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
+  const container = document.getElementById('listContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    updateStats(clubSubmissions);
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const countryTag = item.country === 'japan' ? '🇯🇵' : '🇨🇳';
+    return `
+      <div class="card ${item.status || 'pending'}">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(item.name)} ${countryTag}</span>
+          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+        </div>
+        <div class="card-body">
+          <div class="row"><span class="label">📍 地区：</span>${escapeHtml(item.country === 'japan' ? item.prefecture : item.province)}</div>
+          <div class="row"><span class="label">📞 联系方式：</span>${escapeHtml(item.info)}</div>
+          <div class="row"><span class="label">📧 提交者：</span>${escapeHtml(item.submitter || '匿名')}</div>
+          <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
+        </div>
+        <div class="card-actions">
+          ${(item.status || 'pending') === 'pending' ? `
+            <button class="btn btn-approve" onclick="approveClub(${item.id})">✓ 通过</button>
+            <button class="btn btn-reject" onclick="rejectClub(${item.id})">✗ 拒绝</button>
+          ` : ''}
+          <button class="btn btn-delete" onclick="deleteClubSubmission(${item.id})">🗑️ 删除</button>
+        </div>
+      </div>`;
+  }).join('');
+  updateStats(clubSubmissions);
+}
+
+function renderEventTab(filter) {
+  const filtered = eventSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
+  const container = document.getElementById('listContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    updateStats(eventSubmissions);
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => `
+    <div class="card ${item.status || 'pending'}">
+      <div class="card-header">
+        <span class="card-title">${escapeHtml(item.event)}</span>
+        <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="label">📅 日期：</span>${escapeHtml(item.date)}</div>
+        <div class="row"><span class="label">🏫 主办：</span>${escapeHtml(item.clubName)}</div>
+        <div class="row"><span class="label">📍 地点：</span>${escapeHtml(item.location || '未填写')}</div>
+        <div class="row"><span class="label">📧 提交者：</span>${escapeHtml(item.submitter || '匿名')}</div>
+        <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
+        ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">📝 简介：</span>${escapeHtml(item.description)}</div>` : ''}
+      </div>
+      <div class="card-actions">
+        ${(item.status || 'pending') === 'pending' ? `
+          <button class="btn btn-approve" onclick="approveEvent(${item.id})">✓ 通过</button>
+          <button class="btn btn-reject" onclick="rejectEvent(${item.id})">✗ 拒绝</button>
+        ` : ''}
+        <button class="btn btn-delete" onclick="deleteEventSubmission(${item.id})">🗑️ 删除</button>
+      </div>
+    </div>`).join('');
+  updateStats(eventSubmissions);
+}
+
+function renderMembershipTab(filter) {
+  const filtered = membershipPending.filter(s => (filter === 'all' ? true : s.status === filter));
+  const container = document.getElementById('listContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无待审批的成员绑定申请</div>';
+    updateStats(membershipPending);
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const nameMap = item.country === 'japan' ? clubNameMapJp : clubNameMapCn;
+    const clubName = nameMap[item.club_id] || clubNameMap[item.club_id] || ('同好会 #' + item.club_id);
+    const applyRoleText = item.apply_role === 'representative' ? '负责人' : item.apply_role === 'manager' ? '管理员' : '成员';
+    return `
+      <div class="card ${item.status || 'pending'}">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(item.username)} → ${escapeHtml(clubName)}</span>
+          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+        </div>
+        <div class="card-body">
+          <div class="row"><span class="label">🏫 同好会 ID：</span>#${item.club_id}</div>
+          <div class="row"><span class="label">👤 申请身份：</span>${applyRoleText}</div>
+          <div class="row"><span class="label">💬 QQ：</span>${escapeHtml(item.qq_account || '未填写')}</div>
+          <div class="row"><span class="label">🎓 学生：</span>${item.is_student == 1 ? '是' : '否'}</div>
+          <div class="row"><span class="label">⏰ 申请时间：</span>${formatDate(item.joined_at)}</div>
+        </div>
+        <div class="card-actions">
+          ${(item.status || 'pending') === 'pending' ? `
+            <button class="btn btn-approve" onclick="approveMembership(${item.id})">✓ 批准</button>
+            <button class="btn btn-reject" onclick="rejectMembership(${item.id})">✗ 拒绝</button>
+          ` : ''}
+        </div>
+      </div>`;
+  }).join('');
+  updateStats(membershipPending);
+}
+
+function statusText(status) {
+  return status === 'approved' ? '✅ 已通过' : status === 'rejected' ? '❌ 已拒绝' : '⏳ 待审核';
+}
+
+function updateStats(data) {
+  const pending = data.filter(s => (s.status || 'pending') === 'pending').length;
+  const approved = data.filter(s => s.status === 'approved').length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statTotal').textContent = data.length;
+}
+
+// ====== Tab 切换与加载 ======
+const FILTERS = { club: 'all', event: 'all', publication: 'all', membership: 'pending' };
+
+async function loadCurrentTab() {
+  await loadClubNames();
+  const container = document.getElementById('listContainer');
+  container.innerHTML = '<div class="empty">加载中...</div>';
+
+  if (currentTab === 'club') {
+    await loadClubSubmissions();
+    renderClubTab(FILTERS.club);
+  } else if (currentTab === 'event') {
+    await loadEventSubmissions();
+    renderEventTab(FILTERS.event);
+  } else if (currentTab === 'publication') {
+    await loadPublicationSubmissions();
+    renderPublicationTab(FILTERS.publication);
+  } else if (currentTab === 'membership') {
+    await loadMembershipData();
+    renderMembershipTab(FILTERS.membership);
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  loadCurrentTab();
+}
+
+// ====== 初始化 ======
+document.getElementById('tabBar').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (btn) switchTab(btn.dataset.tab);
+});
+
+(async () => {
+  if (await checkAuth()) {
+    loadCurrentTab();
+  }
+})();
+</script>
+</body>
+</html>

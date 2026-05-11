@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>同好会管理后台 - Galgame 同好会地图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 30%, #16213e 60%, #0d1b3e 100%);
+  --card-bg: rgba(255,255,255,0.06);
+  --card-border: rgba(255,255,255,0.08);
+  --card-hover-border: rgba(233,30,99,0.3);
+  --glass-blur: blur(16px);
+  --text-primary: #f0e6ff;
+  --text-secondary: rgba(240,230,255,0.65);
+  --text-muted: rgba(240,230,255,0.35);
+  --accent-pink: #e91e63;
+  --accent-purple: #9b59b6;
+  --accent-gold: #ffd700;
+  --accent-green: #4caf50;
+  --accent-orange: #ff9800;
+  --accent-blue: #64b5f6;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
+  --radius-card: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme='light'] {
+  --bg-gradient: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 30%, #e8eaf6 60%, #fce4ec 100%);
+  --card-bg: rgba(255,255,255,0.7);
+  --card-border: rgba(0,0,0,0.08);
+  --card-hover-border: rgba(233,30,99,0.2);
+  --text-primary: #1a1a2e;
+  --text-secondary: rgba(26,26,46,0.65);
+  --text-muted: rgba(26,26,46,0.35);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.5s ease;
+}
+
+/* Decorative background orbs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(233,30,99,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+}
+body::after {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(155,89,182,0.08) 0%, transparent 70%);
+  bottom: -150px; left: -150px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 20px 28px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f0e6ff, #e91e63);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-link {
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+}
+.header-link:hover {
+  background: rgba(233,30,99,0.15);
+  color: var(--accent-pink);
+  border-color: var(--accent-pink);
+}
+
+/* ── Club Selector ── */
+.club-selector {
+  margin-bottom: 20px;
+}
+.club-selector select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(240,230,255,0.5)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+}
+.club-selector select:focus {
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 3px rgba(233,30,99,0.15);
+}
+.club-selector select option {
+  background: #1a0a2e;
+  color: #f0e6ff;
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  text-align: center;
+  transition: var(--transition);
+}
+.stat-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-2px);
+}
+
+.stat-card .num {
+  font-size: 30px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.stat-card .label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.04);
+}
+.tab-btn.active {
+  background: rgba(233,30,99,0.15);
+  color: var(--accent-pink);
+  box-shadow: 0 2px 8px rgba(233,30,99,0.1);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-glass {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+}
+.btn-glass:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.btn-pink {
+  background: linear-gradient(135deg, var(--accent-pink), #c2185b);
+  color: white;
+  box-shadow: 0 4px 16px rgba(233,30,99,0.25);
+}
+.btn-pink:hover {
+  box-shadow: 0 6px 24px rgba(233,30,99,0.35);
+}
+
+.btn-approve {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.25);
+}
+.btn-approve:hover { box-shadow: 0 6px 20px rgba(76,175,80,0.35); }
+
+.btn-reject {
+  background: linear-gradient(135deg, #ef5350, #c62828);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239,83,80,0.25);
+}
+.btn-reject:hover { box-shadow: 0 6px 20px rgba(239,83,80,0.35); }
+
+.btn-sm {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+/* ── List ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+}
+.card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-body .row {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-body .row .label {
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 68px;
+  flex-shrink: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.card-actions .btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  min-width: 80px;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-pending { background: rgba(255,152,0,0.15); color: var(--accent-orange); border: 1px solid rgba(255,152,0,0.2); }
+.badge-approved { background: rgba(76,175,80,0.15); color: var(--accent-green); border: 1px solid rgba(76,175,80,0.2); }
+.badge-rejected { background: rgba(239,83,80,0.15); color: #ef5350; border: 1px solid rgba(239,83,80,0.2); }
+
+
+/* ── Feature Action Cards ── */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px 16px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+.feature-card:hover {
+  border-color: var(--accent-pink);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(233,30,99,0.12);
+}
+.feature-card .icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.feature-card .label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+/* ── Member list inside cards ── */
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+.member-item:last-child { border-bottom: none; }
+
+.member-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--card-bg);
+}
+
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
+.member-info .name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.member-info .detail {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0 24px 20px;
+}
+
+.modal-footer .btn {
+  min-width: 100px;
+  text-align: center;
+}
+
+/* ── Form ── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.5px;
+}
+
+.form-input {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+.form-input:focus {
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 3px rgba(233,30,99,0.12);
+}
+
+.form-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── User Cards (replaces old user-table) ── */
+.user-list-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+  position: relative;
+}
+.user-card:hover {
+  border-color: var(--card-hover-border);
+}
+
+.user-card .card-id {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+  color: #fff;
+}
+
+.user-card .info {
+  flex: 1;
+  min-width: 0;
+}
+.user-card .info .name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.user-card .info .sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-card .badge-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.user-card .club-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+
+.club-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px 2px 6px;
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: 500;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.club-tag .ct-role {
+  font-size: 9px;
+  font-weight: 600;
+  padding: 0 5px;
+  border-radius: 10px;
+}
+.club-tag .ct-role.representative { background: rgba(255,215,0,0.15); color: var(--accent-gold); }
+.club-tag .ct-role.manager { background: rgba(100,181,246,0.15); color: var(--accent-blue); }
+.club-tag .ct-role.member { background: rgba(76,175,80,0.15); color: var(--accent-green); }
+
+.user-card .actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Badges for role/status (standalone, not scoped under .user-table) */
+.badge-role {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-role.super_admin { background: rgba(233,30,99,0.12); color: var(--accent-pink); border: 1px solid rgba(233,30,99,0.15); }
+.badge-role.representative { background: rgba(255,215,0,0.12); color: var(--accent-gold); border: 1px solid rgba(255,215,0,0.15); }
+.badge-role.manager { background: rgba(100,181,246,0.12); color: var(--accent-blue); border: 1px solid rgba(100,181,246,0.15); }
+.badge-role.member { background: rgba(76,175,80,0.12); color: var(--accent-green); border: 1px solid rgba(76,175,80,0.15); }
+.badge-role.visitor { background: rgba(255,255,255,0.04); color: var(--text-muted); border: 1px solid var(--card-border); }
+
+.badge-status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+}
+.badge-status.active { background: rgba(76,175,80,0.12); color: var(--accent-green); border: 1px solid rgba(76,175,80,0.15); }
+.badge-status.disabled { background: rgba(255,152,0,0.12); color: var(--accent-orange); border: 1px solid rgba(255,152,0,0.15); }
+.badge-status.banned { background: rgba(239,83,80,0.12); color: #ef5350; border: 1px solid rgba(239,83,80,0.15); }
+
+/* Action buttons for user cards */
+.user-card .act-btn {
+  padding: 4px 12px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.user-card .act-btn:hover { opacity: 0.8; }
+.user-card .act-btn.edit {
+  background: rgba(100,181,246,0.12);
+  color: var(--accent-blue);
+  border: 1px solid rgba(100,181,246,0.15);
+}
+.user-card .act-btn.ban {
+  background: rgba(239,83,80,0.12);
+  color: #ef5350;
+  border: 1px solid rgba(239,83,80,0.15);
+}
+
+/* ── Section divider (modal) ── */
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--card-border);
+}
+
+/* ── Membership cards in edit modal ── */
+.membership-card {
+  padding: 12px 14px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.03);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+}
+.membership-card .mc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.membership-card .mc-header .mc-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.membership-card .mc-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.membership-card .mc-actions select {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+}
+.membership-card .mc-actions .btn-tiny {
+  padding: 3px 10px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.membership-card .mc-actions .btn-tiny:hover { opacity: 0.8; }
+.membership-card .mc-actions .btn-tiny.update {
+  background: rgba(100,181,246,0.12);
+  color: var(--accent-blue);
+  border: 1px solid rgba(100,181,246,0.15);
+}
+.membership-card .mc-actions .btn-tiny.kick {
+  background: transparent;
+  color: #ef5350;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.7;
+}
+.membership-card .mc-actions .btn-tiny.kick:hover { opacity: 1; }
+
+/* ── User search bar ── */
+.user-search-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.user-search-bar .search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+
+.user-search-bar .search-input:focus {
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 3px rgba(233,30,99,0.12);
+}
+
+.user-search-bar .search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* ── Pagination ── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.pagination .page-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.pagination .page-btn:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.pagination .page-btn.active {
+  background: rgba(233,30,99,0.15);
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.pagination .page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination .page-info {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 0 8px;
+}
+
+/* ── Loading spinner ── */
+.loading-spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--card-border);
+  border-top-color: var(--accent-pink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .header { padding: 16px 18px; }
+  .header h1 { font-size: 18px; }
+  .stats-row { gap: 8px; }
+  .stat-card { min-width: 72px; padding: 12px; }
+  .stat-card .num { font-size: 24px; }
+  .card { padding: 16px; }
+  .feature-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .feature-card { padding: 18px 12px; }
+  .feature-card .icon { font-size: 26px; }
+  .card-actions .btn { min-width: 0; padding: 8px; font-size: 12px; }
+  .tabs { padding: 3px; }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  .user-card { flex-wrap: wrap; gap: 8px; padding: 12px 14px; }
+  .user-card .badge-group { order: 3; }
+  .user-card .club-tags { order: 4; max-width: 100%; }
+  .user-card .actions { order: 5; width: 100%; justify-content: flex-end; }
+  .user-avatar { width: 34px; height: 34px; font-size: 13px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>🎮 同好会管理</h1>
+    <div class="header-actions">
+      <a href="../admin/reviews.html" class="header-link">📋 审核中心 <small style="font-size:10px;opacity:0.6;font-weight:400;">(仅超级管理员可用)</small></a>
+      <a href="../index.html" class="header-link">← 返回地图</a>
+    </div>
+  </div>
+
+  <!-- Club Selector -->
+  <div class="club-selector" id="clubSelectorWrap" style="display:none;">
+    <select id="clubSelector" onchange="onClubChange()">
+      <option value="">— 选择同好会 —</option>
+    </select>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="num" id="statPending">0</div><div class="label">待审核</div></div>
+    <div class="stat-card"><div class="num" id="statApproved">0</div><div class="label">已通过</div></div>
+    <div class="stat-card"><div class="num" id="statMembers">0</div><div class="label">成员</div></div>
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总计</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar">
+    <button class="tab-btn active" data-tab="pending">⏳ 待审核</button>
+    <button class="tab-btn" data-tab="approved">✅ 已通过</button>
+    <button class="tab-btn" data-tab="members">👥 成员</button>
+    <button class="tab-btn" data-tab="settings">⚙️ 设置</button>
+    <button class="tab-btn" data-tab="manuscripts">📄 刊物稿件</button>
+    <button class="tab-btn" data-tab="users" id="usersTabBtn" style="display:none;">👥 用户管理</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn btn-glass" onclick="loadData()">🔄 刷新</button>
+  </div>
+
+  <!-- Feature Action Cards -->
+  <div class="feature-grid" id="featureGrid">
+    <a class="feature-card" href="../index.html" target="_blank">
+      <span class="icon">🗺️</span>
+      <span>查看地图</span>
+      <span class="label">浏览所有同好会</span>
+    </a>
+    <div class="feature-card" onclick="openClubEdit()">
+      <span class="icon">📝</span>
+      <span>编辑信息</span>
+      <span class="label">修改同好会资料</span>
+    </div>
+    <div class="feature-card" onclick="switchTab('members')">
+      <span class="icon">👥</span>
+      <span>成员管理</span>
+      <span class="label">查看和管理成员</span>
+    </div>
+    <div class="feature-card" onclick="openEventManage()">
+      <span class="icon">📅</span>
+      <span>管理活动</span>
+      <span class="label">发布同好会活动</span>
+    </div>
+  </div>
+
+  <!-- List -->
+  <div id="listContainer" class="list"><div class="empty">加载中...</div></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- User Edit Modal -->
+<div id="userEditModal" class="modal-overlay" style="display:none;">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">编辑用户</span>
+      <button class="modal-close" onclick="closeUserEditModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editUserId">
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="editUsername" disabled class="form-input">
+      </div>
+      <div class="form-group">
+        <label>昵称</label>
+        <input type="text" id="editNickname" class="form-input">
+      </div>
+      <div class="form-group">
+        <label>邮箱</label>
+        <input type="email" id="editEmail" disabled class="form-input">
+      </div>
+      <div class="form-group">
+        <label>系统角色</label>
+        <select id="editRole" class="form-input">
+          <option value="visitor">访客</option>
+          <option value="super_admin">超级管理员</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>账号状态</label>
+        <select id="editStatus" class="form-input">
+          <option value="active">正常</option>
+          <option value="disabled">已禁用</option>
+          <option value="banned">已封禁</option>
+        </select>
+      </div>
+      <!-- Divider -->
+      <div class="section-divider">同好会成员关系</div>
+      <!-- Club Memberships Section -->
+      <div id="editMembershipsSection" style="display:none;">
+        <div id="editMembershipsList"></div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:6px;">俱乐部角色（成员/管理员/负责人）在各同好会中独立管理</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-glass" onclick="closeUserEditModal()">取消</button>
+      <button class="btn btn-pink" onclick="saveUserEdit()">保存修改</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== State ======
+const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+const ROLE_NAMES = { member: '成员', manager: '管理员', representative: '负责人' };
+const ROLE_LABELS = { visitor: '访客', member: '成员', manager: '管理员', representative: '负责人', super_admin: '超管' };
+
+let currentUser = null;
+let currentTab = 'pending';
+let memberships = [];       // current user's own memberships (from api)
+let allData = [];           // all membership records (from pending?status=all)
+let managedClubs = [];      // clubs the user manages  [{club_id, country, role}]
+let selectedClubId = 0;     // currently selected club id
+let selectedCountry = 'china'; // currently selected club country
+
+// 用户管理状态
+let usersData = [];
+let usersTotal = 0;
+let usersPage = 1;
+let usersSearch = '';
+let usersRoleFilter = '';
+let usersStatusFilter = '';
+const USERS_PER_PAGE = 20;
+
+// ====== Tools ======
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : '&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '未知';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  } catch { return dateStr; }
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = type === 'error' ? 'rgba(239,83,80,0.15)' : type === 'success' ? 'rgba(76,175,80,0.15)' : '';
+  el.style.borderColor = type === 'error' ? 'rgba(239,83,80,0.3)' : type === 'success' ? 'rgba(76,175,80,0.3)' : '';
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ====== Auth & Init ======
+// 国家分隔的同好会名称映射表（避免中日 ID 重叠导致名称错乱）
+let clubNameMapCn = {};
+let clubNameMapJp = {};
+const clubNameMap = {}; // 保留兼容
+
+async function loadClubNames() {
+  try {
+    const [cn, jp] = await Promise.all([
+      fetch('../data/clubs.json?t=' + Date.now()).then(r => r.json()),
+      fetch('../data/clubs_japan.json?t=' + Date.now()).then(r => r.json())
+    ]);
+    clubNameMapCn = {};
+    clubNameMapJp = {};
+    (cn.data || []).forEach(c => { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
+    (jp.data || []).forEach(c => { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
+    // 兼容：非国家感知场景备用，中国优先（避免日本覆盖中文同名 ID）
+    Object.assign(clubNameMap, clubNameMapJp, clubNameMapCn);
+  } catch { clubNameMapCn = {}; clubNameMapJp = {}; }
+}
+
+function getClubName(clubId, country) {
+  const map = country === 'japan' ? clubNameMapJp : clubNameMapCn;
+  const other = country === 'japan' ? clubNameMapCn : clubNameMapJp;
+  return map[clubId] || other[clubId] || clubNameMap[clubId] || ('同好会 #' + clubId);
+}
+
+async function init() {
+  const container = document.getElementById('listContainer');
+
+  // Theme sync
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+  } catch {}
+
+  // Auth check
+  try {
+    const r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.logged_in) {
+      container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+      return;
+    }
+    currentUser = data;
+    const effLevel = getEffectiveLevel(data);
+    if (effLevel < ROLE_LEVEL.manager) {
+      container.innerHTML = '<div class="empty">⛔ 你没有管理权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+      return;
+    }
+  } catch {
+    container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+    return;
+  }
+
+  await loadClubNames();
+  await loadManagedClubs();
+  await loadData();
+}
+
+function getEffectiveLevel(user) {
+  let level = ROLE_LEVEL[user?.user?.role] ?? -1;
+  if (user?.memberships) {
+    for (const m of user.memberships) {
+      if (m.status === 'active') {
+        const l = ROLE_LEVEL[m.role] ?? -1;
+        if (l > level) level = l;
+      }
+    }
+  }
+  return level;
+}
+
+// ====== Managed Clubs ======
+async function loadManagedClubs() {
+  const sel = document.getElementById('clubSelector');
+  const wrap = document.getElementById('clubSelectorWrap');
+
+  // Get active memberships and find ones with management roles
+  managedClubs = [];
+  if (currentUser?.memberships) {
+    for (const m of currentUser.memberships) {
+      if (m.status === 'active' && (m.role === 'manager' || m.role === 'representative')) {
+        managedClubs.push(m);
+      }
+    }
+  }
+  // Super admin manages all: load from membership data
+  if (currentUser?.user?.role === 'super_admin') {
+    // For super admin, we show all clubs via the data
+    managedClubs = [{ club_id: 0, role: 'super_admin' }];
+  }
+
+  if (managedClubs.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+
+  wrap.style.display = 'block';
+  sel.innerHTML = '';
+  managedClubs.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.club_id + '|' + (m.country || 'china');
+    const name = getClubName(m.club_id, m.country);
+    const countryTag = m.country === 'japan' ? '🇯🇵 ' : '';
+    opt.textContent = countryTag + name + ' · ' + (ROLE_NAMES[m.role] || m.role);
+    sel.appendChild(opt);
+  });
+  if (managedClubs.length === 1) {
+    sel.selectedIndex = 1; // first real option
+    selectedClubId = managedClubs[0].club_id;
+  } else {
+    // Add "all" option for multi-managers
+    const allOpt = document.createElement('option');
+    allOpt.value = '-1';
+    allOpt.textContent = '📋 所有同好会';
+    sel.insertBefore(allOpt, sel.firstChild);
+    sel.selectedIndex = 0;
+    selectedClubId = -1;
+  }
+
+  // 初始设置用户管理 tab 可见性
+  const usersTabBtn = document.getElementById('usersTabBtn');
+  const isSuperAdmin = currentUser?.user?.role === 'super_admin';
+  usersTabBtn.style.display = (selectedClubId === 0 && isSuperAdmin) ? '' : 'none';
+}
+
+function onClubChange() {
+  const sel = document.getElementById('clubSelector');
+  const parts = (sel.value || '|').split('|');
+  selectedClubId = parseInt(parts[0]) || 0;
+  selectedCountry = parts[1] || 'china';
+
+  // 显示/隐藏用户管理 tab
+  const usersTabBtn = document.getElementById('usersTabBtn');
+  const isSuperAdmin = currentUser?.user?.role === 'super_admin';
+  usersTabBtn.style.display = (selectedClubId === 0 && isSuperAdmin) ? '' : 'none';
+  // 如果当前在用户管理 tab 且不再可见，切换到第一个 tab
+  if (currentTab === 'users' && usersTabBtn.style.display === 'none') {
+    switchTab('pending');
+    return;
+  }
+
+  renderList(currentTab);
+}
+
+// ====== Data Loading ======
+async function loadData() {
+  const container = document.getElementById('listContainer');
+  container.innerHTML = '<div class="empty"><span class="loading-spinner"></span>加载中...</div>';
+
+  try {
+    const r = await fetch('../api/membership.php?action=pending&status=all', { credentials: 'same-origin' });
+    const data = await r.json();
+    allData = data.success ? (data.memberships || []) : [];
+  } catch {
+    allData = [];
+    showToast('加载失败', 'error');
+  }
+
+  renderList(currentTab);
+}
+
+// ====== Render ======
+function renderList(tab) {
+  currentTab = tab;
+  updateStats();
+
+  if (tab === 'users') {
+    renderUsers();
+    return;
+  }
+  if (tab === 'members') {
+    renderMembers();
+    return;
+  }
+  if (tab === 'settings') {
+    renderSettings();
+    return;
+  }
+
+  if (tab === 'manuscripts') {
+    renderManuscripts();
+    return;
+  }
+
+  // Filter by selected club (with country to avoid ID overlap)
+  let filtered = allData;
+  if (selectedClubId > 0) {
+    filtered = filtered.filter(s =>
+      parseInt(s.club_id) === selectedClubId && (s.country || 'china') === selectedCountry
+    );
+  }
+  // Status filter
+  if (tab === 'pending') filtered = filtered.filter(s => (s.status || 'pending') === 'pending');
+  else if (tab === 'approved') filtered = filtered.filter(s => s.status === 'approved');
+
+  const container = document.getElementById('listContainer');
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => {
+    const clubName = getClubName(item.club_id, item.country);
+    const isPending = (item.status || 'pending') === 'pending';
+    return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(item.username)} → ${escapeHtml(clubName)}</span>
+          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+        </div>
+        <div class="card-body">
+          <div class="row"><span class="label">👤 申请身份</span>${applyRoleText(item.apply_role)}</div>
+          <div class="row"><span class="label">💬 QQ</span>${escapeHtml(item.qq_account || '未填写')}</div>
+          <div class="row"><span class="label">🎓 学生</span>${item.is_student == 1 ? '是' : '否'}</div>
+          <div class="row"><span class="label">⏰ 申请时间</span>${formatDate(item.joined_at)}</div>
+        </div>
+        ${isPending ? `
+        <div class="card-actions">
+          <button class="btn btn-approve btn-sm" onclick="approveMembership(${item.id})">✓ 批准</button>
+          <button class="btn btn-reject btn-sm" onclick="rejectMembership(${item.id})">✗ 拒绝</button>
+        </div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function renderMembers() {
+  const container = document.getElementById('listContainer');
+
+  if (!selectedClubId || selectedClubId <= 0) {
+    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="empty"><span class="loading-spinner"></span>加载成员列表...</div>';
+
+  // 获取当前用户在所选俱乐部中的角色（按 club_id + country）
+  const myMembership = currentUser?.memberships?.find(m =>
+    parseInt(m.club_id) === selectedClubId && (m.country || 'china') === selectedCountry && m.status === 'active'
+  );
+  const myClubRole = myMembership?.role || '';
+  const isSuperAdmin = currentUser?.user?.role === 'super_admin';
+  const currentUserId = currentUser?.user?.id;
+
+  fetch('../api/membership.php?action=members&club_id=' + selectedClubId + '&country=' + selectedCountry, { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(data => {
+      const members = data.success ? (data.members || []) : [];
+      if (members.length === 0) {
+        container.innerHTML = '<div class="empty">👥 暂无成员</div>';
+        return;
+      }
+      container.innerHTML = members.map(m => {
+        const isSelf = m.user_id === currentUserId;
+        // 踢出按钮：不显示自己，且操作者有权限
+        let showKick = false;
+        if (!isSelf && (isSuperAdmin || myClubRole === 'representative' || myClubRole === 'manager')) {
+          if (isSuperAdmin) showKick = true;
+          else if (myClubRole === 'representative') showKick = m.role !== 'representative';
+          else if (myClubRole === 'manager') showKick = m.role === 'member';
+        }
+        // 角色变更按钮：不显示自己，仅 super_admin 或 representative
+        const canChangeRole = !isSelf && (isSuperAdmin || myClubRole === 'representative');
+        const showRoleUp = canChangeRole && m.role === 'member';
+        const showRoleDown = canChangeRole && m.role === 'manager';
+        // 转让负责人按钮：仅当前为负责人/super_admin，目标非自己、非负责人
+        const showTransfer = !isSelf && (isSuperAdmin || myClubRole === 'representative') && m.role !== 'representative';
+
+        return `
+        <div class="card">
+          <div class="member-item" style="padding:0;border:none;">
+            <img class="member-avatar" src="${escapeHtml(m.avatar_url || '')}" alt="" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22 viewBox=%220 0 32 32%22%3E%3Crect fill=%22rgba(255,255,255,0.1)%22 width=%2232%22 height=%2232%22 rx=%2216%22/%3E%3Ctext x=%2216%22 y=%2221%22 text-anchor=%22middle%22 fill=%22rgba(255,255,255,0.3)%22 font-size=%2214%22%3E${escapeHtml((m.username||'?')[0])}%3C/text%3E%3C/svg%3E'" />
+            <div class="member-info">
+              <div class="name">${escapeHtml(m.username || '未知')}</div>
+              <div class="detail">加入于 ${formatDate(m.joined_at)}</div>
+            </div>
+            <span class="badge badge-role ${m.role}">${ROLE_NAMES[m.role] || m.role}</span>
+            <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px;">
+              ${showRoleUp ? `<button class="btn btn-glass btn-sm" onclick="changeMemberRole(${m.id},'manager')">升为管理</button>` : ''}
+              ${showRoleDown ? `<button class="btn btn-glass btn-sm" onclick="changeMemberRole(${m.id},'member')">设为成员</button>` : ''}
+              ${showTransfer ? `<button class="btn btn-pink btn-sm" onclick="transferRepresentative(${m.id},${selectedClubId},'${escapeHtml(m.username)}')">👑 转让</button>` : ''}
+              ${showKick ? `<button class="btn btn-reject btn-sm" onclick="kickMember(${m.id},'${escapeHtml(m.username)}')">踢出</button>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+    })
+    .catch(() => {
+      container.innerHTML = '<div class="empty">❌ 加载失败</div>';
+    });
+}
+
+function renderSettings() {
+  const container = document.getElementById('listContainer');
+  if (!selectedClubId || selectedClubId <= 0) {
+    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    return;
+  }
+  const clubName = getClubName(selectedClubId, selectedCountry);
+  const countryTag = selectedCountry === 'japan' ? '🇯🇵 ' : '';
+  container.innerHTML = `
+    <div class="card" style="text-align:center;padding:32px;">
+      <div style="font-size:40px;margin-bottom:16px;">📝</div>
+      <div style="font-size:18px;font-weight:600;margin-bottom:8px;">${countryTag}${escapeHtml(clubName)}</div>
+      <div style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;">编辑同好会资料、管理成员角色</div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button class="btn btn-pink" onclick="openClubEdit()">✏️ 编辑同好会信息</button>
+        <a class="btn btn-glass" href="../index.html" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;">🗺️ 在地图中查看</a>
+      </div>
+    </div>
+  `;
+}
+
+function openClubEdit() {
+  if (!selectedClubId || selectedClubId <= 0) {
+    showToast('请先选择一个同好会', 'error');
+    return;
+  }
+  // Open main page with edit panel for this club
+  window.open('../index.html?edit_club=' + selectedClubId + '&country=' + selectedCountry, '_blank');
+}
+
+function openEventManage() {
+  if (!selectedClubId || selectedClubId <= 0) {
+    showToast('请先选择一个同好会', 'error');
+    return;
+  }
+  window.open('../admin/events.php', '_blank');
+}
+
+// ====== 用户管理（仅 super_admin，同好会 #0）======
+async function renderUsers() {
+  const container = document.getElementById('listContainer');
+  const isSuperAdmin = currentUser?.user?.role === 'super_admin';
+
+  if (!isSuperAdmin || selectedClubId !== 0) {
+    container.innerHTML = '<div class="empty">⛔ 无权限访问</div>';
+    return;
+  }
+
+  container.innerHTML = '<div class="empty"><span class="loading-spinner"></span>加载用户列表...</div>';
+
+  try {
+    const params = new URLSearchParams({
+      action: 'list',
+      page: usersPage,
+      per_page: USERS_PER_PAGE
+    });
+    if (usersSearch) params.set('search', usersSearch);
+    if (usersRoleFilter) params.set('role', usersRoleFilter);
+    if (usersStatusFilter) params.set('status', usersStatusFilter);
+
+    const r = await fetch('../api/users.php?' + params.toString(), { credentials: 'same-origin' });
+    if (!r.ok) {
+      const text = await r.text();
+      container.innerHTML = '<div class="empty">❌ HTTP ' + r.status + ': ' + escapeHtml(text.substring(0,200)) + '</div>';
+      return;
+    }
+    const data = await r.json();
+
+    if (!data.success) {
+      container.innerHTML = '<div class="empty">❌ ' + escapeHtml(data.message || '加载失败') + (data.error ? '<br><small style="opacity:0.6">' + escapeHtml(data.error) + '</small>' : '') + '</div>';
+      return;
+    }
+
+    usersData = data.users || [];
+    usersTotal = data.total || 0;
+
+    let html = '';
+
+    // Search bar (always render)
+    html += '<div class="user-search-bar">';
+    html += '<input type="text" class="search-input" id="usersSearchInput" placeholder="🔍 搜索用户名、昵称、邮箱..." value="' + escapeHtml(usersSearch) + '" onkeydown="if(event.key===\'Enter\'){ usersSearch=this.value; usersPage=1; renderUsers(); }">';
+    html += '<select class="search-input" style="flex:0 0 auto;min-width:140px;" onchange="usersRoleFilter=this.value; usersPage=1; renderUsers();">';
+    html += '<option value="">所有角色</option>';
+    html += '<option value="visitor"' + (usersRoleFilter === 'visitor' ? ' selected' : '') + '>访客(无俱乐部)</option>';
+    html += '<option value="member"' + (usersRoleFilter === 'member' ? ' selected' : '') + '>成员(俱乐部角色)</option>';
+    html += '<option value="manager"' + (usersRoleFilter === 'manager' ? ' selected' : '') + '>管理员(俱乐部角色)</option>';
+    html += '<option value="representative"' + (usersRoleFilter === 'representative' ? ' selected' : '') + '>负责人(俱乐部角色)</option>';
+    html += '<option value="super_admin"' + (usersRoleFilter === 'super_admin' ? ' selected' : '') + '>超级管理员</option>';
+    html += '</select>';
+    html += '<select class="search-input" style="flex:0 0 auto;min-width:100px;" onchange="usersStatusFilter=this.value; usersPage=1; renderUsers();">';
+    html += '<option value="">所有状态</option>';
+    html += '<option value="active"' + (usersStatusFilter === 'active' ? ' selected' : '') + '>正常</option>';
+    html += '<option value="disabled"' + (usersStatusFilter === 'disabled' ? ' selected' : '') + '>禁用</option>';
+    html += '<option value="banned"' + (usersStatusFilter === 'banned' ? ' selected' : '') + '>封禁</option>';
+    html += '</select>';
+    html += '<button class="btn btn-glass" onclick="usersSearch=document.getElementById(\'usersSearchInput\').value; usersPage=1; renderUsers();">搜索</button>';
+    html += '</div>';
+
+    if (usersData.length === 0) {
+      let emptyMsg = '<div class="empty">📭 暂无用户';
+      if (usersSearch || usersRoleFilter || usersStatusFilter) {
+        emptyMsg += '<br><br><button class="btn btn-glass" onclick="resetUserFilters()">🔄 清除所有筛选条件</button>';
+      }
+      emptyMsg += '</div>';
+      html += emptyMsg;
+      container.innerHTML = html;
+      return;
+    }
+
+    // User cards
+    html += '<div class="user-list-cards">';
+
+    const statusLabels = { active: '正常', disabled: '已禁用', banned: '已封禁' };
+
+    usersData.forEach(u => {
+      const displayRole = u.display_role || u.role;
+      let clubsHtml = '';
+      if (u.memberships && u.memberships.length > 0) {
+        clubsHtml = u.memberships.map(m => {
+          const cn = getClubName(m.club_id, m.country);
+          return '<span class="club-tag">' + escapeHtml(cn) + '<span class="ct-role ' + m.role + '">' + (ROLE_LABELS[m.role] || m.role) + '</span></span>';
+        }).join(' ');
+      }
+      html += '<div class="user-card">';
+      html += '<span class="card-id">#' + u.id + '</span>';
+      html += '<div class="user-avatar">' + escapeHtml((u.username || '?')[0].toUpperCase()) + '</div>';
+      html += '<div class="info">';
+      html += '<div class="name">' + escapeHtml(u.username) + '</div>';
+      html += '<div class="sub">' + escapeHtml(u.nickname || '') + (u.email ? ' · ' + escapeHtml(u.email) : '') + '</div>';
+      html += '</div>';
+      html += '<div class="badge-group">';
+      html += '<span class="badge-role ' + displayRole + '">' + (ROLE_LABELS[displayRole] || displayRole) + '</span>';
+      html += '<span class="badge-status ' + u.status + '">' + (statusLabels[u.status] || u.status) + '</span>';
+      html += '</div>';
+      if (clubsHtml) {
+        html += '<div class="club-tags">' + clubsHtml + '</div>';
+      }
+      html += '<div class="actions">';
+      html += '<button class="act-btn edit" onclick="openUserEditModal(' + u.id + ')">✏️ 编辑</button>';
+      if (u.status !== 'banned') {
+        html += '<button class="act-btn ban" onclick="banUser(' + u.id + ',\'' + escapeHtml(u.username) + '\')">🚫 封禁</button>';
+      }
+      html += '</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+
+    // Pagination
+    const totalPages = Math.ceil(usersTotal / USERS_PER_PAGE) || 1;
+    html += '<div class="pagination">';
+    html += '<button class="page-btn" onclick="usersPage=Math.max(1,usersPage-1);renderUsers();"' + (usersPage <= 1 ? ' disabled' : '') + '>← 上一页</button>';
+    html += '<span class="page-info">第 ' + usersPage + ' / ' + totalPages + ' 页 (共 ' + usersTotal + ' 人)</span>';
+    html += '<button class="page-btn" onclick="usersPage=Math.min(' + totalPages + ',usersPage+1);renderUsers();"' + (usersPage >= totalPages ? ' disabled' : '') + '>下一页 →</button>';
+    html += '</div>';
+
+    container.innerHTML = html;
+
+  } catch (e) {
+    container.innerHTML = '<div class="empty">❌ 网络错误：' + escapeHtml(String(e)) + '</div>';
+  }
+}
+
+async function openUserEditModal(userId) {
+  try {
+    const r = await fetch('../api/users.php?action=get&id=' + userId, { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.success || !data.user) {
+      showToast(data.message || '获取用户信息失败', 'error');
+      return;
+    }
+    const u = data.user;
+    document.getElementById('editUserId').value = u.id;
+    document.getElementById('editUsername').value = u.username || '';
+    document.getElementById('editNickname').value = u.nickname || '';
+    document.getElementById('editEmail').value = u.email || '';
+    // 系统角色仅访客/超级管理员有意义，标准化显示
+    const systemRole = (u.role === 'super_admin') ? 'super_admin' : 'visitor';
+    const roleSelect = document.getElementById('editRole');
+    roleSelect.value = systemRole;
+    roleSelect.dataset.originalRole = systemRole;
+    document.getElementById('editStatus').value = u.status;
+
+    // 不能修改自己的角色和状态
+    const currentUserId = currentUser?.user?.id;
+    if (u.id === currentUserId) {
+      document.getElementById('editRole').disabled = true;
+      document.getElementById('editStatus').disabled = true;
+    } else {
+      document.getElementById('editRole').disabled = false;
+      document.getElementById('editStatus').disabled = false;
+    }
+
+    // 渲染同好会成员关系
+    const memberships = u.memberships || [];
+    const section = document.getElementById('editMembershipsSection');
+    const list = document.getElementById('editMembershipsList');
+    if (memberships.length > 0) {
+      section.style.display = '';
+      list.innerHTML = memberships.map(m => {
+        const clubName = getClubName(m.club_id, m.country);
+        const countryTag = m.country === 'japan' ? '🇯🇵' : '🇨🇳';
+        const isActive = m.status === 'active';
+        return '<div class="membership-card">' +
+          '<div class="mc-header">' +
+          '<span class="mc-name">' + escapeHtml(clubName) + '</span>' +
+          '<span style="font-size:11px;opacity:0.6;">' + countryTag + '</span>' +
+          '<span class="badge-role ' + m.role + '" style="margin-left:auto;">' + (ROLE_LABELS[m.role] || m.role) + '</span>' +
+          '<span class="badge-status ' + m.status + '">' + (isActive ? '正常' : m.status) + '</span>' +
+          '</div>' +
+          (isActive ? '<div class="mc-actions">' +
+            '角色: <select id="memRole_' + m.id + '">' +
+            '<option value="member"' + (m.role === 'member' ? ' selected' : '') + '>成员</option>' +
+            '<option value="manager"' + (m.role === 'manager' ? ' selected' : '') + '>管理员</option>' +
+            '<option value="representative"' + (m.role === 'representative' ? ' selected' : '') + '>负责人</option>' +
+            '</select>' +
+            '<button class="btn-tiny update" onclick="updateUserClubRole(' + m.id + ')">更新</button>' +
+            '<button class="btn-tiny kick" onclick="kickUserFromClub(' + m.id + ',\'' + escapeHtml(clubName) + '\')">踢出</button>' +
+            '</div>' : '') +
+          '</div>';
+      }).join('');
+    } else {
+      section.style.display = 'none';
+      list.innerHTML = '';
+    }
+
+    document.getElementById('userEditModal').style.display = 'flex';
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+function closeUserEditModal() {
+  document.getElementById('userEditModal').style.display = 'none';
+}
+
+async function saveUserEdit() {
+  const id = parseInt(document.getElementById('editUserId').value);
+  const nickname = document.getElementById('editNickname').value.trim();
+  const roleSelect = document.getElementById('editRole');
+  const status = document.getElementById('editStatus').value;
+
+  if (!confirm('确定要修改此用户的信息吗？')) return;
+
+  const payload = { id: id };
+  if (nickname.length > 0) payload.nickname = nickname;
+  // 仅当角色实际发生变动时才发送
+  if (roleSelect.value !== roleSelect.dataset.originalRole) {
+    payload.role = roleSelect.value;
+  }
+  payload.status = status;
+
+  try {
+    const r = await fetch('../api/users.php?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 用户信息已更新', 'success');
+      closeUserEditModal();
+      renderUsers();
+    } else {
+      showToast(data.message || '更新失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+function resetUserFilters() {
+  usersSearch = '';
+  usersRoleFilter = '';
+  usersStatusFilter = '';
+  usersPage = 1;
+  const searchInput = document.getElementById('usersSearchInput');
+  if (searchInput) searchInput.value = '';
+  renderUsers();
+}
+
+async function banUser(userId, username) {
+  if (!confirm('⚠️ 确定要封禁用户「' + username + '」吗？\n\n该用户将无法登录系统。')) return;
+  try {
+    const r = await fetch('../api/users.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id: userId })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 用户已封禁', 'success');
+      renderUsers();
+    } else {
+      showToast(data.message || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function updateUserClubRole(membershipId) {
+  const select = document.getElementById('memRole_' + membershipId);
+  if (!select) return;
+  const newRole = select.value;
+  const roleName = { member: '成员', manager: '管理员', representative: '负责人' }[newRole] || newRole;
+  if (!confirm('确定将用户在该同好会的角色改为「' + roleName + '」吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=change_role', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: membershipId, role: newRole })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 角色已更新', 'success');
+      // 刷新模态框数据
+      const userId = document.getElementById('editUserId').value;
+      if (userId) openUserEditModal(parseInt(userId));
+      renderUsers();
+    } else {
+      showToast(data.message || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function kickUserFromClub(membershipId, clubName) {
+  if (!confirm('⚠️ 确定将该用户从「' + clubName + '」踢出吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=kick', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: membershipId })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 已踢出', 'success');
+      // 刷新模态框数据
+      const userId = document.getElementById('editUserId').value;
+      if (userId) openUserEditModal(parseInt(userId));
+      renderUsers();
+    } else {
+      showToast(data.message || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+function updateStats() {
+  let filtered = allData;
+  if (selectedClubId > 0) {
+    filtered = filtered.filter(s =>
+      parseInt(s.club_id) === selectedClubId && (s.country || 'china') === selectedCountry
+    );
+  }
+  const pending = filtered.filter(s => (s.status || 'pending') === 'pending').length;
+  const approved = filtered.filter(s => s.status === 'approved').length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statMembers').textContent = selectedClubId > 0 ? '?' : '—';
+  document.getElementById('statTotal').textContent = filtered.length;
+
+  // Load member count if club selected
+  if (selectedClubId > 0) {
+    fetch('../api/membership.php?action=members&club_id=' + selectedClubId + '&country=' + selectedCountry, { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) document.getElementById('statMembers').textContent = (data.members || []).length;
+      })
+      .catch(() => {});
+  }
+}
+
+// ====== Actions ======
+async function approveMembership(id) {
+  try {
+    const r = await fetch('../api/membership.php?action=approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) { showToast('✅ 已批准绑定', 'success'); loadData(); }
+    else { showToast(data.message || '审批失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function rejectMembership(id) {
+  if (!confirm('确定拒绝此绑定申请吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) { showToast('已拒绝', 'success'); loadData(); }
+    else { showToast(data.message || '操作失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function changeMemberRole(membershipId, newRole) {
+  const roleName = newRole === 'manager' ? '管理员' : '普通成员';
+  if (!confirm('确定将此成员的角色改为「' + roleName + '」吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=change_role', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: membershipId, role: newRole })
+    });
+    const data = await r.json();
+    if (data.success) { showToast('✅ 角色已更新', 'success'); renderMembers(); }
+    else { showToast(data.message || '操作失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function kickMember(membershipId, username) {
+  if (!confirm('确定将「' + username + '」踢出同好会吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=kick', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: membershipId })
+    });
+    const data = await r.json();
+    if (data.success) { showToast('✅ 已踢出', 'success'); renderMembers(); }
+    else { showToast(data.message || '操作失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function transferRepresentative(membershipId, clubId, targetName) {
+  if (!confirm('⚠️ 确定将负责人身份转让给「' + targetName + '」吗？\n\n转让后你将变为管理员。此操作不可撤销！')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=transfer', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ membership_id: membershipId, club_id: clubId })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 负责人已成功转让给 ' + targetName, 'success');
+      renderMembers();
+    } else {
+      showToast(data.message || '操作失败', 'error');
+    }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+// ====== 刊物稿件模块 ======
+let pubDataForManager = [];
+
+async function loadPublicationsForManager() {
+  try {
+    const r = await fetch('../data/publications.json', { cache: 'no-store' });
+    const json = await r.json();
+    pubDataForManager = json.publications || [];
+  } catch { pubDataForManager = []; }
+}
+
+async function renderManuscripts() {
+  const container = document.getElementById('listContainer');
+  if (!selectedClubId || selectedClubId <= 0) {
+    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    return;
+  }
+
+  await loadPublicationsForManager();
+
+  // Filter publications that are associated with the selected club
+  const relatedPubs = pubDataForManager.filter(pub => {
+    const ids = pub.club_ids || [];
+    return ids.some(c => c.id === selectedClubId && c.country === selectedCountry);
+  });
+
+  if (relatedPubs.length === 0) {
+    container.innerHTML = '<div class="empty">📭 该同好会暂未关联任何刊物</div>';
+    return;
+  }
+
+  let html = '';
+  for (const pub of relatedPubs) {
+    let manuscriptCount = 0;
+    try {
+      const r = await fetch('../api/manuscripts.php?action=list_by_publication&publication_id=' + pub.id);
+      const data = await r.json();
+      manuscriptCount = (data.manuscripts || []).length;
+    } catch {}
+
+    html += `<div class="card" style="cursor:pointer;" onclick="viewManuscriptsForPub(${pub.id}, '${escapeHtml(pub.publicationName)}')">
+      <div class="card-header">
+        <span class="card-title">${escapeHtml(pub.publicationName)}</span>
+        <span class="badge" style="background:rgba(100,181,246,0.12);color:var(--accent-blue);border:1px solid rgba(100,181,246,0.15);">📄 ${manuscriptCount} 份稿件</span>
+      </div>
+      <div class="card-body">
+        <div class="row"><span class="label">状态</span>${pub.status || '未知'}</div>
+        ${pub.deadline ? `<div class="row"><span class="label">截稿</span>${escapeHtml(pub.deadline)}</div>` : ''}
+      </div>
+    </div>`;
+  }
+  container.innerHTML = html;
+}
+
+async function viewManuscriptsForPub(pubId, pubName) {
+  const container = document.getElementById('listContainer');
+  try {
+    const r = await fetch(`../api/manuscripts.php?action=list_by_publication&publication_id=${pubId}`);
+    const data = await r.json();
+    const list = data.manuscripts || [];
+    let html = `<div style="margin-bottom:16px;">
+      <button class="btn btn-glass" onclick="renderManuscripts()">← 返回列表</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📄 ${escapeHtml(pubName)} — 稿件 (${list.length})</span>
+      </div>
+    </div>`;
+
+    if (list.length === 0) {
+      html += '<div class="empty">暂无稿件</div>';
+    } else {
+      html += '<div class="list">';
+      list.forEach(m => {
+        html += `<div class="card">
+          <div class="card-header">
+            <span class="card-title">📎 ${escapeHtml(m.file_name)}</span>
+            <div style="display:flex;gap:6px;">
+              <a class="btn btn-glass btn-sm" href="../api/manuscripts.php?action=download&id=${m.id}" target="_blank">⬇ 下载</a>
+              <button class="btn btn-reject btn-sm" onclick="deleteClubManuscript(${m.id})">🗑 删除</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="row"><span class="label">投稿人</span>${escapeHtml(m.submitter_name)}</div>
+            <div class="row"><span class="label">联系方式</span>${escapeHtml(m.contact || '未填写')}</div>
+            <div class="row"><span class="label">时间</span>${m.submitted_at || '未知'}</div>
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+    container.innerHTML = html;
+  } catch {
+    container.innerHTML = '<div class="empty">❌ 加载失败</div>';
+  }
+}
+
+async function deleteClubManuscript(id) {
+  if (!confirm('确定删除此稿件吗？')) return;
+  try {
+    const r = await fetch('../api/manuscripts.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ 已删除', 'success');
+      renderManuscripts();
+    } else {
+      showToast(data.message || '删除失败', 'error');
+    }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+// ====== Tab ======
+function switchTab(tab) {
+  if (tab === 'users') {
+    const isSuperAdmin = currentUser?.user?.role === 'super_admin';
+    if (selectedClubId !== 0 || !isSuperAdmin) {
+      showToast('请先选择 同好会 #0', 'error');
+      return;
+    }
+  }
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  renderList(tab);
+}
+
+// ====== Utilities ======
+function statusText(status) {
+  return status === 'approved' ? '✅ 已通过' : status === 'rejected' ? '❌ 已拒绝' : '⏳ 待审核';
+}
+
+function applyRoleText(role) {
+  return role === 'representative' ? '负责人' : role === 'manager' ? '管理员' : '成员';
+}
+
+// ====== Event Listeners ======
+document.getElementById('userEditModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeUserEditModal();
+});
+
+document.getElementById('tabBar').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (btn) switchTab(btn.dataset.tab);
+});
+
+// ====== Start ======
+init();
+</script>
+</body>
+</html>

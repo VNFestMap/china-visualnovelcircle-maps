@@ -1,0 +1,106 @@
+<h2>顶层用户信息框 — 布局方案</h2>
+<p class="subtitle">在现有布局上方新增一个顶部居中卡片</p>
+
+<div class="split">
+  <!-- 当前布局 -->
+  <div class="mockup">
+    <div class="mockup-header">当前布局（桌面端）</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:320px;background:#f5f5f5;">
+      <!-- map background -->
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">🗺️ 地图区域</div>
+      <!-- left card -->
+      <div style="position:absolute;top:12px;left:12px;width:140px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:2;">
+        <div style="font-weight:bold;font-size:12px;">全国Galgame同好会地图</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">简介内容 | 开关 | 登录</div>
+      </div>
+      <!-- right buttons -->
+      <div style="position:absolute;top:12px;right:170px;z-index:2;">
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">中国同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">日本同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">海外同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">活动日历</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">刊物投稿</div>
+      </div>
+      <!-- right card -->
+      <div style="position:absolute;top:12px;right:12px;width:150px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:2;">
+        <div style="font-weight:bold;font-size:11px;">搜索 / 筛选 / 列表</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">同好会列表项...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新布局 -->
+  <div class="mockup">
+    <div class="mockup-header">新布局（桌面端）</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:320px;background:#f5f5f5;">
+      <!-- map background -->
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">🗺️ 地图区域</div>
+      <!-- TOP CENTER CARD (NEW) -->
+      <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:340px;background:white;border-radius:20px;padding:12px 16px;box-shadow:0 4px 16px rgba(0,0,0,0.12);z-index:10;backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.3);">
+        <!-- User info row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;">👤</div>
+          <div style="flex:1;font-size:13px;font-weight:500;">未登录</div>
+          <div style="font-size:10px;color:#999;">登录/注册</div>
+        </div>
+        <!-- Nav buttons row -->
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <div style="padding:4px 10px;background:#f0f0f0;border-radius:8px;font-size:11px;">🇨🇳 中国同好会</div>
+          <div style="padding:4px 10px;background:#f0f0f0;border-radius:8px;font-size:11px;">🇯🇵 日本同好会</div>
+          <div style="padding:4px 10px;background:#f0f0f0;border-radius:8px;font-size:11px;">🌏 海外同好会</div>
+          <div style="padding:4px 10px;background:#f0f0f0;border-radius:8px;font-size:11px;">📅 活动日历</div>
+          <div style="padding:4px 10px;background:#f0f0f0;border-radius:8px;font-size:11px;">📝 刊物投稿</div>
+          <div style="padding:4px 10px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border-radius:8px;font-size:11px;">🎮 同好会管理</div>
+        </div>
+      </div>
+      <!-- left card (kept) -->
+      <div style="position:absolute;top:80px;left:12px;width:140px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:2;">
+        <div style="font-weight:bold;font-size:12px;">全国Galgame同好会地图</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">简介内容 | 开关</div>
+      </div>
+      <!-- right buttons (kept) -->
+      <div style="position:absolute;top:80px;right:170px;z-index:2;">
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">中国同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">日本同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">海外同好会</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">活动日历</div>
+        <div style="background:white;border-radius:12px;padding:6px 12px;margin-bottom:6px;font-size:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">刊物投稿</div>
+      </div>
+      <!-- right card (kept) -->
+      <div style="position:absolute;top:80px;right:12px;width:150px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:2;">
+        <div style="font-weight:bold;font-size:11px;">搜索 / 筛选 / 列表</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">同好会列表项...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>主卡设计细节</h3>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;background:var(--bg-secondary);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:8px;">桌面端</div>
+      <ul style="font-size:13px;line-height:1.6;margin:0;padding-left:16px;">
+        <li>顶部居中，<code>position: absolute; top: 8px; left: 50%; transform: translateX(-50%)</code></li>
+        <li>毛玻璃效果（backdrop-filter: blur）</li>
+        <li>显示用户头像 + 昵称 + 登录/注册</li>
+        <li>一排按钮：五个导航 + 管理（管理员可见）</li>
+        <li>点击按钮触发已有功能（不改变原有逻辑）</li>
+      </ul>
+    </div>
+    <div style="flex:1;min-width:200px;background:var(--bg-secondary);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:8px;">移动端</div>
+      <ul style="font-size:13px;line-height:1.6;margin:0;padding-left:16px;">
+        <li>顶部固定横幅（替代现有 introCard 的移动端顶部行为）</li>
+        <li>显示用户信息和导航按钮（可横向滚动）</li>
+        <li>左侧 #introCard 内容 → 左侧隐藏菜单</li>
+        <li>左侧菜单：点击汉堡按钮 ☰ 展开</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>这个方案可以吗？</h3>
+  <p class="subtitle">请看一下这个布局是否符合你的预期，然后告诉我你的反馈。</p>
+</div>

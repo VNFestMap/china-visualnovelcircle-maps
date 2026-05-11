@@ -1,43 +1,101 @@
-# 备份文件
-*.bak
+# --- 系统文件 ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
 
-# Python 临时文件
-*.pyc
-*.pyo
-__pycache__/
-
-# 编辑器配置
+# --- 编辑器 / IDE ---
 .vscode/
 .idea/
 *.swp
+*.swo
+*~
+*.sublime-*
 
-# 系统文件
-.DS_Store
-Thumbs.db
+# --- Node / 前端依赖 ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# 原始数据（CSV/Excel，不上传）
+# --- PHP ---
+vendor/
+composer.lock
+composer.phar
+
+# --- 日志 ---
+*.log
+logs/
+
+# --- 缓存 / 临时 ---
+tmp/
+temp/
+cache/
+*.cache
+.phpunit.result.cache
+
+# --- 备份 ---
+*.bak
+*.backup
+*.old
+
+# --- Python 临时 ---
+*.pyc
+*.pyo
+__pycache__/
+.python-version
+
+# --- 原始数据（不上传） ---
 *.csv
 *.xlsx
+*.xls
 副本-*.csv
 副本-*.xlsx
+原始数据/
 
-# 临时脚本
+# --- 本地脚本 ---
 convert_*.py
 update_*.py
 excel_*.py
 deepseek_*.py
+scrape_*.py
 
-# 敏感配置文件
+# --- 敏感配置文件 ---
 config.php
 .env
 .env.local
 .env.*.local
 
-# 不要忽略模板文件
+# 允许模板文件
 !config.example.php
 !.env.example
 
-# 其他敏感
+# --- 密钥 / 证书 ---
 *.key
 *.pem
+*.cert
 .secrets/
+
+# --- 数据库文件（包含生产数据） ---
+data/*.sql
+data/*.db
+data/*.sqlite
+
+# --- 用户上传文件 ---
+data/avatars/*
+!data/avatars/.gitkeep
+data/club_avatars/*
+!data/club_avatars/.gitkeep
+data/publication_images/*
+!data/publication_images/.gitkeep
+data/event_images/*
+
+# --- 提交数据（含用户个人信息） ---
+data/submissions*.json
+data/qq_members.json
+
+# --- 服务器配置 ---
+.user.ini
+
+# --- Claude Code 缓存 ---
+.claude/

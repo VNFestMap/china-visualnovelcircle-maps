@@ -2,12 +2,15 @@
 (function() {
   const state = {
     events: [],
+    registrations: [],
+    currentUserId: null,
     currentDate: new Date(),
     selectedDateKey: '',
     modalAnimToken: 0,
+    activeView: 'calendar',
+    activeFilter: 'all',
   };
 
-  const ADMIN_TOKEN = 'ciallo';
   const EVENTS_FILE = './data/events.json';
 
   // DOM 元素缓存
@@ -31,12 +34,57 @@
     return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   }
 
-  function getAdminToken() {
-    return localStorage.getItem('admin_token');
+  // 获取事件结束日期（没有 date_end 则等于开始日期）
+  function getEventDateEnd(event) {
+    if (event.parsedDateEnd) return event.parsedDateEnd;
+    return event.parsedDate;
+  }
+
+  // 判断事件状态
+  function isEventUpcoming(event) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return event.parsedDate > today;
+  }
+
+  function isEventOngoing(event) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = getEventDateEnd(event);
+    return event.parsedDate <= today && end >= today;
+  }
+
+  function isEventEnded(event) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const end = getEventDateEnd(event);
+    return end < today;
+  }
+
+  function getEventStatus(event) {
+    if (isEventUpcoming(event)) return 'upcoming';
+    if (isEventOngoing(event)) return 'ongoing';
+    return 'ended';
+  }
+
+  function getEventStatusLabel(status) {
+    const labels = { upcoming: '即将开始', ongoing: '进行中', ended: '已结束' };
+    return labels[status] || '';
+  }
+
+  function formatShortDate(dateStr) {
+    if (!dateStr) return '';
+    const m = String(dateStr).match(/^\d{4}-(\d{1,2})-(\d{1,2})$/);
+    if (!m) return dateStr;
+    return `${parseInt(m[1])}/${parseInt(m[2])}`;
   }
 
   function isAdminMode() {
-    return localStorage.getItem('admin_token') === ADMIN_TOKEN;
+    return typeof hasRole === 'function' && hasRole('manager');
+  }
+
+  function isLoggedIn() {
+    return typeof currentUser !== 'undefined' && currentUser !== null && currentUser?.logged_in === true;
   }
 
   // 加载活动数据
@@ -54,6 +102,7 @@
           .map((item) => ({
             ...item,
             parsedDate: parseEventDate(item.date),
+            parsedDateEnd: parseEventDate(item.date_end),
           }))
           .filter((item) => item.parsedDate instanceof Date && !isNaN(item.parsedDate.getTime()));
       } else {
@@ -70,20 +119,16 @@
 
   // 保存活动数据到服务器
   async function saveEvents() {
-    const adminToken = getAdminToken();
-    if (!adminToken) {
-      console.error('未登录管理员');
+    if (!isAdminMode()) {
+      console.error('无管理员权限');
       return false;
     }
 
     try {
-      const eventsToSave = state.events.map(({ parsedDate, ...rest }) => rest);
+      const eventsToSave = state.events.map(({ parsedDate, parsedDateEnd, ...rest }) => rest);
       const response = await fetch('./api/events.php', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Admin-Token': adminToken
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ events: eventsToSave })
       });
       
@@ -113,6 +158,7 @@
       id: maxId + 1,
       event: eventData.event,
       date: eventData.date,
+      date_end: eventData.date_end || undefined,
       image: eventData.image || '',
       raw_text: eventData.raw_text || '',
       offical: eventData.offical ? 1 : 0,
@@ -122,6 +168,7 @@
     };
 
     newEvent.parsedDate = parseEventDate(newEvent.date);
+    newEvent.parsedDateEnd = parseEventDate(newEvent.date_end);
     state.events.push(newEvent);
     
     const success = await saveEvents();
@@ -130,6 +177,122 @@
       return true;
     }
     return false;
+  }
+
+  // ====== 活动报名功能 ======
+
+  // 加载报名数据
+  async function loadRegistrations() {
+    try {
+      const r = await fetch('./api/events.php?action=registrations');
+      const data = await r.json();
+      if (data.success) {
+        state.registrations = data.registrations || [];
+      }
+    } catch (e) {
+      console.error('加载报名数据失败:', e);
+      state.registrations = [];
+    }
+    // 获取当前用户 ID
+    if (window.currentUser?.logged_in && window.currentUser?.user) {
+      state.currentUserId = window.currentUser.user.id;
+    } else {
+      state.currentUserId = null;
+    }
+  }
+
+  // 检查当前用户是否已报名某活动
+  function isRegistered(eventId) {
+    if (!state.currentUserId) return false;
+    return state.registrations.some(function(r) {
+      return r.event_id === eventId && r.user_id === state.currentUserId;
+    });
+  }
+
+  // 获取某活动的报名人数
+  function getRegistrationCount(eventId) {
+    return state.registrations.filter(function(r) { return r.event_id === eventId; }).length;
+  }
+
+  // 报名
+  async function registerForEvent(eventId) {
+    if (!isLoggedIn()) {
+      alert('请先登录后再报名');
+      return false;
+    }
+    try {
+      const r = await fetch('./api/events.php?action=register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_id: eventId })
+      });
+      const data = await r.json();
+      if (data.success) {
+        await loadRegistrations();
+        return true;
+      } else {
+        alert(data.message || '报名失败');
+        return false;
+      }
+    } catch (e) {
+      console.error('报名失败:', e);
+      return false;
+    }
+  }
+
+  // 取消报名
+  async function unregisterFromEvent(eventId) {
+    if (!isLoggedIn()) return false;
+    try {
+      const r = await fetch('./api/events.php?action=unregister', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event_id: eventId })
+      });
+      const data = await r.json();
+      if (data.success) {
+        await loadRegistrations();
+        return true;
+      } else {
+        alert(data.message || '取消失败');
+        return false;
+      }
+    } catch (e) {
+      console.error('取消报名失败:', e);
+      return false;
+    }
+  }
+
+  // 非管理员直接添加活动（通过 action=add 端点，无需审核）
+  async function addEventDirect(eventData) {
+    if (!isLoggedIn()) {
+      alert('请先登录后再添加活动');
+      return false;
+    }
+
+    try {
+      const response = await fetch('./api/events.php?action=add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      });
+      const result = await response.json();
+      if (result.success && result.event) {
+        const newEvent = {
+          ...result.event,
+          parsedDate: parseEventDate(result.event.date),
+          parsedDateEnd: parseEventDate(result.event.date_end)
+        };
+        state.events.push(newEvent);
+        if (state.activeView === 'calendar') renderCalendar();
+        else renderListView(state.activeFilter);
+        return true;
+      }
+      return false;
+    } catch (e) {
+      console.error('添加活动失败:', e);
+      return false;
+    }
   }
 
   // 更新活动
@@ -143,6 +306,7 @@
       ...state.events[index],
       event: eventData.event,
       date: eventData.date,
+      date_end: eventData.date_end || undefined,
       image: eventData.image || '',
       raw_text: eventData.raw_text || '',
       offical: eventData.offical ? 1 : 0,
@@ -151,6 +315,7 @@
       updated_at: new Date().toISOString()
     };
     state.events[index].parsedDate = parseEventDate(state.events[index].date);
+    state.events[index].parsedDateEnd = parseEventDate(state.events[index].date_end);
 
     const success = await saveEvents();
     if (success) {
@@ -190,24 +355,40 @@
       if (elements.eventEditorId) elements.eventEditorId.value = editEvent.id;
       if (elements.eventEditorName) elements.eventEditorName.value = editEvent.event || '';
       if (elements.eventEditorDate) elements.eventEditorDate.value = editEvent.date || '';
+      if (elements.eventEditorDateEnd) elements.eventEditorDateEnd.value = editEvent.date_end || '';
       if (elements.eventEditorRawText) elements.eventEditorRawText.value = editEvent.raw_text || '';
       if (elements.eventEditorImage) elements.eventEditorImage.value = editEvent.image || '';
       if (elements.eventEditorOfficial) elements.eventEditorOfficial.checked = editEvent.offical === 1;
       if (elements.eventEditorDescription) elements.eventEditorDescription.value = editEvent.description || '';
       if (elements.eventEditorLink) elements.eventEditorLink.value = editEvent.link || '';
       if (elements.eventEditorDeleteBtn) elements.eventEditorDeleteBtn.style.display = 'block';
+      // 显示已有海报
+      const imgUrl = editEvent.image || '';
+      if (imgUrl && elements.eventImagePreview) {
+        elements.eventImagePreview.src = imgUrl;
+        elements.eventImagePreview.style.display = 'block';
+      }
+      if (elements.eventImageRemoveBtn) elements.eventImageRemoveBtn.style.display = imgUrl ? 'inline-block' : 'none';
     } else {
       if (elements.eventEditorTitle) elements.eventEditorTitle.textContent = '➕ 添加活动';
       if (elements.eventEditorId) elements.eventEditorId.value = '';
       if (elements.eventEditorName) elements.eventEditorName.value = '';
       if (elements.eventEditorDate) elements.eventEditorDate.value = '';
+      if (elements.eventEditorDateEnd) elements.eventEditorDateEnd.value = '';
       if (elements.eventEditorRawText) elements.eventEditorRawText.value = '';
       if (elements.eventEditorImage) elements.eventEditorImage.value = '';
       if (elements.eventEditorOfficial) elements.eventEditorOfficial.checked = false;
       if (elements.eventEditorDescription) elements.eventEditorDescription.value = '';
       if (elements.eventEditorLink) elements.eventEditorLink.value = '';
       if (elements.eventEditorDeleteBtn) elements.eventEditorDeleteBtn.style.display = 'none';
+      if (elements.eventImagePreview) { elements.eventImagePreview.src = ''; elements.eventImagePreview.style.display = 'none'; }
+      if (elements.eventImageRemoveBtn) elements.eventImageRemoveBtn.style.display = 'none';
+      if (elements.eventImageStatus) elements.eventImageStatus.textContent = '';
     }
+
+    // 非管理员隐藏"官方活动"选项
+    var officialWrap = document.getElementById('eventOfficialWrap');
+    if (officialWrap) officialWrap.style.display = isAdminMode() ? '' : 'none';
 
     elements.eventEditorModal.classList.add('open');
     elements.eventEditorModal.setAttribute('aria-hidden', 'false');
@@ -223,9 +404,11 @@
   // 保存活动（添加或编辑）
   async function saveEventFromEditor() {
     const eventId = elements.eventEditorId?.value;
+    const dateEndVal = elements.eventEditorDateEnd?.value || '';
     const eventData = {
       event: elements.eventEditorName?.value.trim() || '',
       date: elements.eventEditorDate?.value || '',
+      date_end: dateEndVal || undefined,
       raw_text: elements.eventEditorRawText?.value.trim() || '',
       image: elements.eventEditorImage?.value.trim() || '',
       offical: elements.eventEditorOfficial?.checked || false,
@@ -245,15 +428,21 @@
     let success;
     if (eventId) {
       success = await updateEvent(parseInt(eventId), eventData);
-    } else {
+    } else if (isAdminMode()) {
       success = await addEvent(eventData);
+    } else {
+      success = await addEventDirect(eventData);
     }
 
     if (success) {
       closeEventEditor();
-      alert(eventId ? '✅ 活动已更新' : '✅ 活动已添加');
+      if (isAdminMode()) {
+        alert(eventId ? '✅ 活动已更新' : '✅ 活动已添加');
+      } else {
+        alert('✅ 活动已添加');
+      }
     } else {
-      alert('保存失败，请检查管理员权限');
+      alert(isAdminMode() ? '保存失败，请检查管理员权限' : '保存失败，请稍后重试');
     }
   }
 
@@ -265,11 +454,17 @@
     }
 
     if (elements.eventDetailTitle) elements.eventDetailTitle.textContent = eventData.event || '活动详情';
-    if (elements.eventDetailDate) elements.eventDetailDate.textContent = eventData.date || '日期待定';
+    if (elements.eventDetailDate) {
+      let dateText = eventData.date || '日期待定';
+      if (eventData.date_end && eventData.date_end !== eventData.date) {
+        dateText = `${eventData.date} ~ ${eventData.date_end}`;
+      }
+      elements.eventDetailDate.textContent = dateText;
+    }
     
     if (elements.eventDetailImage) {
       if (eventData.image) {
-        elements.eventDetailImage.src = `./images/${eventData.image}`;
+        elements.eventDetailImage.src = eventData.image;
         elements.eventDetailImage.style.display = 'block';
       } else {
         elements.eventDetailImage.style.display = 'none';
@@ -296,6 +491,36 @@
     if (elements.eventDetailEditBtn) elements.eventDetailEditBtn.dataset.eventId = eventData.id;
     if (elements.eventDetailDeleteBtn) elements.eventDetailDeleteBtn.dataset.eventId = eventData.id;
 
+    // 报名状态
+    const loggedIn = isLoggedIn();
+    const regCount = getRegistrationCount(eventData.id);
+    const userReg = isRegistered(eventData.id);
+    if (elements.eventDetailRegSection) {
+      elements.eventDetailRegSection.style.display = loggedIn || regCount > 0 ? 'flex' : 'none';
+    }
+    if (elements.eventDetailRegCount) {
+      elements.eventDetailRegCount.textContent = regCount > 0 ? '👥 ' + regCount + ' 人已报名' : '暂无报名';
+    }
+    if (elements.eventDetailRegBtn) {
+      if (loggedIn) {
+        elements.eventDetailRegBtn.style.display = '';
+        elements.eventDetailRegBtn.dataset.eventId = eventData.id;
+        if (userReg) {
+          elements.eventDetailRegBtn.textContent = '✓ 已报名（点击取消）';
+          elements.eventDetailRegBtn.dataset.action = 'unregister';
+          elements.eventDetailRegBtn.style.background = 'var(--md-primary)';
+          elements.eventDetailRegBtn.style.color = '#fff';
+        } else {
+          elements.eventDetailRegBtn.textContent = '📝 报名参加';
+          elements.eventDetailRegBtn.dataset.action = 'register';
+          elements.eventDetailRegBtn.style.background = '';
+          elements.eventDetailRegBtn.style.color = '';
+        }
+      } else {
+        elements.eventDetailRegBtn.style.display = 'none';
+      }
+    }
+
     elements.eventDetailModal.classList.add('open');
     elements.eventDetailModal.setAttribute('aria-hidden', 'false');
   }
@@ -313,6 +538,7 @@
 
   function updateAdminUI() {
     const isAdmin = isAdminMode();
+    const loggedIn = isLoggedIn();
     if (elements.calendarAddEventBtn) {
       elements.calendarAddEventBtn.style.display = isAdmin ? 'flex' : 'none';
     }
@@ -320,13 +546,33 @@
 
   function openCalendar() {
     if (!elements.calendarModal) return;
-    
+
+    // 刷新报名数据
+    loadRegistrations();
+
+    // 重置为月历视图
+    state.activeView = 'calendar';
+    state.activeFilter = 'all';
+
     elements.calendarModal.classList.add('open');
     elements.calendarModal.setAttribute('aria-hidden', 'false');
-    
+
     if (!state.selectedDateKey) {
       state.selectedDateKey = formatDateKey(new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1));
     }
+
+    // 重置标签状态
+    const tabs = document.querySelectorAll('.view-tab');
+    tabs.forEach(tab => tab.classList.toggle('active', tab.dataset.view === 'calendar'));
+    const filterBtns = document.querySelectorAll('.filter-tab');
+    filterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === 'all'));
+
+    // 显示月历视图，隐藏列表视图
+    const gridView = document.getElementById('calendarGridView');
+    const listViewEl = document.getElementById('listView');
+    if (gridView) gridView.style.display = '';
+    if (listViewEl) listViewEl.style.display = 'none';
+
     renderCalendar();
   }
 
@@ -354,13 +600,19 @@
 
     elements.calendarTitle.textContent = `${year}年${month + 1}月 Galgame活动日历`;
 
-    // 构建事件映射
+    // 构建事件映射（支持多日活动）
     const eventMap = new Map();
     state.events.forEach((item) => {
-      if (item.parsedDate) {
-        const key = formatDateKey(item.parsedDate);
+      if (!item.parsedDate) return;
+      const start = item.parsedDate;
+      const end = getEventDateEnd(item);
+      // 遍历从 start 到 end 的每一天
+      const iter = new Date(start);
+      while (iter <= end) {
+        const key = formatDateKey(iter);
         if (!eventMap.has(key)) eventMap.set(key, []);
         eventMap.get(key).push(item);
+        iter.setDate(iter.getDate() + 1);
       }
     });
 
@@ -425,6 +677,7 @@
           id: item.id,
           event: item.event || '',
           date: item.date || '',
+          date_end: item.date_end || '',
           image: item.image || '',
           raw_text: item.raw_text || '',
           description: item.description || '',
@@ -454,11 +707,148 @@
     });
   }
 
-  function bindEvents() {
-    // 日历按钮
-    if (elements.calendarToggleBtn) {
-      elements.calendarToggleBtn.addEventListener('click', openCalendar);
+  // ====== 列表视图 ======
+
+  function renderListView(filter) {
+    const container = document.getElementById('eventListContainer');
+    if (!container) return;
+
+    let filtered = [...state.events];
+
+    // 根据筛选条件过滤
+    if (filter === 'upcoming') {
+      filtered = filtered.filter(e => isEventUpcoming(e));
+    } else if (filter === 'ongoing') {
+      filtered = filtered.filter(e => isEventOngoing(e));
+    } else if (filter === 'ended') {
+      filtered = filtered.filter(e => isEventEnded(e));
     }
+
+    // 按开始日期倒序排列（最新的在前）
+    filtered.sort((a, b) => b.parsedDate - a.parsedDate);
+
+    if (!filtered.length) {
+      container.innerHTML = '<div class="event-list-empty">📭 暂无匹配的活动</div>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(renderEventListItem).join('');
+  }
+
+  function renderEventListItem(event) {
+    const status = getEventStatus(event);
+    const statusLabel = getEventStatusLabel(status);
+    const startDate = event.parsedDate;
+    const endDate = getEventDateEnd(event);
+    const isMultiDay = endDate > startDate;
+    const official = Number(event.offical) === 1;
+
+    // 报名状态
+    const regCount = getRegistrationCount(event.id);
+    const userRegistered = isRegistered(event.id);
+    const loggedIn = isLoggedIn();
+
+    // 格式化日期显示
+    const month = String(startDate.getMonth() + 1);
+    const day = String(startDate.getDate()).padStart(2, '0');
+    const weekday = ['日','一','二','三','四','五','六'][startDate.getDay()];
+
+    // 多日活动日期显示
+    let dateDisplay = '';
+    if (isMultiDay) {
+      const endMonth = endDate.getMonth() + 1;
+      const endDay = String(endDate.getDate()).padStart(2, '0');
+      dateDisplay = `${month}/${day}~${endMonth}/${endDay}`;
+    } else {
+      dateDisplay = `${month}/${day}`;
+    }
+
+    const eventKey = encodeURIComponent(JSON.stringify({
+      id: event.id,
+      event: event.event || '',
+      date: event.date || '',
+      date_end: event.date_end || '',
+      image: event.image || '',
+      raw_text: event.raw_text || '',
+      description: event.description || '',
+      link: event.link || '',
+      offical: event.offical || 0
+    }));
+
+    // 报名按钮 HTML
+    let regHtml = '';
+    if (loggedIn) {
+      if (userRegistered) {
+        regHtml = `<button class="event-list-reg-btn registered" data-action="unregister" data-event-id="${event.id}">✓ 已报名 (${regCount})</button>`;
+      } else {
+        regHtml = `<button class="event-list-reg-btn" data-action="register" data-event-id="${event.id}">📝 报名 (${regCount})</button>`;
+      }
+    } else if (regCount > 0) {
+      regHtml = `<span class="event-list-reg-count">👥 ${regCount} 人报名</span>`;
+    }
+
+    return `
+      <div class="event-list-item-wrap">
+        <button class="event-list-item ${official ? 'official' : ''}" type="button" data-event-key="${eventKey}">
+          <div class="event-list-date-block">
+            <span class="event-list-date-day">${day}</span>
+            <span class="event-list-date-month">${month}月</span>
+            ${isMultiDay ? `<span class="event-list-date-range">~${endMonth}/${endDay}</span>` : ''}
+          </div>
+          <div class="event-list-info">
+            <div class="event-list-title">${escapeHtml(event.event || '未命名活动')}</div>
+            <div class="event-list-meta">${escapeHtml(event.raw_text || '')}</div>
+          </div>
+          <span class="event-list-badge ${status}">${statusLabel}</span>
+        </button>
+        <div class="event-list-reg-section">${regHtml}</div>
+      </div>
+    `;
+  }
+
+  // ====== 视图切换 ======
+
+  function switchView(view) {
+    state.activeView = view;
+
+    // 更新标签状态
+    const tabs = document.querySelectorAll('.view-tab');
+    tabs.forEach(tab => {
+      tab.classList.toggle('active', tab.dataset.view === view);
+    });
+
+    // 切换视图容器显示
+    const gridView = document.getElementById('calendarGridView');
+    const listViewEl = document.getElementById('listView');
+    if (gridView) gridView.style.display = view === 'calendar' ? '' : 'none';
+    if (listViewEl) listViewEl.style.display = view === 'list' ? '' : 'none';
+
+    // 渲染对应视图
+    if (view === 'calendar') {
+      renderCalendar();
+    } else if (view === 'list') {
+      renderListView(state.activeFilter);
+    }
+  }
+
+  function switchFilter(filter) {
+    state.activeFilter = filter;
+
+    // 更新筛选按钮状态
+    const filterBtns = document.querySelectorAll('.filter-tab');
+    filterBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.filter === filter);
+    });
+
+    // 重新渲染列表
+    renderListView(filter);
+  }
+
+  function bindEvents() {
+    // 日历按钮 — 顶层卡片和 FAB
+    document.querySelectorAll('[data-action="calendar"], #fabCalendar').forEach(btn => {
+      btn.addEventListener('click', openCalendar);
+    });
     
     if (elements.calendarModalClose) {
       elements.calendarModalClose.addEventListener('click', closeCalendar);
@@ -502,6 +892,21 @@
       });
     }
 
+    // 列表视图事件点击（事件冒泡）
+    document.getElementById('eventListContainer')?.addEventListener('click', (e) => {
+      const item = e.target.closest('.event-list-item');
+      if (!item) return;
+      const rawKey = item.getAttribute('data-event-key');
+      if (!rawKey) return;
+      try {
+        const parsed = JSON.parse(decodeURIComponent(rawKey));
+        const eventData = state.events.find((ev) => ev.id === parsed.id) || parsed;
+        openEventDetail(eventData);
+      } catch (err) {
+        console.error('解析活动数据失败:', err);
+      }
+    });
+
     // 日历格子点击
     if (elements.calendarGrid) {
       elements.calendarGrid.addEventListener('click', (e) => {
@@ -514,6 +919,20 @@
       });
     }
 
+    // 视图切换标签
+    document.querySelectorAll('.view-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        switchView(tab.dataset.view);
+      });
+    });
+
+    // 筛选按钮
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        switchFilter(tab.dataset.filter);
+      });
+    });
+
     // 添加活动按钮（管理员）
     if (elements.calendarAddEventBtn) {
       elements.calendarAddEventBtn.addEventListener('click', () => {
@@ -521,7 +940,7 @@
           alert('请先开启管理员模式');
           return;
         }
-        openEventEditor(null);  // 打开活动编辑器
+        openEventEditor(null);
       });
     }
 
@@ -539,6 +958,41 @@
           await deleteEvent(parseInt(eventId));
           closeEventEditor();
         }
+      });
+    }
+
+    // 活动海报上传
+    if (elements.eventImageBtn && elements.eventImageInput) {
+      elements.eventImageBtn.addEventListener('click', () => elements.eventImageInput.click());
+      elements.eventImageInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const eventId = elements.eventEditorId?.value || 'event_' + Date.now();
+        const fd = new FormData();
+        fd.append('image', file);
+        fd.append('id', eventId);
+        if (elements.eventImageStatus) elements.eventImageStatus.textContent = '上传中...';
+        try {
+          const r = await fetch('./api/club_avatar.php?scope=event', { method: 'POST', body: fd });
+          const j = await r.json();
+          if (j.success) {
+            if (elements.eventImagePreview) { elements.eventImagePreview.src = j.image_url; elements.eventImagePreview.style.display = 'block'; }
+            if (elements.eventEditorImage) elements.eventEditorImage.value = j.image_url;
+            if (elements.eventImageRemoveBtn) elements.eventImageRemoveBtn.style.display = 'inline-block';
+            if (elements.eventImageStatus) elements.eventImageStatus.textContent = '✅ 上传成功';
+          } else {
+            if (elements.eventImageStatus) elements.eventImageStatus.textContent = '❌ ' + (j.message || '上传失败');
+          }
+        } catch { if (elements.eventImageStatus) elements.eventImageStatus.textContent = '❌ 网络错误'; }
+        elements.eventImageInput.value = '';
+      });
+    }
+    if (elements.eventImageRemoveBtn) {
+      elements.eventImageRemoveBtn.addEventListener('click', () => {
+        if (elements.eventImagePreview) { elements.eventImagePreview.src = ''; elements.eventImagePreview.style.display = 'none'; }
+        if (elements.eventEditorImage) elements.eventEditorImage.value = '';
+        elements.eventImageRemoveBtn.style.display = 'none';
+        if (elements.eventImageStatus) elements.eventImageStatus.textContent = '已移除海报';
       });
     }
 
@@ -575,16 +1029,52 @@
       });
     }
 
-    // 监听管理员状态变化
-    window.addEventListener('adminModeChanged', () => {
-      updateAdminUI();
-      renderCalendar();
-    });
+    // 列表项报名按钮（事件委托）
+    const listContainer = document.getElementById('eventListContainer');
+    if (listContainer) {
+      listContainer.addEventListener('click', async (e) => {
+        const btn = e.target.closest('.event-list-reg-btn');
+        if (!btn) return;
+        const eventId = parseInt(btn.dataset.eventId);
+        if (!eventId) return;
+        if (btn.dataset.action === 'register') {
+          if (await registerForEvent(eventId)) {
+            renderListView(state.activeFilter);
+          }
+        } else if (btn.dataset.action === 'unregister') {
+          if (await unregisterFromEvent(eventId)) {
+            renderListView(state.activeFilter);
+          }
+        }
+      });
+    }
+
+    // 详情弹窗报名/取消按钮
+    if (elements.eventDetailRegBtn) {
+      elements.eventDetailRegBtn.addEventListener('click', async () => {
+        const eventId = parseInt(elements.eventDetailRegBtn.dataset.eventId);
+        if (!eventId) return;
+        const action = elements.eventDetailRegBtn.dataset.action;
+        if (action === 'register') {
+          if (await registerForEvent(eventId)) {
+            const eventData = getEventById(eventId);
+            if (eventData) openEventDetail(eventData);
+          }
+        } else if (action === 'unregister') {
+          if (confirm('确定取消报名吗？')) {
+            if (await unregisterFromEvent(eventId)) {
+              const eventData = getEventById(eventId);
+              if (eventData) openEventDetail(eventData);
+            }
+          }
+        }
+      });
+    }
+
   }
 
   function initElements() {
     elements = {
-      calendarToggleBtn: $('calendarToggleBtn'),
       calendarModal: $('calendarModal'),
       calendarModalClose: $('calendarModalClose'),
       calendarPrevBtn: $('calendarPrevBtn'),
@@ -598,6 +1088,7 @@
       eventEditorId: $('eventEditorId'),
       eventEditorName: $('eventEditorName'),
       eventEditorDate: $('eventEditorDate'),
+      eventEditorDateEnd: $('eventEditorDateEnd'),
       eventEditorRawText: $('eventEditorRawText'),
       eventEditorImage: $('eventEditorImage'),
       eventEditorOfficial: $('eventEditorOfficial'),
@@ -606,6 +1097,11 @@
       eventEditorCancelBtn: $('eventEditorCancelBtn'),
       eventEditorSaveBtn: $('eventEditorSaveBtn'),
       eventEditorDeleteBtn: $('eventEditorDeleteBtn'),
+      eventImagePreview: $('eventImagePreview'),
+      eventImageInput: $('eventImageInput'),
+      eventImageBtn: $('eventImageBtn'),
+      eventImageRemoveBtn: $('eventImageRemoveBtn'),
+      eventImageStatus: $('eventImageStatus'),
       eventDetailModal: $('eventDetailModal'),
       eventDetailClose: $('eventDetailClose'),
       eventDetailTitle: $('eventDetailTitle'),
@@ -614,30 +1110,26 @@
       eventDetailDescription: $('eventDetailDescription'),
       eventDetailLink: $('eventDetailLink'),
       eventDetailEditBtn: $('eventDetailEditBtn'),
-      eventDetailDeleteBtn: $('eventDetailDeleteBtn')
+      eventDetailDeleteBtn: $('eventDetailDeleteBtn'),
+      eventDetailRegSection: $('eventDetailRegSection'),
+      eventDetailRegCount: $('eventDetailRegCount'),
+      eventDetailRegBtn: $('eventDetailRegBtn')
     };
   }
 
   async function init() {
     console.log('📅 日历模块初始化...');
     initElements();
-    
-    // 等待 DOM 元素就绪
-    if (!elements.calendarToggleBtn) {
-      console.warn('日历按钮未找到，可能 DOM 尚未加载完成');
-      // 延迟重试
-      setTimeout(() => {
-        if (document.getElementById('calendarToggleBtn')) {
-          initElements();
-          init();
-        }
-      }, 500);
-      return;
-    }
-    
+
     await loadEvents();
+    await loadRegistrations();
     bindEvents();
     updateAdminUI();
+    window.addEventListener('auth:updated', async function() {
+      await loadRegistrations();
+      updateAdminUI();
+      if (state.activeView === 'list') renderListView(state.activeFilter);
+    });
     console.log('✅ 日历模块初始化完成');
   }
 

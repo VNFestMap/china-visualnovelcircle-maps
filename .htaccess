@@ -1,1 +1,17 @@
- 
+# 保护 includes 目录（禁止直接访问）
+RewriteRule ^includes/ - [F,L]
+
+# 保护数据库文件
+RewriteRule ^data/.*\.(db|sqlite)$ - [F,L]
+
+# PHP 安全头
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+</IfModule>
+
+# 禁止访问 .json 提交文件（但不影响 clubs.json 等公开数据）
+<FilesMatch "submissions.*\.json$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

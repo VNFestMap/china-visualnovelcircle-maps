@@ -1,0 +1,144 @@
+<h2>顶层用户信息框 — 布局方案 v2</h2>
+<p class="subtitle">删除侧边按钮，展示登录态</p>
+
+<div class="split">
+  <!-- 桌面端 - 未登录 -->
+  <div class="mockup">
+    <div class="mockup-header">桌面端 — 未登录</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:320px;background:#f5f5f5;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">地图区域</div>
+
+      <!-- TOP CENTER CARD -->
+      <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:380px;background:rgba(255,255,255,0.85);border-radius:20px;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:10;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.3);">
+        <!-- User info row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="width:34px;height:34px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;color:#999;font-size:13px;flex-shrink:0;">?</div>
+          <div style="flex:1;font-size:14px;font-weight:500;color:#333;">访客</div>
+          <div style="padding:5px 14px;background:var(--md-primary,#6750a4);color:white;border-radius:8px;font-size:12px;cursor:default;">登录 / 注册</div>
+        </div>
+        <!-- Nav buttons -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">中国同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">日本同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">海外同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">活动日历</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">刊物投稿</div>
+        </div>
+      </div>
+
+      <!-- left card -->
+      <div style="position:absolute;top:80px;left:12px;width:140px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:2;">
+        <div style="font-weight:bold;font-size:12px;color:#333;">全国Galgame同好会地图</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">描述文字</div>
+        <div style="margin-top:8px;height:16px;background:#e0e0e0;border-radius:8px;"></div>
+        <div style="margin-top:6px;height:16px;background:#e0e0e0;border-radius:8px;width:60%;"></div>
+      </div>
+      <!-- right card -->
+      <div style="position:absolute;top:80px;right:12px;width:150px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:2;">
+        <div style="font-weight:bold;font-size:11px;color:#333;">搜索 / 筛选</div>
+        <div style="margin-top:8px;height:10px;background:#e0e0e0;border-radius:4px;"></div>
+        <div style="margin-top:4px;height:10px;background:#e0e0e0;border-radius:4px;width:70%;"></div>
+        <div style="margin-top:10px;height:8px;background:#f0f0f0;border-radius:4px;"></div>
+        <div style="margin-top:4px;height:8px;background:#f0f0f0;border-radius:4px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 桌面端 - 已登录 -->
+  <div class="mockup">
+    <div class="mockup-header">桌面端 — 已登录（管理员）</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:320px;background:#f5f5f5;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">地图区域</div>
+
+      <!-- TOP CENTER CARD (LOGGED IN) -->
+      <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:440px;background:rgba(255,255,255,0.88);border-radius:20px;padding:12px 16px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:10;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.3);">
+        <!-- User info row -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <!-- Avatar -->
+          <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;flex-shrink:0;overflow:hidden;border:2px solid white;box-shadow:0 2px 6px rgba(102,126,234,0.3);">U</div>
+          <!-- User info -->
+          <div style="flex:1;min-width:0;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;font-weight:600;color:#333;white-space:nowrap;">用户名</span>
+              <span style="font-size:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:2px 8px;border-radius:10px;font-weight:500;">管理员</span>
+            </div>
+          </div>
+          <!-- Account button -->
+          <div style="padding:5px 14px;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;color:#555;cursor:default;">账号</div>
+          <!-- Management button -->
+          <div style="padding:5px 14px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border-radius:8px;font-size:12px;cursor:default;">同好会管理</div>
+        </div>
+        <!-- Nav buttons -->
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">中国同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">日本同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">海外同好会</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">活动日历</div>
+          <div style="padding:5px 12px;background:#f0f0f0;border-radius:8px;font-size:12px;color:#333;cursor:default;border:1px solid #e8e8e8;">刊物投稿</div>
+        </div>
+      </div>
+
+      <!-- left card -->
+      <div style="position:absolute;top:80px;left:12px;width:140px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:2;">
+        <div style="font-weight:bold;font-size:12px;color:#333;">全国Galgame同好会地图</div>
+        <div style="font-size:10px;color:#666;margin-top:6px;">描述文字</div>
+        <div style="margin-top:8px;height:16px;background:#e0e0e0;border-radius:8px;"></div>
+        <div style="margin-top:6px;height:16px;background:#e0e0e0;border-radius:8px;width:60%;"></div>
+      </div>
+      <!-- right card -->
+      <div style="position:absolute;top:80px;right:12px;width:150px;background:white;border-radius:16px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);z-index:2;">
+        <div style="font-weight:bold;font-size:11px;color:#333;">搜索 / 筛选</div>
+        <div style="margin-top:8px;height:10px;background:#e0e0e0;border-radius:4px;"></div>
+        <div style="margin-top:4px;height:10px;background:#e0e0e0;border-radius:4px;width:70%;"></div>
+        <div style="margin-top:10px;height:8px;background:#f0f0f0;border-radius:4px;"></div>
+        <div style="margin-top:4px;height:8px;background:#f0f0f0;border-radius:4px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 移动端 -->
+<div class="section">
+  <h3>移动端</h3>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div class="mockup" style="flex:1;min-width:200px;">
+      <div class="mockup-header">移动端 — 新布局</div>
+      <div class="mockup-body" style="padding:12px;min-height:400px;background:#f5f5f5;position:relative;">
+        <!-- Top user bar -->
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.9);border-radius:16px;backdrop-filter:blur(16px);margin-bottom:8px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;">?</div>
+          <div style="flex:1;font-size:13px;font-weight:500;color:#333;">访客</div>
+          <div style="padding:4px 12px;font-size:11px;color:white;background:var(--md-primary,#6750a4);border-radius:6px;">登录</div>
+        </div>
+        <!-- Scrollable nav pills -->
+        <div style="display:flex;gap:4px;overflow-x:auto;padding:0 0 8px 0;white-space:nowrap;-webkit-overflow-scrolling:touch;">
+          <div style="padding:4px 10px;background:white;border-radius:8px;font-size:11px;color:#333;border:1px solid #e8e8e8;flex-shrink:0;">中国同好会</div>
+          <div style="padding:4px 10px;background:white;border-radius:8px;font-size:11px;color:#333;border:1px solid #e8e8e8;flex-shrink:0;">日本同好会</div>
+          <div style="padding:4px 10px;background:white;border-radius:8px;font-size:11px;color:#333;border:1px solid #e8e8e8;flex-shrink:0;">海外同好会</div>
+          <div style="padding:4px 10px;background:white;border-radius:8px;font-size:11px;color:#333;border:1px solid #e8e8e8;flex-shrink:0;">活动日历</div>
+          <div style="padding:4px 10px;background:white;border-radius:8px;font-size:11px;color:#333;border:1px solid #e8e8e8;flex-shrink:0;">刊物投稿</div>
+        </div>
+        <!-- Map area -->
+        <div style="flex:1;background:linear-gradient(135deg,#e0e0e0,#ccc);border-radius:12px;min-height:260px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">地图区域</div>
+        <!-- Bottom sheet -->
+        <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);">
+          <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 8px;"></div>
+          <div style="font-size:12px;font-weight:500;color:#333;">同好会列表</div>
+          <div style="margin-top:6px;height:8px;background:#f0f0f0;border-radius:4px;"></div>
+          <div style="margin-top:4px;height:8px;background:#f0f0f0;border-radius:4px;width:80%;"></div>
+        </div>
+        <!-- Hamburger for left menu -->
+        <div style="position:absolute;top:70px;left:4px;width:36px;height:36px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:5;cursor:default;color:#555;font-size:16px;font-weight:bold;">&#9776;</div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:200px;background:var(--bg-secondary);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:8px;">说明</div>
+      <ul style="font-size:13px;line-height:1.6;margin:0;padding-left:16px;">
+        <li>移动端顶部固定显示用户信息框</li>
+        <li>导航按钮可横向滚动</li>
+        <li>左上角汉堡按钮打开左侧隐藏菜单（introCard内容移入）</li>
+        <li>保留现有的底部抽屉（同好会列表）</li>
+      </ul>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>刊物管理后台 - Galgame 同好会地图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 30%, #16213e 60%, #0d1b3e 100%);
+  --card-bg: rgba(255,255,255,0.06);
+  --card-border: rgba(255,255,255,0.08);
+  --card-hover-border: rgba(233,30,99,0.3);
+  --glass-blur: blur(16px);
+  --text-primary: #f0e6ff;
+  --text-secondary: rgba(240,230,255,0.65);
+  --text-muted: rgba(240,230,255,0.35);
+  --accent-pink: #e91e63;
+  --accent-purple: #9b59b6;
+  --accent-gold: #ffd700;
+  --accent-green: #4caf50;
+  --accent-orange: #ff9800;
+  --accent-blue: #64b5f6;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
+  --radius-card: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root[data-theme='light'] {
+  --bg-gradient: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 30%, #e8eaf6 60%, #fce4ec 100%);
+  --card-bg: rgba(255,255,255,0.7);
+  --card-border: rgba(0,0,0,0.08);
+  --card-hover-border: rgba(233,30,99,0.2);
+  --text-primary: #1a1a2e;
+  --text-secondary: rgba(26,26,46,0.65);
+  --text-muted: rgba(26,26,46,0.35);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.5s ease;
+}
+
+/* Decorative background orbs */
+body::before, body::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(233,30,99,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+}
+body::after {
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(155,89,182,0.08) 0%, transparent 70%);
+  bottom: -150px; left: -150px;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 20px 28px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #f0e6ff, #e91e63);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-link {
+  padding: 6px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+}
+.header-link:hover {
+  background: rgba(233,30,99,0.15);
+  color: var(--accent-pink);
+  border-color: var(--accent-pink);
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  text-align: center;
+  transition: var(--transition);
+}
+.stat-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-2px);
+}
+
+.stat-card .num {
+  font-size: 30px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-pink), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+}
+
+.stat-card .label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.04);
+}
+.tab-btn.active {
+  background: rgba(233,30,99,0.15);
+  color: var(--accent-pink);
+  box-shadow: 0 2px 8px rgba(233,30,99,0.1);
+}
+
+/* ── Sub-tabs (filter pills inside tabs) ── */
+.sub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.sub-tab-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.sub-tab-btn:hover {
+  border-color: var(--accent-pink);
+  color: var(--text-primary);
+}
+.sub-tab-btn.active {
+  background: rgba(233,30,99,0.12);
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+  gap: 8px;
+}
+
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-glass {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+}
+.btn-glass:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+.btn-pink {
+  background: linear-gradient(135deg, var(--accent-pink), #c2185b);
+  color: white;
+  box-shadow: 0 4px 16px rgba(233,30,99,0.25);
+}
+.btn-pink:hover {
+  box-shadow: 0 6px 24px rgba(233,30,99,0.35);
+}
+
+.btn-approve {
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  box-shadow: 0 4px 12px rgba(76,175,80,0.25);
+}
+.btn-approve:hover { box-shadow: 0 6px 20px rgba(76,175,80,0.35); }
+
+.btn-reject {
+  background: linear-gradient(135deg, #ef5350, #c62828);
+  color: white;
+  box-shadow: 0 4px 12px rgba(239,83,80,0.25);
+}
+.btn-reject:hover { box-shadow: 0 6px 20px rgba(239,83,80,0.35); }
+
+.btn-sm {
+  padding: 5px 14px;
+  font-size: 12px;
+}
+
+/* ── List ── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+}
+.card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-body .row {
+  font-size: 13px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.card-body .row .label {
+  color: var(--text-muted);
+  font-weight: 500;
+  min-width: 68px;
+  flex-shrink: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.card-actions .btn {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  min-width: 80px;
+}
+
+/* ── Submission card with image ── */
+.submission-image {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: var(--card-bg);
+  margin-bottom: 12px;
+}
+
+/* ── Publication list card ── */
+.pub-card-main {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.pub-card-image-wrap {
+  width: 160px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+.pub-card-image-wrap img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+}
+.pub-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.pub-card-info .pub-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+.pub-card-info .pub-club {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.pub-card-info .pub-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.pub-card-info .pub-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.badge-pending { background: rgba(255,152,0,0.15); color: var(--accent-orange); border: 1px solid rgba(255,152,0,0.2); }
+.badge-approved { background: rgba(76,175,80,0.15); color: var(--accent-green); border: 1px solid rgba(76,175,80,0.2); }
+.badge-rejected { background: rgba(239,83,80,0.15); color: #ef5350; border: 1px solid rgba(239,83,80,0.2); }
+
+/* ── Status badges for publications ── */
+.badge-planning { background: rgba(52,152,219,0.15); color: #5dade2; border: 1px solid rgba(52,152,219,0.2); }
+.badge-writing { background: rgba(231,76,60,0.15); color: #ec7063; border: 1px solid rgba(231,76,60,0.2); }
+.badge-editing { background: rgba(243,156,18,0.15); color: #f4d03f; border: 1px solid rgba(243,156,18,0.2); }
+.badge-publishing { background: rgba(155,89,182,0.15); color: #af7ac5; border: 1px solid rgba(155,89,182,0.2); }
+.badge-completed { background: rgba(39,174,96,0.15); color: #58d68d; border: 1px solid rgba(39,174,96,0.2); }
+.badge-suspended { background: rgba(149,165,166,0.15); color: #b2babb; border: 1px solid rgba(149,165,166,0.2); }
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open {
+  display: flex;
+}
+.modal-card {
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #1a0a2e;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  padding: 28px;
+  position: relative;
+}
+:root[data-theme='light'] .modal-card {
+  background: #f3e5f5;
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+.modal-close:hover { color: var(--accent-pink); }
+.modal-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #f0e6ff, #e91e63);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.modal-field {
+  margin-bottom: 14px;
+}
+.modal-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+.modal-field input, .modal-field select, .modal-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: var(--transition);
+}
+.modal-field input:focus, .modal-field select:focus, .modal-field textarea:focus {
+  border-color: var(--accent-pink);
+  box-shadow: 0 0 0 3px rgba(233,30,99,0.12);
+}
+.modal-field textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+.modal-field small {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.modal-actions .btn { flex: 1; }
+
+/* Image upload in modal */
+.img-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.img-preview {
+  width: 100%;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--card-bg);
+  margin-bottom: 8px;
+}
+.img-status {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Loading spinner ── */
+.loading-spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--card-border);
+  border-top-color: var(--accent-pink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .container { padding: 12px; }
+  .header { padding: 16px 18px; }
+  .header h1 { font-size: 18px; }
+  .stats-row { gap: 8px; }
+  .stat-card { min-width: 72px; padding: 12px; }
+  .stat-card .num { font-size: 24px; }
+  .card { padding: 16px; }
+  .card-actions .btn { min-width: 0; padding: 8px; font-size: 12px; }
+  .tabs { padding: 3px; }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  .pub-card-main { flex-direction: column; }
+  .pub-card-image-wrap { width: 100%; }
+  .pub-card-image-wrap img { height: 200px; }
+  .modal-card { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>📖 刊物管理</h1>
+    <div class="header-actions">
+      <a href="../admin/reviews.html" class="header-link">📋 审核中心</a>
+      <a href="../index.html" class="header-link">← 返回地图</a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="num" id="statPending">0</div><div class="label">待审核投稿</div></div>
+    <div class="stat-card"><div class="num" id="statApproved">0</div><div class="label">已通过</div></div>
+    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">刊物总数</div></div>
+    <div class="stat-card"><div class="num" id="statActive">0</div><div class="label">征集中的刊物</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar">
+    <button class="tab-btn active" data-tab="submissions">📥 征集投稿</button>
+    <button class="tab-btn" data-tab="publications">📚 刊物列表</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar" id="toolbar">
+    <button class="btn btn-pink" onclick="openNewEditor()" id="addPubBtn">➕ 添加刊物</button>
+    <button class="btn btn-glass" onclick="refreshCurrent()">🔄 刷新</button>
+  </div>
+
+  <!-- List -->
+  <div id="listContainer" class="list"><div class="empty">加载中...</div></div>
+</div>
+
+<!-- Editor Modal -->
+<div id="editorModal" class="modal-overlay" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-close" id="editorModalClose" type="button">×</button>
+    <div class="modal-title" id="editorModalTitle">添加刊物</div>
+    <input type="hidden" id="pubEditId">
+
+    <div class="modal-field">
+      <label>同好会名称 *</label>
+      <input type="text" id="pubClubName" placeholder="例：复旦大学九日九视觉小说同好会">
+    </div>
+    <div class="modal-field">
+      <label>刊物名称 *</label>
+      <input type="text" id="pubName" placeholder="例：《旮之旯》">
+    </div>
+    <div class="modal-field">
+      <label>制作状况 *</label>
+      <select id="pubStatus">
+        <option value="planning">📋 策划中</option>
+        <option value="writing">✍️ 征稿中</option>
+        <option value="editing">🔧 编辑中</option>
+        <option value="publishing">📢 即将发布</option>
+        <option value="completed">✅ 已发布</option>
+        <option value="suspended">⏸️ 暂停</option>
+      </select>
+    </div>
+    <div class="modal-field">
+      <label>投稿账号/邮箱 *</label>
+      <input type="text" id="pubSubmitContact" placeholder="例：example@qq.com 或 @username">
+      <small>QQ号、邮箱、Discord账号等联系方式</small>
+    </div>
+    <div class="modal-field">
+      <label>投稿链接 <span style="color:var(--text-muted);font-weight:400;">(可选)</span></label>
+      <input type="url" id="pubSubmitLink" placeholder="https://...">
+      <small>备用投稿链接</small>
+    </div>
+    <div class="modal-field">
+      <label>刊物封面/素材图片</label>
+      <img id="pubImagePreview" class="img-preview" src="" style="display:none;">
+      <input type="hidden" id="pubImageUrl">
+      <input type="file" id="pubImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;">
+      <div class="img-upload-row">
+        <button type="button" class="btn btn-glass btn-sm" id="pubImageBtn">📷 上传图片</button>
+        <button type="button" class="btn btn-glass btn-sm" id="pubImageRemoveBtn" style="display:none;color:#ef5350;">移除</button>
+        <span class="img-status" id="pubImageStatus"></span>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>截止日期</label>
+      <input type="date" id="pubDeadline">
+    </div>
+    <div class="modal-field">
+      <label>刊物介绍</label>
+      <textarea id="pubDescription" placeholder="刊物介绍、征稿要求等..." rows="3"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-pink" id="pubSaveBtn">保存</button>
+      <button class="btn btn-reject" id="pubDeleteBtn" style="display:none;">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ====== State ======
+const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+const STATUS_MAP = {
+  'planning': '📋 策划中', 'writing': '✍️ 征稿中', 'editing': '🔧 编辑中',
+  'publishing': '📢 即将发布', 'completed': '✅ 已发布', 'suspended': '⏸️ 暂停'
+};
+
+let currentUser = null;
+let currentTab = 'submissions';
+let currentSubFilter = 'all'; // for submissions tab: all | pending | approved | rejected
+
+// Data
+let submissions = [];
+let publicationList = [];
+
+// ====== Tools ======
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : '&quot;');
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '未知';
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  } catch { return dateStr; }
+}
+
+function showToast(msg, type) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = type === 'error' ? 'rgba(239,83,80,0.15)' : type === 'success' ? 'rgba(76,175,80,0.15)' : '';
+  el.style.borderColor = type === 'error' ? 'rgba(239,83,80,0.3)' : type === 'success' ? 'rgba(76,175,80,0.3)' : '';
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function getEffectiveLevel(user) {
+  let level = ROLE_LEVEL[user?.user?.role] ?? -1;
+  if (user?.memberships) {
+    for (const m of user.memberships) {
+      if (m.status === 'active') {
+        const l = ROLE_LEVEL[m.role] ?? -1;
+        if (l > level) level = l;
+      }
+    }
+  }
+  return level;
+}
+
+// ====== Init ======
+async function init() {
+  const container = document.getElementById('listContainer');
+
+  // Theme sync
+  try {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || saved === 'light') document.documentElement.setAttribute('data-theme', saved);
+    else if (window.matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.setAttribute('data-theme', 'light');
+  } catch {}
+
+  // Auth check
+  try {
+    const r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.logged_in) {
+      container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+      return;
+    }
+    currentUser = data;
+    if (getEffectiveLevel(data) < ROLE_LEVEL.manager) {
+      container.innerHTML = '<div class="empty">⛔ 你没有管理权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+      return;
+    }
+  } catch {
+    container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+    return;
+  }
+
+  // Init events
+  document.getElementById('tabBar').addEventListener('click', e => {
+    const btn = e.target.closest('.tab-btn');
+    if (btn) switchTab(btn.dataset.tab);
+  });
+
+  document.getElementById('editorModalClose').addEventListener('click', closeEditor);
+  document.getElementById('editorModal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeEditor();
+  });
+  document.getElementById('pubSaveBtn').addEventListener('click', savePublication);
+  document.getElementById('pubDeleteBtn').addEventListener('click', deletePublication);
+
+  // Image upload
+  document.getElementById('pubImageBtn').addEventListener('click', () => document.getElementById('pubImageInput').click());
+  document.getElementById('pubImageInput').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const pid = document.getElementById('pubEditId')?.value || 'new_' + Date.now();
+    const fd = new FormData();
+    fd.append('image', file);
+    fd.append('id', pid);
+    const statusEl = document.getElementById('pubImageStatus');
+    if (statusEl) statusEl.textContent = '上传中...';
+    try {
+      const r = await fetch('../api/club_avatar.php?scope=publication', { method: 'POST', body: fd });
+      const j = await r.json();
+      if (j.success) {
+        document.getElementById('pubImagePreview').src = j.image_url;
+        document.getElementById('pubImagePreview').style.display = '';
+        document.getElementById('pubImageUrl').value = j.image_url;
+        document.getElementById('pubImageRemoveBtn').style.display = '';
+        if (statusEl) statusEl.textContent = '✅ 上传成功';
+      } else {
+        if (statusEl) statusEl.textContent = '❌ ' + (j.message || '上传失败');
+      }
+    } catch { if (statusEl) statusEl.textContent = '❌ 网络错误'; }
+    document.getElementById('pubImageInput').value = '';
+  });
+  document.getElementById('pubImageRemoveBtn').addEventListener('click', () => {
+    document.getElementById('pubImagePreview').src = '';
+    document.getElementById('pubImagePreview').style.display = 'none';
+    document.getElementById('pubImageUrl').value = '';
+    document.getElementById('pubImageRemoveBtn').style.display = 'none';
+    const statusEl = document.getElementById('pubImageStatus');
+    if (statusEl) statusEl.textContent = '已移除图片';
+  });
+
+  await loadAll();
+}
+
+// ====== Data Loading ======
+async function loadAll() {
+  const container = document.getElementById('listContainer');
+  container.innerHTML = '<div class="empty"><span class="loading-spinner"></span>加载中...</div>';
+  try {
+    const [subsResp, pubsResp] = await Promise.all([
+      fetch('../data/submissions_publication.json?t=' + Date.now(), { cache: 'no-store' }),
+      fetch('../data/publications.json?t=' + Date.now(), { cache: 'no-store' })
+    ]);
+    submissions = subsResp.ok ? (await subsResp.json()) : [];
+    if (!Array.isArray(submissions)) submissions = [];
+    publicationList = pubsResp.ok ? ((await pubsResp.json()).publications || []) : [];
+  } catch {
+    submissions = [];
+    publicationList = [];
+    showToast('加载数据失败', 'error');
+  }
+  renderCurrentTab();
+}
+
+function refreshCurrent() {
+  loadAll();
+}
+
+// ====== Tab Switching ======
+function switchTab(tab) {
+  currentTab = tab;
+  currentSubFilter = 'all';
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  renderCurrentTab();
+}
+
+function renderCurrentTab() {
+  if (currentTab === 'submissions') {
+    renderSubmissions();
+  } else {
+    renderPublications();
+  }
+}
+
+// ====== Stats ======
+function updateStats() {
+  const pending = submissions.filter(s => s.status === 'pending').length;
+  const approved = submissions.filter(s => s.status === 'approved').length;
+  const total = publicationList.length;
+  const active = publicationList.filter(p => p.status === 'writing' || p.status === 'planning' || p.status === 'editing').length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statActive').textContent = active;
+}
+
+// ==========================================
+// Submissions Tab
+// ==========================================
+function renderSubmissions() {
+  const container = document.getElementById('listContainer');
+
+  // Sub-filter tabs
+  const filterHtml = `
+    <div class="sub-tabs">
+      <button class="sub-tab-btn ${currentSubFilter === 'all' ? 'active' : ''}" data-subfilter="all">📋 全部</button>
+      <button class="sub-tab-btn ${currentSubFilter === 'pending' ? 'active' : ''}" data-subfilter="pending">⏳ 待审核</button>
+      <button class="sub-tab-btn ${currentSubFilter === 'approved' ? 'active' : ''}" data-subfilter="approved">✅ 已通过</button>
+      <button class="sub-tab-btn ${currentSubFilter === 'rejected' ? 'active' : ''}" data-subfilter="rejected">❌ 已拒绝</button>
+    </div>
+  `;
+
+  const filtered = currentSubFilter === 'all'
+    ? submissions
+    : submissions.filter(s => s.status === currentSubFilter);
+
+  updateStats();
+
+  if (filtered.length === 0) {
+    container.innerHTML = filterHtml + '<div class="empty">📭 暂无投稿记录</div>';
+    attachSubFilters();
+    return;
+  }
+
+  container.innerHTML = filterHtml + filtered.map(s => {
+    const statusBadge = s.status === 'pending' ? 'badge-pending'
+      : s.status === 'approved' ? 'badge-approved' : 'badge-rejected';
+    const statusText = s.status === 'pending' ? '⏳ 待审核'
+      : s.status === 'approved' ? '✅ 已通过' : '❌ 已拒绝';
+
+    return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(s.publicationName || '未命名刊物')}</span>
+          <span class="badge ${statusBadge}">${statusText}</span>
+        </div>
+        <div class="card-body">
+          ${s.image_url ? `<img src="${escapeHtml(s.image_url)}" class="submission-image" alt="">` : ''}
+          <div class="row"><span class="label">🏫 同好会</span>${escapeHtml(s.clubName || '未填写')}</div>
+          <div class="row"><span class="label">📧 联系方式</span>${escapeHtml(s.submitContact || '未填写')}</div>
+          ${s.deadline ? `<div class="row"><span class="label">⏰ 截止</span>${escapeHtml(s.deadline)}</div>` : ''}
+          <div class="row"><span class="label">⏰ 提交时间</span>${formatDate(s.submitted_at)}</div>
+          ${s.description ? `<div class="row"><span class="label">📝 介绍</span>${escapeHtml(s.description)}</div>` : ''}
+        </div>
+        <div class="card-actions">
+          ${s.status === 'pending' ? `
+            <button class="btn btn-approve btn-sm" onclick="approveSubmission(${s.id})">✓ 通过</button>
+            <button class="btn btn-reject btn-sm" onclick="rejectSubmission(${s.id})">✗ 拒绝</button>
+          ` : ''}
+          <button class="btn btn-glass btn-sm" onclick="deleteSubmission(${s.id})" style="color:#ef5350;">🗑️ 删除</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  attachSubFilters();
+}
+
+function attachSubFilters() {
+  document.querySelectorAll('.sub-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentSubFilter = btn.dataset.subfilter;
+      renderSubmissions();
+    });
+  });
+}
+
+async function approveSubmission(id) {
+  const sub = submissions.find(s => s.id === id);
+  if (!sub) return;
+  if (!confirm(`确定通过「${sub.publicationName || '未命名'}」的投稿吗？`)) return;
+
+  const pubData = {
+    clubName: sub.clubName || '',
+    publicationName: sub.publicationName || '',
+    status: 'writing',
+    submitContact: sub.submitContact || '',
+    submitLink: sub.submitLink || '',
+    deadline: sub.deadline || '',
+    description: sub.description || '',
+    image_url: sub.image_url || ''
+  };
+
+  try {
+    const r = await fetch('../api/publications.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(pubData)
+    });
+    const result = await r.json();
+    if (result.success) {
+      sub.status = 'approved';
+      sub.approved_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+      sub.publication_id = result.data?.id || null;
+      await saveSubmissions();
+      // Reload publications too
+      try {
+        const pubsResp = await fetch('../data/publications.json?t=' + Date.now(), { cache: 'no-store' });
+        if (pubsResp.ok) publicationList = (await pubsResp.json()).publications || [];
+      } catch {}
+      showToast('✅ 已通过并添加到刊物列表', 'success');
+      renderCurrentTab();
+    } else {
+      showToast('审批失败：' + (result.message || '未知错误'), 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function rejectSubmission(id) {
+  const sub = submissions.find(s => s.id === id);
+  if (!sub) return;
+  if (!confirm(`确定拒绝「${sub.publicationName || '未命名'}」的投稿吗？`)) return;
+
+  sub.status = 'rejected';
+  sub.rejected_at = new Date().toISOString().slice(0, 19).replace('T', ' ');
+  await saveSubmissions();
+  showToast('已拒绝', 'success');
+  renderCurrentTab();
+}
+
+async function deleteSubmission(id) {
+  if (!confirm('确定删除此投稿记录吗？此操作不可撤销！')) return;
+  submissions = submissions.filter(s => s.id !== id);
+  await saveSubmissions();
+  showToast('已删除', 'success');
+  renderCurrentTab();
+}
+
+async function saveSubmissions() {
+  try {
+    await fetch('../api/submit_publication.php?action=save', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(submissions)
+    });
+  } catch {
+    showToast('保存失败', 'error');
+  }
+}
+
+// ==========================================
+// Publications Tab
+// ==========================================
+function renderPublications() {
+  const container = document.getElementById('listContainer');
+  updateStats();
+
+  if (publicationList.length === 0) {
+    container.innerHTML = '<div class="empty">📚 暂无刊物，点击上方「添加刊物」创建</div>';
+    return;
+  }
+
+  container.innerHTML = publicationList.map(pub => {
+    const statusText = STATUS_MAP[pub.status] || pub.status;
+    const contactInfo = pub.submitContact || pub.submitLink || '';
+    return `
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${escapeHtml(pub.publicationName)}</span>
+          <span class="badge badge-${pub.status}">${statusText}</span>
+        </div>
+        <div class="pub-card-main">
+          ${pub.image_url ? `
+            <div class="pub-card-image-wrap">
+              <img src="${escapeHtml(pub.image_url)}" alt="" loading="lazy">
+            </div>
+          ` : ''}
+          <div class="pub-card-info">
+            <div class="pub-club">🏫 ${escapeHtml(pub.clubName)}</div>
+            ${contactInfo ? `<div class="pub-meta">📧 ${escapeHtml(contactInfo)}</div>` : ''}
+            ${pub.deadline ? `<div class="pub-meta">⏰ 截止：${escapeHtml(pub.deadline)}</div>` : ''}
+            <div class="pub-desc">${escapeHtml(pub.description || '暂无介绍')}</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-glass btn-sm" onclick="openEditorFor(${pub.id})">✏️ 编辑</button>
+          <button class="btn btn-reject btn-sm" onclick="deletePublicationById(${pub.id})">🗑️ 删除</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ==========================================
+// Publication CRUD
+// ==========================================
+function openEditorFor(id) {
+  const pub = publicationList.find(p => p.id === id);
+  if (!pub) return;
+  document.getElementById('editorModalTitle').textContent = '✏️ 编辑刊物';
+  document.getElementById('pubEditId').value = pub.id;
+  document.getElementById('pubClubName').value = pub.clubName || '';
+  document.getElementById('pubName').value = pub.publicationName || '';
+  document.getElementById('pubStatus').value = pub.status || 'planning';
+  document.getElementById('pubSubmitContact').value = pub.submitContact || '';
+  document.getElementById('pubSubmitLink').value = pub.submitLink || '';
+  document.getElementById('pubDeadline').value = pub.deadline || '';
+  document.getElementById('pubDescription').value = pub.description || '';
+  document.getElementById('pubDeleteBtn').style.display = '';
+
+  if (pub.image_url) {
+    const prev = document.getElementById('pubImagePreview');
+    prev.src = pub.image_url;
+    prev.style.display = '';
+    document.getElementById('pubImageUrl').value = pub.image_url;
+    document.getElementById('pubImageRemoveBtn').style.display = '';
+  } else {
+    clearImageFields();
+  }
+  document.getElementById('editorModal').classList.add('open');
+}
+
+function openNewEditor() {
+  document.getElementById('editorModalTitle').textContent = '➕ 添加刊物';
+  document.getElementById('pubEditId').value = '';
+  document.getElementById('pubClubName').value = '';
+  document.getElementById('pubName').value = '';
+  document.getElementById('pubStatus').value = 'planning';
+  document.getElementById('pubSubmitContact').value = '';
+  document.getElementById('pubSubmitLink').value = '';
+  document.getElementById('pubDeadline').value = '';
+  document.getElementById('pubDescription').value = '';
+  document.getElementById('pubDeleteBtn').style.display = 'none';
+  clearImageFields();
+  document.getElementById('editorModal').classList.add('open');
+}
+
+function closeEditor() {
+  document.getElementById('editorModal').classList.remove('open');
+}
+
+function clearImageFields() {
+  const prev = document.getElementById('pubImagePreview');
+  prev.src = '';
+  prev.style.display = 'none';
+  document.getElementById('pubImageUrl').value = '';
+  document.getElementById('pubImageRemoveBtn').style.display = 'none';
+  document.getElementById('pubImageStatus').textContent = '';
+}
+
+async function savePublication() {
+  const pubId = document.getElementById('pubEditId').value;
+  const clubName = document.getElementById('pubClubName').value.trim();
+  const pubName = document.getElementById('pubName').value.trim();
+  const status = document.getElementById('pubStatus').value;
+  const submitContact = document.getElementById('pubSubmitContact').value.trim();
+  const submitLink = document.getElementById('pubSubmitLink').value.trim();
+  const deadline = document.getElementById('pubDeadline').value;
+  const description = document.getElementById('pubDescription').value.trim();
+
+  if (!clubName) { showToast('请填写同好会名称', 'error'); return; }
+  if (!pubName) { showToast('请填写刊物名称', 'error'); return; }
+
+  const isEdit = pubId !== '';
+  const data = {
+    clubName,
+    publicationName: pubName,
+    status,
+    submitContact,
+    submitLink,
+    deadline,
+    description,
+    image_url: document.getElementById('pubImageUrl')?.value || '',
+  };
+  if (isEdit) data.id = parseInt(pubId);
+
+  try {
+    const response = await fetch('../api/publications.php', {
+      method: isEdit ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast(isEdit ? '✅ 刊物已更新' : '✅ 刊物已添加', 'success');
+      closeEditor();
+      // Reload
+      const pubsResp = await fetch('../data/publications.json?t=' + Date.now(), { cache: 'no-store' });
+      if (pubsResp.ok) publicationList = (await pubsResp.json()).publications || [];
+      renderCurrentTab();
+    } else {
+      showToast('保存失败：' + (result.message || '未知错误'), 'error');
+    }
+  } catch (err) {
+    showToast('保存失败，请检查网络连接', 'error');
+  }
+}
+
+async function deletePublicationById(id) {
+  if (!confirm('⚠️ 确定要删除这个刊物吗？此操作不可撤销！')) return;
+  try {
+    const response = await fetch('../api/publications.php', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+    const result = await response.json();
+    if (result.success) {
+      showToast('✅ 删除成功', 'success');
+      const pubsResp = await fetch('../data/publications.json?t=' + Date.now(), { cache: 'no-store' });
+      if (pubsResp.ok) publicationList = (await pubsResp.json()).publications || [];
+      renderCurrentTab();
+    } else {
+      showToast('删除失败：' + (result.message || '未知错误'), 'error');
+    }
+  } catch {
+    showToast('删除失败，请检查网络连接', 'error');
+  }
+}
+
+// ====== Start ======
+init();
+</script>
+</body>
+</html>

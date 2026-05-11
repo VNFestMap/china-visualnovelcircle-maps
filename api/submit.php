@@ -2,10 +2,30 @@
 // submit_api.php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Methods: POST, PUT, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
 
-$submissions_file = './submissions.json';
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
+$submissions_file = __DIR__ . '/../data/submissions.json';
+
+// PUT + action=save — 管理员保存提交数据
+if ($_SERVER['REQUEST_METHOD'] === 'PUT' && isset($_GET['action']) && $_GET['action'] === 'save') {
+    require_once __DIR__ . '/../includes/auth.php';
+    requireAdmin();
+
+    $input = json_decode(file_get_contents('php://input'), true);
+    if ($input && is_array($input)) {
+        file_put_contents($submissions_file, json_encode($input, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => '无效数据']);
+    }
+    exit();
+}
 
 // 获取 POST 数据
 $input = json_decode(file_get_contents('php://input'), true);

@@ -1,6 +1,6 @@
 {
     "success": true,
-    "total": 26,
+    "total": 27,
     "data": [
         {
             "id": 1,
@@ -339,6 +339,24 @@
             "remark": "東洋大学美少女ゲーム同好会",
             "raw_text": "東洋大学美少女ゲーム同好会 @toyo_bisyodou",
             "country": "japan"
+        },
+        {
+            "id": 27,
+            "prefecture": "東京都",
+            "province": "東京都",
+            "school": "ビジュアルノベル学園祭",
+            "name": "ビジュアルノベル学園祭",
+            "display_name": "ビジュアルノベル学園祭",
+            "info": "https:\/\/x.com\/visualnovelfes",
+            "type": "vnfest",
+            "verified": 1,
+            "raw_text": "ビジュアルノベル学園祭 https:\/\/x.com\/visualnovelfes",
+            "created_at": "2026-05-10 15:38:14",
+            "project": "galgame",
+            "remark": "",
+            "country": "japan",
+            "logo_url": "",
+            "external_links": ""
         }
     ]
 }

@@ -316,29 +316,34 @@
     </div>
     
     <script>
-        const ADMIN_TOKEN = 'ciallo';
-        const SUBMISSIONS_FILE = './submissions.json';
-        const CHINA_API = './api.php';
-        const JAPAN_API = './api_japan.php';
-        
+        const SUBMISSIONS_FILE = '../data/submissions.json';
+        const CHINA_API = '../api/clubs.php';
+        const JAPAN_API = '../api/clubs_japan.php';
+        const SUBMIT_API = '../api/submit.php';
+
         let submissions = [];
         let currentTab = 'pending';
-        
-        // 检查管理员登录
-        function checkAuth() {
-            const token = localStorage.getItem('admin_token');
-            if (token !== ADMIN_TOKEN) {
-                const pwd = prompt('请输入管理员密码：');
-                if (pwd === ADMIN_TOKEN) {
-                    localStorage.setItem('admin_token', ADMIN_TOKEN);
-                    return true;
-                } else {
-                    alert('密码错误！');
-                    window.location.href = './index.html';
+
+        // 检查管理员登录（session 认证）
+        async function checkAuth() {
+            try {
+                const resp = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+                const data = await resp.json();
+                if (!data.logged_in) {
+                    window.location.href = '../index.html?need_login=1';
                     return false;
                 }
+                const roleLevel = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+                if ((roleLevel[data.user.role] ?? -1) < 2) {
+                    alert('权限不足');
+                    window.location.href = '../index.html';
+                    return false;
+                }
+                return true;
+            } catch {
+                window.location.href = '../index.html';
+                return false;
             }
-            return true;
         }
         
         // 加载提交记录
@@ -371,12 +376,9 @@
         // 保存提交记录到文件
         async function saveSubmissions() {
             try {
-                await fetch('./submit_api.php', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': ADMIN_TOKEN
-                    },
+                await fetch(SUBMIT_API + '?action=save', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submissions)
                 });
             } catch (e) {
@@ -412,16 +414,12 @@
             }
             
             const apiUrl = submit.country === 'japan' ? JAPAN_API : CHINA_API;
-            const adminToken = localStorage.getItem('admin_token');
-            
+
             try {
                 // 添加到正式数据库
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': adminToken
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(clubData)
                 });
                 
@@ -561,9 +559,11 @@
         });
         
         // 初始化
-        if (checkAuth()) {
-            loadSubmissions();
-        }
+        (async () => {
+            if (await checkAuth()) {
+                loadSubmissions();
+            }
+        })();
     </script>
 </body>
 </html>

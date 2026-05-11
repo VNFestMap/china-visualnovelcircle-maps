@@ -220,31 +220,35 @@
     </div>
     
     <script>
-        const ADMIN_TOKEN = 'ciallo';
         let submissions = [];
         let currentTab = 'pending';
-        
-        // 检查管理员登录
-        function checkAuth() {
-            const token = localStorage.getItem('admin_token');
-            if (token !== ADMIN_TOKEN) {
-                const pwd = prompt('请输入管理员密码：');
-                if (pwd === ADMIN_TOKEN) {
-                    localStorage.setItem('admin_token', ADMIN_TOKEN);
-                    return true;
-                } else {
-                    alert('密码错误！');
-                    window.location.href = './index.html';
+
+        // 检查管理员登录（session 认证）
+        async function checkAuth() {
+            try {
+                const resp = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+                const data = await resp.json();
+                if (!data.logged_in) {
+                    window.location.href = '../index.html?need_login=1';
                     return false;
                 }
+                const roleLevel = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+                if ((roleLevel[data.user.role] ?? -1) < 2) {
+                    alert('权限不足');
+                    window.location.href = '../index.html';
+                    return false;
+                }
+                return true;
+            } catch {
+                window.location.href = '../index.html';
+                return false;
             }
-            return true;
         }
         
         // 加载提交记录
         async function loadSubmissions() {
             try {
-                const response = await fetch('./event_submissions.json?t=' + Date.now());
+                const response = await fetch('../data/submissions_event.json?t=' + Date.now());
                 if (response.ok) {
                     submissions = await response.json();
                 } else {
@@ -260,12 +264,9 @@
         // 保存提交记录
         async function saveSubmissions() {
             try {
-                await fetch('./submit_event_api.php?action=save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': ADMIN_TOKEN
-                    },
+                await fetch('../api/submit_event.php?action=save', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submissions)
                 });
             } catch (e) {
@@ -292,15 +293,11 @@
                     link: submissions[index].link || ''
                 };
                 
-                // 调用正式活动API
-                const adminToken = localStorage.getItem('admin_token');
-                await fetch('./api_events.php', {
+                // 调用正式活动API（使用 action=add 追加，避免覆盖已有活动）
+                await fetch('../api/events.php?action=add', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': adminToken
-                    },
-                    body: JSON.stringify({ events: [eventData] })
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(eventData)
                 });
                 
                 loadSubmissions();
@@ -400,9 +397,11 @@
         });
         
         // 初始化
-        if (checkAuth()) {
-            loadSubmissions();
-        }
+        (async () => {
+            if (await checkAuth()) {
+                loadSubmissions();
+            }
+        })();
     </script>
 </body>
 </html>

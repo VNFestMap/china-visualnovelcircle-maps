@@ -11,24 +11,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-$submissions_file = './event_submissions.json';
-$adminToken = 'ciallo';
-
-// 检查管理员权限
-function checkAdmin() {
-    global $adminToken;
-    $headers = getallheaders();
-    $token = $headers['X-Admin-Token'] ?? '';
-    return $token === $adminToken;
-}
+$submissions_file = __DIR__ . '/../data/submissions_event.json';
 
 // 保存提交记录（管理员）
 if ($_SERVER['REQUEST_METHOD'] === 'PUT' || ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'save')) {
-    if (!checkAdmin()) {
-        http_response_code(401);
-        echo json_encode(['success' => false, 'message' => '未授权访问']);
-        exit();
-    }
+    require_once __DIR__ . '/../includes/auth.php';
+    requireAdmin();
     
     $input = json_decode(file_get_contents('php://input'), true);
     if ($input && is_array($input)) {

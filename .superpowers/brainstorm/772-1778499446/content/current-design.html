@@ -1,0 +1,88 @@
+<h2>当前档案面板布局</h2>
+<p class="subtitle">这是目前「档案」标签页的结构，哪些地方你想改？</p>
+
+<div class="mockup" style="max-width: 420px; margin: 0 auto;">
+  <div class="mockup-body" style="padding: 12px;">
+
+    <!-- 标签栏 -->
+    <div style="display: flex; gap: 4px; border-bottom: 2px solid #e0e0e0; padding-bottom: 8px; margin-bottom: 16px;">
+      <div style="flex:1; text-align:center; padding:6px; font-size:13px; font-weight:600; color:#e74c3c; border-bottom: 2px solid #e74c3c;">📋 档案</div>
+      <div style="flex:1; text-align:center; padding:6px; font-size:13px; font-weight:600; color:#888;">🏆 图鉴</div>
+      <div style="flex:1; text-align:center; padding:6px; font-size:13px; font-weight:600; color:#888;">⚙️ 设置</div>
+    </div>
+
+    <!-- 角色卡片 -->
+    <div style="border:1px solid #e0e0e0; border-radius:20px; overflow:hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+      <!-- 装饰条 -->
+      <div style="height:4px; background: linear-gradient(90deg, transparent, #e74c3c, transparent);"></div>
+
+      <!-- 头像 + 信息 -->
+      <div style="display:flex; gap:16px; padding:20px 20px 16px; align-items:center;">
+        <div style="width:80px; height:80px; border-radius:50%; border:3px solid #e74c3c; padding:3px; flex-shrink:0; background: linear-gradient(135deg,#667eea,#764ba2); display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:700; box-shadow: 0 0 16px rgba(231,76,60,0.2);">U</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:20px; font-weight:700;">用户名</div>
+          <div style="font-size:12px; color:#e74c3c; letter-spacing:2px; margin-top:2px;">—— 同好会成员 ——</div>
+          <div style="display:inline-block; margin-top:6px; padding:2px 10px; font-size:11px; border-radius:10px; background:rgba(76,175,80,0.12); color:#4caf50; font-weight:500;">成员</div>
+        </div>
+      </div>
+
+      <!-- 收集进度 -->
+      <div style="padding:0 20px 16px;">
+        <div style="display:grid; grid-template-columns:48px 1fr 48px; gap:8px; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; color:#666;">同好会</span>
+          <div style="height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:20%; height:100%; background:linear-gradient(90deg,#e74c3c,#e74c3c); border-radius:3px;"></div></div>
+          <span style="font-size:11px; color:#666; text-align:right;">1</span>
+        </div>
+        <div style="display:grid; grid-template-columns:48px 1fr 48px; gap:8px; align-items:center; margin-bottom:6px;">
+          <span style="font-size:11px; color:#666;">刊物</span>
+          <div style="height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:0%; height:100%; background:linear-gradient(90deg,#e74c3c,#e74c3c); border-radius:3px;"></div></div>
+          <span style="font-size:11px; color:#666; text-align:right;">0</span>
+        </div>
+        <div style="display:grid; grid-template-columns:48px 1fr 48px; gap:8px; align-items:center;">
+          <span style="font-size:11px; color:#666;">活动</span>
+          <div style="height:6px; background:#f0f0f0; border-radius:3px;"><div style="width:0%; height:100%; background:linear-gradient(90deg,#e74c3c,#e74c3c); border-radius:3px;"></div></div>
+          <span style="font-size:11px; color:#666; text-align:right;">0</span>
+        </div>
+      </div>
+
+      <!-- 简介 -->
+      <div style="margin:0 20px 16px; padding:12px 16px; background:#f8f8f8; border-left:3px solid #e74c3c; border-radius:0 8px 8px 0;">
+        <div style="font-size:10px; letter-spacing:3px; color:#e74c3c; opacity:0.6; font-weight:600; margin-bottom:4px;">/// PROFILE ///</div>
+        <p style="margin:0; font-size:13px; color:#666; line-height:1.6;">这个人很懒，还没有填写简介。</p>
+      </div>
+
+      <!-- 统计 -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1px; background:#e0e0e0;">
+        <div style="background:white; padding:14px; text-align:center;">
+          <span style="display:block; font-size:22px; font-weight:700; color:#e74c3c;">1</span>
+          <span style="display:block; font-size:11px; color:#666; margin-top:2px;">加入同好会</span>
+        </div>
+        <div style="background:white; padding:14px; text-align:center;">
+          <span style="display:block; font-size:22px; font-weight:700; color:#e74c3c;">0</span>
+          <span style="display:block; font-size:11px; color:#666; margin-top:2px;">投稿刊物</span>
+        </div>
+        <div style="background:white; padding:14px; text-align:center;">
+          <span style="display:block; font-size:22px; font-weight:700; color:#e74c3c;">0</span>
+          <span style="display:block; font-size:11px; color:#666; margin-top:2px;">参与活动</span>
+        </div>
+        <div style="background:white; padding:14px; text-align:center;">
+          <span style="display:block; font-size:22px; font-weight:700; color:#e74c3c;">0</span>
+          <span style="display:block; font-size:11px; color:#666; margin-top:2px;">活跃天数</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <h3>你想怎么改？</h3>
+  <p class="subtitle">简答告诉我方向就行，比如：</p>
+  <ul>
+    <li>整体风格想要更视觉小说/Galgame风格</li>
+    <li>布局重新排列</li>
+    <li>想加/删某些内容块</li>
+    <li>参考某个游戏的界面</li>
+    <li>更喜欢卡片式/列表式/标签式</li>
+  </ul>
+</div>

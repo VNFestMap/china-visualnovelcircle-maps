@@ -1,0 +1,168 @@
+<h2>顶层用户信息框 — v3</h2>
+<p class="subtitle">五个按钮同一行、移动端折叠/展开</p>
+
+<!-- 桌面端 -->
+<h3>桌面端</h3>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">桌面 — 未登录</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:300px;background:#f5f5f5;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;"></div>
+      <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:390px;background:rgba(255,255,255,0.85);border-radius:20px;padding:10px 14px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:10;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.3);">
+        <!-- 用户行 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;flex-shrink:0;">?</div>
+          <div style="flex:1;font-size:14px;font-weight:500;color:#333;">访客</div>
+          <div style="padding:4px 12px;background:#6750a4;color:white;border-radius:8px;font-size:12px;cursor:default;">登录 / 注册</div>
+        </div>
+        <!-- 五个按钮同一行 -->
+        <div style="display:flex;gap:4px;">
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">中国同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">日本同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">海外同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">活动日历</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">刊物投稿</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">桌面 — 已登录（管理员）</div>
+    <div class="mockup-body" style="padding:16px;font-size:13px;position:relative;min-height:300px;background:#f5f5f5;">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#e8e8e8,#d0d0d0);border-radius:0 0 12px 12px;"></div>
+      <div style="position:absolute;top:8px;left:50%;transform:translateX(-50%);width:460px;background:rgba(255,255,255,0.88);border-radius:20px;padding:10px 14px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:10;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.3);">
+        <!-- 用户行 -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;border:2px solid white;box-shadow:0 2px 6px rgba(102,126,234,0.3);">U</div>
+          <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;">
+            <span style="font-size:14px;font-weight:600;color:#333;">用户名</span>
+            <span style="font-size:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:2px 8px;border-radius:10px;font-weight:500;">管理员</span>
+          </div>
+          <div style="padding:4px 12px;border:1px solid #d0d0d0;border-radius:8px;font-size:12px;color:#555;cursor:default;">账号</div>
+          <div style="padding:4px 12px;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border-radius:8px;font-size:12px;cursor:default;">同好会管理</div>
+        </div>
+        <!-- 五个按钮同一行 -->
+        <div style="display:flex;gap:4px;">
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">中国同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">日本同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">海外同好会</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">活动日历</div>
+          <div style="flex:1;padding:4px 0;background:#f0f0f0;border-radius:8px;font-size:11px;color:#333;text-align:center;cursor:default;border:1px solid #e8e8e8;">刊物投稿</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 移动端 -->
+<div class="section">
+  <h3>移动端 — 折叠/展开</h3>
+  <p class="subtitle">点击用户区切换展开/折叠状态</p>
+</div>
+
+<div class="split">
+  <!-- 折叠态 -->
+  <div class="mockup">
+    <div class="mockup-header">移动端 — 折叠态</div>
+    <div class="mockup-body" style="padding:12px;min-height:460px;background:#f5f5f5;position:relative;">
+      <!-- 顶层用户区（折叠） -->
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.9);border-radius:16px;backdrop-filter:blur(16px);margin-bottom:6px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+        <div style="width:30px;height:30px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">?</div>
+        <div style="flex:1;font-size:13px;font-weight:500;color:#333;">访客</div>
+        <div style="padding:3px 10px;font-size:11px;color:white;background:#6750a4;border-radius:6px;">登录</div>
+        <!-- 展开箭头 -->
+        <div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;transform:rotate(0deg);transition:transform 0.2s;">▼</div>
+      </div>
+      <!-- 地图区域 -->
+      <div style="flex:1;background:linear-gradient(135deg,#e0e0e0,#ccc);border-radius:12px;min-height:300px;"></div>
+      <!-- 底部抽屉 -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);">
+        <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 6px;"></div>
+        <div style="font-size:12px;font-weight:500;color:#333;">同好会列表</div>
+      </div>
+    </div>
+  </div>
+  <!-- 展开态 -->
+  <div class="mockup">
+    <div class="mockup-header">移动端 — 展开态</div>
+    <div class="mockup-body" style="padding:12px;min-height:460px;background:#f5f5f5;position:relative;">
+      <!-- 顶层用户区（展开） -->
+      <div style="background:rgba(255,255,255,0.95);border-radius:16px;backdrop-filter:blur(16px);margin-bottom:6px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;">
+        <!-- 用户行（点击切换） -->
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;">
+          <div style="width:32px;height:32px;border-radius:50%;background:#e0e0e0;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;">?</div>
+          <div style="flex:1;font-size:14px;font-weight:500;color:#333;">访客</div>
+          <div style="padding:3px 10px;font-size:11px;color:white;background:#6750a4;border-radius:6px;">登录</div>
+          <div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;">▲</div>
+        </div>
+        <!-- 展开的按钮区域 -->
+        <div style="padding:0 12px 10px 12px;border-top:1px solid #f0f0f0;padding-top:8px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">中国同好会</div>
+            <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">日本同好会</div>
+            <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">海外同好会</div>
+            <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">活动日历</div>
+            <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;grid-column:span 2;">刊物投稿</div>
+          </div>
+        </div>
+      </div>
+      <!-- 地图 -->
+      <div style="flex:1;background:linear-gradient(135deg,#e0e0e0,#ccc);border-radius:12px;min-height:280px;"></div>
+      <!-- 底部 -->
+      <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);">
+        <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 6px;"></div>
+        <div style="font-size:12px;font-weight:500;color:#333;">同好会列表</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 已登录展开态 -->
+<div class="section">
+  <div class="split">
+    <div class="mockup">
+      <div class="mockup-header">移动端 — 已登录展开（管理员）</div>
+      <div class="mockup-body" style="padding:12px;min-height:460px;background:#f5f5f5;position:relative;">
+        <div style="background:rgba(255,255,255,0.95);border-radius:16px;backdrop-filter:blur(16px);margin-bottom:6px;box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;">
+          <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;flex-shrink:0;border:2px solid white;box-shadow:0 2px 6px rgba(102,126,234,0.3);">U</div>
+            <div style="flex:1;display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+              <span style="font-size:14px;font-weight:600;color:#333;">用户名</span>
+              <span style="font-size:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;padding:1px 6px;border-radius:8px;">管理员</span>
+            </div>
+            <div style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:#999;font-size:12px;">▲</div>
+          </div>
+          <div style="padding:0 12px 10px 12px;border-top:1px solid #f0f0f0;padding-top:8px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+              <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">中国同好会</div>
+              <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">日本同好会</div>
+              <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">海外同好会</div>
+              <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;">活动日历</div>
+              <div style="padding:7px 0;background:#f5f5f5;border-radius:8px;font-size:12px;color:#333;text-align:center;border:1px solid #eee;grid-column:span 2;">刊物投稿</div>
+            </div>
+            <!-- 管理面板区 -->
+            <div style="margin-top:6px;padding-top:6px;border-top:1px solid #f0f0f0;">
+              <div style="padding:7px 0;background:linear-gradient(135deg,#e91e63,#c2185b);color:white;border-radius:8px;font-size:12px;text-align:center;">同好会管理</div>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;background:linear-gradient(135deg,#e0e0e0,#ccc);border-radius:12px;min-height:280px;"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:20px 20px 0 0;padding:16px;box-shadow:0 -4px 20px rgba(0,0,0,0.08);">
+          <div style="width:40px;height:4px;background:#ddd;border-radius:2px;margin:0 auto 6px;"></div>
+          <div style="font-size:12px;font-weight:500;color:#333;">同好会列表</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;min-width:200px;background:var(--bg-secondary);border-radius:12px;padding:16px;">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-secondary);margin-bottom:8px;">交互说明</div>
+      <ul style="font-size:13px;line-height:1.6;margin:0;padding-left:16px;">
+        <li><strong>点击用户行</strong>切换折叠/展开</li>
+        <li><strong>折叠态</strong>：仅显示用户头像+名称+登录按钮+展开箭头，节省空间</li>
+        <li><strong>展开态</strong>：展开显示 5 个导航按钮（2列网格），管理员额外显示管理按钮</li>
+        <li>切换时有 height 过渡动画</li>
+        <li>非管理员登录不显示管理按钮</li>
+      </ul>
+    </div>
+  </div>
+</div>

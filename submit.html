@@ -381,6 +381,7 @@
                     <select id="country" required>
                         <option value="china">🇨🇳 中国</option>
                         <option value="japan">🇯🇵 日本</option>
+                        <option value="overseas">🌍 海外</option>
                     </select>
                 </div>
                 
@@ -405,9 +406,6 @@
                         </optgroup>
                         <optgroup label="特别行政区">
                             <option>香港</option><option>澳门</option>
-                        </optgroup>
-                        <optgroup label="其他">
-                            <option>海外</option>
                         </optgroup>
                     </select>
                 </div>
@@ -547,12 +545,17 @@
         const prefectureSelect = document.getElementById('prefecture');
         
         function toggleCountryFields() {
-            const isJapan = countrySelect.value === 'japan';
-            if (isJapan) {
+            const val = countrySelect.value;
+            if (val === 'japan') {
                 provinceGroup.style.display = 'none';
                 prefectureGroup.style.display = 'block';
                 provinceSelect.required = false;
                 prefectureSelect.required = true;
+            } else if (val === 'overseas') {
+                provinceGroup.style.display = 'none';
+                prefectureGroup.style.display = 'none';
+                provinceSelect.required = false;
+                prefectureSelect.required = false;
             } else {
                 provinceGroup.style.display = 'block';
                 prefectureGroup.style.display = 'none';
@@ -581,6 +584,8 @@
                     alert('请选择都道府县');
                     return;
                 }
+            } else if (country === 'overseas') {
+                region = '海外';
             } else {
                 region = provinceSelect.value;
                 if (!region) {
@@ -588,11 +593,11 @@
                     return;
                 }
             }
-            
+
             const data = {
                 name: document.getElementById('clubName').value.trim(),
                 country: country,
-                province: country === 'china' ? region : '',
+                province: country === 'china' ? region : country === 'overseas' ? region : '',
                 prefecture: country === 'japan' ? region : '',
                 info: document.getElementById('contact').value.trim(),
                 type: clubType,

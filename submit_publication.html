@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>刊物征集投稿 - 全国Galgame同好会地图</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 680px; margin: 0 auto; }
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .top-bar h1 {
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .top-bar .back-link {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 8px 18px;
+            border-radius: 40px;
+            background: rgba(255,255,255,0.2);
+            transition: background 0.2s;
+        }
+        .top-bar .back-link:hover { background: rgba(255,255,255,0.3); }
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        }
+        .form-card h2 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 6px;
+        }
+        .form-group label .required { color: #e74c3c; }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus { border-color: #667eea; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        .form-group .hint { font-size: 12px; color: #999; margin-top: 4px; }
+        .image-upload-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .image-upload-area img {
+            width: 60px; height: 60px; border-radius: 10px; object-fit: cover;
+            background: #f5f5f5; display: none;
+        }
+        .image-upload-area .upload-btn {
+            padding: 8px 18px; border-radius: 40px; border: 2px solid #e0e0e0;
+            background: white; cursor: pointer; font-size: 13px; transition: all 0.2s;
+        }
+        .image-upload-area .upload-btn:hover { border-color: #667eea; color: #667eea; }
+        .image-upload-area .remove-btn {
+            padding: 8px 18px; border-radius: 40px; border: 2px solid #ffcdd2;
+            background: white; cursor: pointer; font-size: 13px; color: #e74c3c; display: none; transition: all 0.2s;
+        }
+        .image-upload-area .remove-btn:hover { background: #ffebee; }
+        .image-upload-area .status-text { font-size: 12px; color: #999; }
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 8px;
+        }
+        .submit-btn:hover { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .message {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+        .message.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .message.error { display: block; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+        @media (max-width: 640px) {
+            .form-card { padding: 20px; }
+            .top-bar h1 { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <h1>📖 刊物征集投稿</h1>
+            <a class="back-link" href="./index.html">← 返回首页</a>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <div class="form-card">
+            <h2>📝 填写刊物征集信息</h2>
+
+            <div class="form-group">
+                <label>同好会名称 <span class="required">*</span></label>
+                <input type="text" id="clubName" placeholder="例：复旦大学九日九视觉小说同好会" />
+            </div>
+
+            <div class="form-group">
+                <label>关联同好会（可多选）</label>
+                <div id="clubIdsContainer" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;"></div>
+                <div style="display:flex;gap:6px;">
+                    <input type="text" id="clubSearchInput" placeholder="搜索同好会..." style="flex:1;padding:8px 12px;border:2px solid #e0e0e0;border-radius:12px;font-size:13px;outline:none;">
+                    <button type="button" id="clubSearchBtn" style="padding:8px 16px;border-radius:40px;border:2px solid #e0e0e0;background:white;cursor:pointer;font-size:13px;">搜索</button>
+                </div>
+                <div id="clubSearchResults" style="max-height:200px;overflow-y:auto;margin-top:6px;display:none;border:2px solid #e0e0e0;border-radius:12px;padding:4px;background:white;"></div>
+                <div class="hint">从数据库中选择已有的同好会，也可手动输入同好会名称</div>
+            </div>
+
+            <div class="form-group">
+                <label>刊物名称 <span class="required">*</span></label>
+                <input type="text" id="publicationName" placeholder="例：《旮之旯》" />
+            </div>
+
+            <div class="form-group">
+                <label>投稿联系方式 <span class="required">*</span></label>
+                <input type="text" id="submitContact" placeholder="QQ号、邮箱、Discord 账号等" />
+                <div class="hint">用于投稿人联系，仅在刊物中展示</div>
+            </div>
+
+            <div class="form-group">
+                <label>投稿链接</label>
+                <input type="url" id="submitLink" placeholder="https://..." />
+                <div class="hint">可选，如在线投稿表格或问卷链接</div>
+            </div>
+
+            <div class="form-group">
+                <label>截止日期</label>
+                <input type="date" id="deadline" />
+            </div>
+
+            <div class="form-group">
+                <label>刊物介绍</label>
+                <textarea id="description" placeholder="简要介绍刊物的主题、征稿要求等…" rows="4"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>封面 / 素材图片</label>
+                <div class="image-upload-area">
+                    <img id="imagePreview" src="" alt="" />
+                    <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" />
+                    <input type="hidden" id="imageUrl" value="" />
+                    <button type="button" class="upload-btn" id="uploadBtn">📷 选择图片</button>
+                    <button type="button" class="remove-btn" id="removeBtn">移除</button>
+                    <span class="status-text" id="uploadStatus"></span>
+                </div>
+                <div class="hint">支持 JPEG、PNG、GIF、WebP，最大 2MB</div>
+            </div>
+
+            <button type="button" class="submit-btn" id="submitBtn">📤 提交刊物征集</button>
+        </div>
+    </div>
+
+    <script>
+    const API = './api/submit_publication.php';
+
+    // 同好会数据（用于关联同好会选择器）
+    let clubDataCn = [];
+    let clubDataJp = [];
+    let selectedClubIds = []; // [{id, country, name}]
+
+    async function loadClubData() {
+      try {
+        const [cn, jp] = await Promise.all([
+          fetch('./data/clubs.json', { cache: 'no-store' }).then(r => r.json()),
+          fetch('./data/clubs_japan.json', { cache: 'no-store' }).then(r => r.json())
+        ]);
+        clubDataCn = cn.data || [];
+        clubDataJp = jp.data || [];
+      } catch (e) {
+        console.error('加载俱乐部数据失败:', e);
+      }
+    }
+    loadClubData();
+
+    // 图片上传
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        document.getElementById('imageInput').click();
+    });
+
+    document.getElementById('imageInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const fd = new FormData();
+        fd.append('image', file);
+        fd.append('id', 'pub_' + Date.now());
+        const statusEl = document.getElementById('uploadStatus');
+        statusEl.textContent = '上传中...';
+        try {
+            const r = await fetch('./api/club_avatar.php?scope=publication', { method: 'POST', body: fd });
+            const j = await r.json();
+            if (j.success) {
+                document.getElementById('imagePreview').src = j.image_url;
+                document.getElementById('imagePreview').style.display = '';
+                document.getElementById('imageUrl').value = j.image_url;
+                document.getElementById('removeBtn').style.display = '';
+                statusEl.textContent = '✅ 上传成功';
+            } else {
+                statusEl.textContent = '❌ ' + (j.message || '上传失败');
+            }
+        } catch {
+            statusEl.textContent = '❌ 网络错误';
+        }
+    });
+
+    document.getElementById('removeBtn').addEventListener('click', () => {
+        document.getElementById('imagePreview').src = '';
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('imageUrl').value = '';
+        document.getElementById('removeBtn').style.display = 'none';
+        document.getElementById('uploadStatus').textContent = '已移除图片';
+    });
+
+    // 提交
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+        const clubName = document.getElementById('clubName').value.trim();
+        const publicationName = document.getElementById('publicationName').value.trim();
+        const submitContact = document.getElementById('submitContact').value.trim();
+
+        if (!clubName) { showMsg('请填写同好会名称', 'error'); return; }
+        if (!publicationName) { showMsg('请填写刊物名称', 'error'); return; }
+        if (!submitContact) { showMsg('请填写投稿联系方式', 'error'); return; }
+
+        const data = {
+            clubName,
+            publicationName,
+            submitContact,
+            submitLink: document.getElementById('submitLink').value.trim(),
+            deadline: document.getElementById('deadline').value,
+            description: document.getElementById('description').value.trim(),
+            image_url: document.getElementById('imageUrl').value,
+            club_ids: selectedClubIds.map(s => ({ id: s.id, country: s.country }))
+        };
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = '提交中...';
+
+        try {
+            const r = await fetch(API, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const j = await r.json();
+            if (j.success) {
+                showMsg('✅ ' + j.message, 'success');
+                document.getElementById('clubName').value = '';
+                document.getElementById('publicationName').value = '';
+                document.getElementById('submitContact').value = '';
+                document.getElementById('submitLink').value = '';
+                document.getElementById('deadline').value = '';
+                document.getElementById('description').value = '';
+                document.getElementById('imageUrl').value = '';
+                document.getElementById('imagePreview').src = '';
+                document.getElementById('imagePreview').style.display = 'none';
+                document.getElementById('removeBtn').style.display = 'none';
+                document.getElementById('uploadStatus').textContent = '';
+            } else {
+                showMsg('❌ ' + (j.message || '提交失败'), 'error');
+            }
+        } catch {
+            showMsg('❌ 网络错误，请重试', 'error');
+        }
+
+        btn.disabled = false;
+        btn.textContent = '📤 提交刊物征集';
+    });
+
+    function showMsg(text, type) {
+        const el = document.getElementById('message');
+        el.textContent = text;
+        el.className = 'message ' + type;
+        el.style.display = 'block';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // ====== 关联同好会选择器 ======
+    document.getElementById('clubSearchBtn').addEventListener('click', doClubSearch);
+    document.getElementById('clubSearchInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') doClubSearch();
+    });
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#clubSearchInput') && !e.target.closest('#clubSearchBtn') && !e.target.closest('#clubSearchResults')) {
+            document.getElementById('clubSearchResults').style.display = 'none';
+        }
+    });
+
+    function doClubSearch() {
+        const input = document.getElementById('clubSearchInput');
+        const results = document.getElementById('clubSearchResults');
+        const q = (input.value || '').trim().toLowerCase();
+        if (!q) { results.style.display = 'none'; return; }
+        const matches = [];
+        clubDataCn.forEach(c => {
+            if ((c.name || '').toLowerCase().includes(q) || (c.school || '').toLowerCase().includes(q)) {
+                matches.push({ id: c.id, country: 'china', name: c.name || c.school || '未知', logo_url: c.logo_url || '' });
+            }
+        });
+        clubDataJp.forEach(c => {
+            if ((c.name || '').toLowerCase().includes(q) || (c.school || '').toLowerCase().includes(q)) {
+                matches.push({ id: c.id, country: 'japan', name: c.name || c.school || '未知', logo_url: c.logo_url || '' });
+            }
+        });
+        if (matches.length === 0) {
+            results.innerHTML = '<div style="padding:12px;color:#999;font-size:13px;">未找到同好会</div>';
+        } else {
+            results.innerHTML = matches.slice(0, 20).map(m => {
+                const already = selectedClubIds.some(s => s.id === m.id && s.country === m.country);
+                return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-radius:8px;${already ? 'opacity:0.4;' : ''}"
+                    onclick="${already ? '' : 'addPubClub(' + m.id + ',\'' + m.country + '\')'}">
+                    <span style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;flex-shrink:0;overflow:hidden;">
+                        ${m.logo_url ? '<img src="' + m.logo_url + '" style="width:100%;height:100%;object-fit:cover;">' : (m.name[0] || '?')}
+                    </span>
+                    <span style="font-size:13px;">${m.name}</span>
+                    <span style="font-size:10px;color:#999;">${m.country === 'japan' ? '🇯🇵' : '🇨🇳'}</span>
+                    ${already ? '<span style="margin-left:auto;font-size:11px;color:#999;">已选择</span>' : ''}
+                </div>`;
+            }).join('');
+        }
+        results.style.display = '';
+    }
+
+    function addPubClub(id, country) {
+        const list = country === 'japan' ? clubDataJp : clubDataCn;
+        const club = list.find(c => c.id === id);
+        if (!club || selectedClubIds.some(s => s.id === id && s.country === country)) return;
+        selectedClubIds.push({ id, country, name: club.name || club.school || '未知' });
+        renderSelectedClubs();
+        document.getElementById('clubSearchResults').style.display = 'none';
+        document.getElementById('clubSearchInput').value = '';
+    }
+
+    function removePubClub(id, country) {
+        selectedClubIds = selectedClubIds.filter(s => !(s.id === id && s.country === country));
+        renderSelectedClubs();
+    }
+
+    function renderSelectedClubs() {
+        const container = document.getElementById('clubIdsContainer');
+        if (!container) return;
+        if (selectedClubIds.length === 0) {
+            container.innerHTML = '<span style="font-size:12px;color:#999;">暂未选择同好会</span>';
+            return;
+        }
+        container.innerHTML = selectedClubIds.map(s =>
+            `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px 4px 6px;border-radius:20px;font-size:12px;background:#f0f0f0;border:1px solid #e0e0e0;">
+                ${s.name}
+                <span style="cursor:pointer;opacity:0.6;margin-left:2px;" onclick="removePubClub(${s.id},'${s.country}')">✕</span>
+            </span>`
+        ).join('');
+        // 同步 clubName
+        const clubNameInput = document.getElementById('clubName');
+        if (clubNameInput) {
+            const names = selectedClubIds.map(s => s.name).filter(Boolean);
+            clubNameInput.value = names.join('、');
+        }
+    }
+    </script>
+</body>
+</html>

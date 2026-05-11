@@ -322,28 +322,33 @@
     </div>
     
     <script>
-        const ADMIN_TOKEN = 'ciallo';
-        const SUBMISSIONS_FILE = './event_submissions.json';
-        const EVENTS_API = './api_events.php';
-        
+        const SUBMISSIONS_FILE = '../data/submissions_event.json';
+        const EVENTS_API = '../api/events.php';
+        const SUBMIT_EVENT_API = '../api/submit_event.php';
+
         let submissions = [];
         let currentTab = 'pending';
-        
-        // 检查管理员登录
-        function checkAuth() {
-            const token = localStorage.getItem('admin_token');
-            if (token !== ADMIN_TOKEN) {
-                const pwd = prompt('请输入管理员密码：');
-                if (pwd === ADMIN_TOKEN) {
-                    localStorage.setItem('admin_token', ADMIN_TOKEN);
-                    return true;
-                } else {
-                    alert('密码错误！');
-                    window.location.href = './index.html';
+
+        // 检查管理员登录（session 认证）
+        async function checkAuth() {
+            try {
+                const resp = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+                const data = await resp.json();
+                if (!data.logged_in) {
+                    window.location.href = '../index.html?need_login=1';
                     return false;
                 }
+                const roleLevel = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+                if ((roleLevel[data.user.role] ?? -1) < 2) {
+                    alert('权限不足');
+                    window.location.href = '../index.html';
+                    return false;
+                }
+                return true;
+            } catch {
+                window.location.href = '../index.html';
+                return false;
             }
-            return true;
         }
         
         // 加载提交记录
@@ -376,12 +381,9 @@
         // 保存提交记录到文件
         async function saveSubmissions() {
             try {
-                await fetch('./submit_event_api.php?action=save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': ADMIN_TOKEN
-                    },
+                await fetch(SUBMIT_EVENT_API + '?action=save', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(submissions)
                 });
             } catch (e) {
@@ -406,14 +408,12 @@
                 link: submit.link || ''
             };
             
-            const adminToken = localStorage.getItem('admin_token');
-            
             try {
                 // 先获取现有活动
                 const getResponse = await fetch(EVENTS_API);
                 const existing = await getResponse.json();
                 const events = existing.events || [];
-                
+
                 // 生成新ID
                 const newId = events.length > 0 ? Math.max(...events.map(e => e.id || 0)) + 1 : 1;
                 const newEvent = {
@@ -422,14 +422,11 @@
                     created_at: new Date().toISOString()
                 };
                 events.push(newEvent);
-                
+
                 // 保存到活动文件
                 const saveResponse = await fetch(EVENTS_API, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Token': adminToken
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ events: events })
                 });
                 
@@ -571,9 +568,11 @@
         });
         
         // 初始化
-        if (checkAuth()) {
-            loadSubmissions();
-        }
+        (async () => {
+            if (await checkAuth()) {
+                loadSubmissions();
+            }
+        })();
     </script>
 </body>
 </html>

@@ -8,6 +8,8 @@
     <meta name="keywords" content="全国Galgame同好会地图,视觉小说,Galgame,同好会,高校社团,地图导航,同好社群" />
     <meta name="author" content="全国Galgame同好会地图" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
+    <!-- Cropper.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
     <meta name="theme-color" content="#9b59b6" />
     <meta name="theme-color" content="#9b59b6" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#2c0a2c" media="prefers-color-scheme: dark" />
@@ -32,6 +34,28 @@
     
     <!-- 样式表 -->
     <link rel="stylesheet" href="./css/styles.css" />
+    <style>
+    @keyframes galonlyFlow {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    @keyframes galonlyGlow {
+        0%   { box-shadow: 0 0 15px rgba(233,30,99,0.3), 0 0 40px rgba(255,152,0,0.15); }
+        25%  { box-shadow: 0 0 25px rgba(233,30,99,0.5), 0 0 60px rgba(156,39,176,0.2); }
+        50%  { box-shadow: 0 0 35px rgba(255,152,0,0.5), 0 0 80px rgba(233,30,99,0.25); }
+        75%  { box-shadow: 0 0 25px rgba(156,39,176,0.5), 0 0 60px rgba(255,152,0,0.2); }
+        100% { box-shadow: 0 0 15px rgba(233,30,99,0.3), 0 0 40px rgba(255,152,0,0.15); }
+    }
+    .galonly-glow {
+        background-size: 300% 300% !important;
+        animation: galonlyFlow 4s ease infinite, galonlyGlow 3s ease-in-out infinite !important;
+    }
+    .galonly-glow:hover {
+        animation-duration: 1.5s, 1.5s !important;
+        filter: brightness(1.15);
+    }
+    </style>
 </head>
 <body>
     <!-- SEO 隐藏标题 -->
@@ -43,13 +67,74 @@
     <!-- 主地图容器 -->
     <main id="map" role="main">
         <svg id="mapSvg"></svg>
-        
+
+    <!-- 顶层用户信息框 -->
+    <div id="userInfoCard" class="user-info-card">
+      <div class="user-info-row">
+        <div class="user-avatar" id="topUserAvatar">?</div>
+        <div class="user-name" id="topUserName">访客</div>
+        <span class="user-role-badge" id="topUserRoleBadge" style="display:none;"></span>
+        <button id="topLoginBtn" class="top-login-btn">登录 / 注册</button>
+        <button id="topAccountBtn" class="top-account-btn" style="display:none;">账号</button>
+        <a id="topAdminBtn" class="top-admin-btn" href="admin/club_manager.html" style="display:none;">同好会管理</a>
+        <button class="mobile-expand-arrow" id="mobileExpandArrow">▼</button>
+      </div>
+      <div class="user-nav-row" id="userNavRow">
+        <button class="user-nav-btn" data-action="china">中国同好会</button>
+        <button class="user-nav-btn" data-action="japan">日本同好会</button>
+        <button class="user-nav-btn" data-action="overseas">海外同好会</button>
+        <button class="user-nav-btn" data-action="calendar">活动日历</button>
+        <button class="user-nav-btn" data-action="publication">刊物投稿</button>
+      </div>
+    </div>
+
+    <!-- 移动端汉堡菜单按钮 -->
+    <button id="hamburgerBtn" class="hamburger-btn" aria-label="菜单">☰</button>
+
+    <!-- 移动端左侧抽屉 -->
+    <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
+      <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"></div>
+      <div class="mobile-drawer-content">
+        <button class="mobile-drawer-close" id="mobileDrawerClose">✕</button>
+        <h2 class="card-title">全国Galgame同好会地图</h2>
+        <img class="drawer-logo" src="./images/VNF.png" alt="VNFest 视觉小说高校学园祭" width="640" height="196" />
+        <p class="card-body">本网站用于聚合展示全国各省、高校及海外地区的 Galgame / 视觉小说同好组织信息，支持地图缩放、拖拽、分省查看、切换分类与一键复制联系方式，帮助同好快速找到组织。</p>
+        <p class="card-body">数据来自各高校同好会及公开信息，欢迎提交新的同好会资料。</p>
+        <label class="md3-switch" for="invertCtrlSwitchDrawer">
+          <input id="invertCtrlSwitchDrawer" type="checkbox" />
+          <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+          <span class="md3-switch-label">反转操作（默认关）</span>
+        </label>
+        <label class="md3-switch" for="themeSwitchDrawer">
+          <input id="themeSwitchDrawer" type="checkbox" />
+          <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+          <span class="md3-switch-label">暗黑模式（跟随系统）</span>
+        </label>
+        <div class="intro-links">
+          <div class="submit-buttons">
+            <a class="submit-btn" href="https://github.com/kokubunshu/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">开源仓库</a>
+            <button class="submit-btn primary" id="submitClubBtnDrawer" type="button">提交同好会信息</button>
+            <button class="submit-btn" id="submitEventBtnDrawer" type="button">添加活动信息</button>
+            <button class="submit-btn" id="submitPublicationBtnDrawer" type="button">投稿刊物征集</button>
+            <button class="submit-btn galonly-glow" id="submitGalonlyBtnDrawer" style="background:linear-gradient(135deg,#e91e63,#ff9800,#9c27b0);color:#fff;border:none;" type="button">GalOnly 高校专属通道</button>
+            <div class="lang-switch-group">
+              <button class="lang-btn" id="langZhBtnDrawer"><span class="lang-text">中文</span></button>
+              <button class="lang-btn" id="langJaBtnDrawer"><span class="lang-text">日本語</span></button>
+            </div>
+          </div>
+          <p class="card-body gpl-text" style="margin-top: 8px; font-size: 11px; text-align: center;">
+            基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
         <!-- 简介卡片 -->
         <section id="introCard" class="md3-card">
             <button id="introCloseBtn" class="intro-action-btn" type="button">收起</button>
             <button id="introExpandBtn" class="intro-expand-btn" type="button">简介</button>
             <h2 id="introTitle" class="card-title">全国Galgame同好会地图</h2>
-            <img id="introLogo" src="./VNF.png" alt="VNFest 视觉小说高校学园祭" width="640" height="196" fetchpriority="high" decoding="async" />
+            <img id="introLogo" src="./images/VNF.png" alt="VNFest 视觉小说高校学园祭" width="640" height="196" fetchpriority="high" decoding="async" />
             <p class="card-body">本网站用于聚合展示全国各省、高校及海外地区的 Galgame / 视觉小说同好组织信息，支持地图缩放、拖拽、分省查看、切换分类与一键复制联系方式，帮助同好快速找到组织。</p>
             <p class="card-body">数据来自各高校同好会及公开信息，欢迎提交新的同好会资料。</p>
             
@@ -76,6 +161,12 @@
                     </button>
                     <button id="submitEventBtn" class="submit-btn" type="button">
                         📅 添加活动信息
+                    </button>
+                    <button id="submitPublicationBtn" class="submit-btn" type="button">
+                        📖 投稿刊物征集
+                    </button>
+                    <button id="submitGalonlyBtn" class="submit-btn galonly-glow" style="background:linear-gradient(135deg,#e91e63,#ff9800,#9c27b0);color:#fff;border:none;" type="button">
+                        GalOnly 高校专属通道
                     </button>
                     <div class="lang-switch-group">
     <button id="langZhBtn" class="lang-btn">
@@ -148,52 +239,6 @@
             <div id="groupList" class="group-list"></div>
         </section>
 
-        <!-- 侧边按钮组 - 桌面端显示 -->
-        <button id="chinaToggleBtn" class="md3-btn md3-btn-tonal side-toggle-btn active" type="button">中国同好会</button>
-        <button id="japanToggleBtn" class="md3-btn md3-btn-tonal side-toggle-btn" type="button">日本同好会</button>
-        <button id="otherToggleBtn" class="md3-btn md3-btn-tonal side-toggle-btn" type="button">其他同好会</button>
-        <button id="calendarToggleBtn" class="md3-btn md3-btn-tonal side-toggle-btn" type="button">活动日历</button>
-        <button id="publicationToggleBtn" class="md3-btn md3-btn-tonal side-toggle-btn" type="button">刊物投稿</button>
-
-        <!-- 移动端悬浮菜单 -->
-        <div class="fab-menu" id="fabMenu">
-            <div class="fab-menu-items" id="fabMenuItems">
-                <button class="fab-menu-item" id="fabChina">
-                    <span>🇨🇳</span>
-                    <span class="fab-label">中国</span>
-                </button>
-                <button class="fab-menu-item" id="fabJapan">
-                    <span>🇯🇵</span>
-                    <span class="fab-label">日本</span>
-                </button>
-                <button class="fab-menu-item" id="fabOther">
-                    <span>🌍</span>
-                    <span class="fab-label">其他</span>
-                </button>
-                <button class="fab-menu-item" id="fabCalendar">
-                    <span>📅</span>
-                    <span class="fab-label">日历</span>
-                </button>
-                <button class="fab-menu-item" id="fabPublication">
-                    <span>📖</span>
-                    <span class="fab-label">刊物</span>
-                </button>
-            </div>
-            <button class="fab-main" id="fabMainBtn">
-                <span class="fab-icon-plus">+</span>
-                <span class="fab-icon-close">✕</span>
-            </button>
-        </div>
-
-        <!-- 控制卡片（桌面端） -->
-        <section id="controlCard" class="md3-card">
-            <h2 class="card-title">地图控件</h2>
-            <div class="control-row">
-                <button id="zoomInBtn" class="md3-btn" type="button">放大 +</button>
-                <button id="zoomOutBtn" class="md3-btn" type="button">缩小 -</button>
-                <button id="resetViewBtn" class="md3-btn md3-btn-tonal" type="button">重置</button>
-            </div>
-        </section>
 
         <!-- 地图气泡 -->
         <div id="badgeBubble" class="map-bubble" aria-live="polite"></div>
@@ -202,7 +247,7 @@
         <div id="feedbackModal" class="feedback-modal" aria-hidden="true">
             <div class="feedback-modal-card" role="dialog" aria-modal="true">
                 <button id="feedbackModalClose" class="feedback-modal-close" type="button">×</button>
-                <img src="./qrcode.webp" alt="反馈群二维码" class="feedback-modal-image" loading="lazy" />
+                <img src="./images/qrcode.webp" alt="反馈群二维码" class="feedback-modal-image" loading="lazy" />
                 <a href="#" target="_blank" rel="noopener noreferrer" class="feedback-modal-link">前往加群链接</a>
             </div>
         </div>
@@ -219,30 +264,59 @@
         <!-- 日历弹窗 -->
         <div id="calendarModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" role="dialog" aria-modal="true">
+                <div class="modal-handle"></div>
                 <button id="calendarModalClose" class="calendar-modal-close" type="button">×</button>
                 <div class="calendar-modal-scroll">
-                    <div class="calendar-header">
-                        <button id="calendarPrevBtn" class="calendar-nav-btn" type="button">‹</button>
-                        <h3 id="calendarTitle" class="calendar-title">Galgame活动日历</h3>
-                        <button id="calendarNextBtn" class="calendar-nav-btn" type="button">›</button>
+                    <!-- 视图切换标签栏 -->
+                    <div class="calendar-view-tabs">
+                        <button class="view-tab active" data-view="calendar">📅 月历</button>
+                        <button class="view-tab" data-view="list">📋 列表</button>
                     </div>
-                    <div id="calendarGrid" class="calendar-grid"></div>
-                    <div id="calendarEventList" class="calendar-event-list"></div>
-                    
-                    <!-- 添加活动按钮（管理员模式显示） -->
-                    <button id="calendarAddEventBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;">➕ 添加活动</button>
+
+                    <!-- 月历视图 -->
+                    <div class="calendar-view-content" id="calendarGridView">
+                        <div class="calendar-header">
+                            <button id="calendarPrevBtn" class="calendar-nav-btn" type="button">‹</button>
+                            <h3 id="calendarTitle" class="calendar-title">Galgame活动日历</h3>
+                            <button id="calendarNextBtn" class="calendar-nav-btn" type="button">›</button>
+                        </div>
+                        <div id="calendarGrid" class="calendar-grid"></div>
+                        <div id="calendarEventList" class="calendar-event-list"></div>
+
+                        <!-- 添加活动按钮（管理员模式显示） -->
+                        <button id="calendarAddEventBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;">添加活动</button>
+                    </div>
+
+                    <!-- 列表视图 -->
+                    <div class="calendar-view-content" id="listView" style="display:none;">
+                        <div class="list-view-filters">
+                            <button class="filter-tab active" data-filter="all">全部</button>
+                            <button class="filter-tab" data-filter="upcoming">即将开始</button>
+                            <button class="filter-tab" data-filter="ongoing">进行中</button>
+                            <button class="filter-tab" data-filter="ended">已结束</button>
+                        </div>
+                        <div class="event-list-container" id="eventListContainer"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- 刊物弹窗 -->
         <div id="publicationModal" class="calendar-modal" aria-hidden="true">
-            <div class="calendar-modal-card" style="max-width: 650px;">
+            <div class="calendar-modal-card" style="max-width: 800px;">
                 <button id="publicationModalClose" class="calendar-modal-close" type="button">×</button>
                 <div class="calendar-modal-scroll">
                     <h3 class="calendar-title" style="margin-top: 30px;">📖 同好会刊物制作列表</h3>
+                    <div class="pub-filter-tabs" id="pubFilterTabs">
+                        <button class="pub-filter-btn active" data-filter="all">📋 全部</button>
+                        <button class="pub-filter-btn" data-filter="writing">✍️ 征稿中</button>
+                        <button class="pub-filter-btn" data-filter="planning">📋 策划中</button>
+                        <button class="pub-filter-btn" data-filter="editing">🔧 编辑中</button>
+                        <button class="pub-filter-btn" data-filter="publishing">📢 即将发布</button>
+                        <button class="pub-filter-btn" data-filter="completed">✅ 已发布</button>
+                    </div>
                     <div id="publicationList" class="publication-list"></div>
-                    <button id="addPublicationBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;">➕ 添加刊物</button>
+                    <button id="addPublicationBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;">➕ 添加刊物征稿</button>
                 </div>
             </div>
         </div>
@@ -257,6 +331,16 @@
             <div style="margin: 16px 0 12px;">
                 <label style="display: block; margin-bottom: 6px; font-weight: 600;">同好会名称 *</label>
                 <input type="text" id="pubClubName" class="md3-input" placeholder="例：复旦大学九日九视觉小说同好会" style="width: 100%;">
+                <small style="color: #999; font-size: 11px;">选择下方的关联同好会后自动填充，也可手动修改</small>
+            </div>
+            <div style="margin: 12px 0;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600;">关联同好会（可多选）</label>
+                <div id="pubClubIdsContainer" style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 0;"></div>
+                <div style="display:flex;gap:6px;margin-top:4px;">
+                    <input type="text" id="pubClubSearchInput" class="md3-input" placeholder="搜索同好会..." style="flex:1;font-size:13px;">
+                    <button id="pubClubSearchBtn" type="button" class="md3-btn" style="font-size:12px;padding:4px 12px;">搜索</button>
+                </div>
+                <div id="pubClubSearchResults" style="max-height:200px;overflow-y:auto;margin-top:6px;display:none;border:1px solid var(--md-outline-variant);border-radius:8px;padding:4px;"></div>
             </div>
             <div style="margin: 12px 0;">
                 <label style="display: block; margin-bottom: 6px; font-weight: 600;">刊物名称 *</label>
@@ -284,6 +368,17 @@
                 <small style="color: #999; font-size: 11px;">备用投稿链接</small>
             </div>
             <div style="margin: 12px 0;">
+                <label style="display: block; margin-bottom: 6px; font-weight: 600;">刊物封面/素材图片</label>
+                <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+                    <img id="pubImagePreview" src="" alt="" style="width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; background: var(--md-surface-container-high); display: none; margin-bottom: 4px;">
+                    <input type="hidden" id="pubImageUrl" />
+                    <input type="file" id="pubImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+                    <button id="pubImageBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px;">📷 上传图片</button>
+                    <button id="pubImageRemoveBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px; color: #e74c3c; display: none;">移除</button>
+                    <span id="pubImageStatus" style="font-size: 11px; color: #999;"></span>
+                </div>
+            </div>
+            <div style="margin: 12px 0;">
                 <label style="display: block; margin-bottom: 6px; font-weight: 600;">截止日期</label>
                 <input type="date" id="pubDeadline" class="md3-input" style="width: 100%;">
             </div>
@@ -298,6 +393,45 @@
         </div>
     </div>
 </div>
+        <!-- 刊物详情弹窗（二级菜单） -->
+        <div id="publicationDetailModal" class="calendar-modal" aria-hidden="true">
+            <div class="calendar-modal-card" style="max-width: 620px;">
+                <button id="pubDetailClose" class="calendar-modal-close" type="button">×</button>
+                <div class="calendar-modal-scroll" id="pubDetailScroll">
+                    <!-- 封面素材 -->
+                    <div id="pubDetailCover" class="pub-detail-cover" style="display:none;"></div>
+                    <!-- 刊物名称 -->
+                    <h3 id="pubDetailName" class="calendar-title" style="margin-top:20px;"></h3>
+                    <!-- 关联同好会 -->
+                    <div id="pubDetailClubs" class="pub-detail-clubs"></div>
+                    <!-- 元信息：状态 + 截稿日期 -->
+                    <div id="pubDetailMeta" class="pub-detail-meta"></div>
+                    <!-- 投稿联系 -->
+                    <div id="pubDetailContact" class="pub-detail-contact"></div>
+                    <!-- 刊物描述 -->
+                    <div id="pubDetailDesc" class="pub-detail-desc"></div>
+                    <!-- 上传稿件区域 -->
+                    <div class="pub-detail-upload-section">
+                        <h4 class="pub-detail-section-title">上传稿件</h4>
+                        <div class="pub-upload-form">
+                            <div class="pub-upload-row">
+                                <input type="file" id="manuscriptFileInput" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+                                <button id="manuscriptUploadBtn" class="md3-btn" style="flex-shrink:0;">上传</button>
+                            </div>
+                            <input type="text" id="manuscriptContactInput" class="md3-input" placeholder="联系方式（QQ/邮箱）" style="width:100%;margin-top:8px;">
+                            <div id="manuscriptStatus" style="font-size:12px;color:#999;margin-top:6px;"></div>
+                        </div>
+                    </div>
+                    <!-- 已收稿件列表 -->
+                    <div class="pub-detail-manuscripts-section">
+                        <h4 class="pub-detail-section-title">已收到的稿件</h4>
+                        <div id="pubDetailManuscripts" class="pub-detail-manuscripts">
+                            <div class="empty-text" style="padding:20px;text-align:center;">暂无稿件</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- 活动编辑器弹窗（管理员） -->
         <div id="eventEditorModal" class="calendar-modal" aria-hidden="true">
@@ -311,16 +445,27 @@
                         <input type="text" id="eventEditorName" class="md3-input" placeholder="例：樱之诗·春之祭典" style="width: 100%;">
                     </div>
                     <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动日期 *</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">开始日期 *</label>
                         <input type="date" id="eventEditorDate" class="md3-input" style="width: 100%;">
+                    </div>
+                    <div style="margin: 12px 0;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">结束日期 <span style="font-weight: 400; color: var(--md-on-surface-variant);">(可选，多日活动)</span></label>
+                        <input type="date" id="eventEditorDateEnd" class="md3-input" style="width: 100%;">
                     </div>
                     <div style="margin: 12px 0;">
                         <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动简介</label>
                         <textarea id="eventEditorRawText" class="md3-input" rows="2" placeholder="简短的活动介绍..." style="width: 100%; resize: vertical;"></textarea>
                     </div>
                     <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">宣传图文件名</label>
-                        <input type="text" id="eventEditorImage" class="md3-input" placeholder="例：sakura_event.jpg（放在 images/ 目录下）" style="width: 100%;">
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">海报图片</label>
+                        <img id="eventImagePreview" src="" alt="" style="width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; background: var(--md-surface-container-high); display: none; margin-bottom: 8px;">
+                        <input type="hidden" id="eventEditorImage" />
+                        <input type="file" id="eventImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
+                        <div style="display: flex; gap: 8px;">
+                            <button id="eventImageBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px;">📷 上传海报</button>
+                            <button id="eventImageRemoveBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px; color: #e74c3c; display: none;">移除</button>
+                            <span id="eventImageStatus" style="font-size: 11px; color: var(--md-on-surface-variant);"></span>
+                        </div>
                     </div>
                     <div style="margin: 12px 0;">
                         <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动链接</label>
@@ -330,7 +475,7 @@
                         <label style="display: block; margin-bottom: 6px; font-weight: 600;">详细介绍</label>
                         <textarea id="eventEditorDescription" class="md3-input" rows="4" placeholder="详细的活动内容、参与方式等..." style="width: 100%; resize: vertical;"></textarea>
                     </div>
-                    <div style="margin: 12px 0; display: flex; align-items: center; gap: 12px;">
+                    <div id="eventOfficialWrap" style="margin: 12px 0; display: flex; align-items: center; gap: 12px;">
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="checkbox" id="eventEditorOfficial"> 官方活动
                         </label>
@@ -353,6 +498,10 @@
                     <img id="eventDetailImage" class="event-poster-image" alt="活动宣传图" style="display: none;" loading="lazy" />
                     <p id="eventDetailDescription" class="event-poster-text" style="margin: 16px 0; line-height: 1.8;"></p>
                     <a id="eventDetailLink" href="#" target="_blank" rel="noopener noreferrer" class="feedback-modal-link" style="display: none; text-decoration: none; text-align: center;">🔗 访问活动页面</a>
+                    <div id="eventDetailRegSection" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--md-outline-variant); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <span id="eventDetailRegCount" style="font-size: 13px; color: var(--md-on-surface-variant);"></span>
+                        <button id="eventDetailRegBtn" class="md3-btn" style="display: none; flex-shrink: 0; padding: 6px 16px; font-size: 13px;">📝 报名</button>
+                    </div>
                     <div style="display: flex; gap: 12px; margin-top: 20px;">
                         <button id="eventDetailEditBtn" class="md3-btn" style="flex: 1; display: none;">✏️ 编辑</button>
                         <button id="eventDetailDeleteBtn" class="md3-btn" style="flex: 1; background: #e74c3c; display: none;">🗑️ 删除</button>
@@ -362,109 +511,529 @@
         </div>
 
         <!-- 同好会详情弹窗 -->
-        <div id="clubDetailModal" class="calendar-modal" aria-hidden="true">
-            <div class="calendar-modal-card" role="dialog" aria-modal="true">
-                <button id="clubDetailClose" class="calendar-modal-close" type="button">×</button>
-                <div class="calendar-modal-scroll">
-                    <h3 id="clubDetailName" class="event-poster-title" style="margin-bottom: 20px;"></h3>
-                    <div id="clubDetailContent" style="line-height: 1.8;"></div>
+        <div id="clubDetailModal" aria-hidden="true">
+            <div class="club-detail-modal-card" role="dialog" aria-modal="true">
+                <button id="clubDetailClose" class="club-detail-modal-close" type="button">×</button>
+                <div class="club-detail-modal-scroll">
+                    <h3 id="clubDetailName"></h3>
+                    <div id="clubDetailContent"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 管理员浮动按钮 -->
-        <button id="floatingAdminBtn" class="floating-admin-btn" title="管理员模式（需开发者模式）">👑</button>
-        <button id="addClubBtn" class="floating-admin-btn" style="bottom: 152px; display: none;">➕</button>
+        <!-- 同好会绑定申请弹窗 -->
+        <div id="membershipApplyModal" class="calendar-modal" aria-hidden="true">
+            <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 450px;">
+                <button id="membershipApplyClose" class="calendar-modal-close" type="button">×</button>
+                <div class="calendar-modal-scroll">
+                    <h3 class="calendar-title" style="margin-top: 30px;">📝 申请绑定同好会</h3>
+                    <div id="membershipApplyClubName" style="text-align: center; font-size: 16px; font-weight: 600; margin: 12px 0 20px; color: var(--md-on-surface);"></div>
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">QQ账号 <span style="color: #999; font-weight: 400;">(非必填)</span></label>
+                            <input type="text" id="applyQQ" class="md3-input" placeholder="例：123456789" />
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 4px; font-size: 13px; font-weight: 600;">申请身份</label>
+                            <select id="applyRole" class="md3-select">
+                                <option value="member">成员</option>
+                                <option value="manager">管理员</option>
+                                <option value="representative">负责人</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
+                                <input type="checkbox" id="applyIsStudent" checked />
+                                <span>是本校学生</span>
+                            </label>
+                        </div>
+                        <div id="membershipApplyMessage" style="font-size: 13px; text-align: center; min-height: 20px; color: var(--md-primary);"></div>
+                        <button id="membershipApplySubmitBtn" class="submit-btn primary" type="button">提交申请</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 绑定审批弹窗 -->
+        <div id="membershipModal" class="calendar-modal" aria-hidden="true">
+            <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 500px;">
+                <button id="membershipModalClose" class="calendar-modal-close" type="button">×</button>
+                <div class="calendar-modal-scroll">
+                    <h3 class="calendar-title" style="margin-top: 30px;">📋 绑定审批</h3>
+                    <div id="membershipPendingList" style="margin-top: 16px;">
+                        <p style="text-align: center; color: var(--md-on-surface-variant);">加载中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 账号管理弹窗 -->
+        <div id="accountModal" class="calendar-modal" aria-hidden="true">
+            <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 480px;">
+                <button id="accountModalClose" class="calendar-modal-close" type="button">×</button>
+                <div class="calendar-modal-scroll">
+                    <!-- 登录界面 -->
+                    <div id="accountLoginForm">
+                        <h3 class="calendar-title" style="margin-top: 30px;">登录</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                            <input type="text" id="accLoginUsername" class="md3-input" placeholder="用户名 / 邮箱" />
+                            <input type="password" id="accLoginPassword" class="md3-input" placeholder="密码" />
+                            <button id="accLoginBtn" class="submit-btn primary" type="button">登录</button>
+                            <div id="accLoginMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
+                            <!-- 第三方登录 -->
+                            <div id="accSocialLogin" style="display: none;">
+                                <div class="social-login-divider"><span>其他方式</span></div>
+                                <div class="social-login-buttons">
+                                    <button id="qqLoginBtn" class="social-btn social-btn-qq" type="button">QQ 登录</button>
+                                    <button id="discordLoginBtn" class="social-btn social-btn-discord" type="button">Discord 登录</button>
+                                </div>
+                            </div>
+                            <hr style="border: none; border-top: 1px solid var(--md-outline); margin: 8px 0;" />
+                            <p style="text-align: center; font-size: 13px; color: var(--md-on-surface-variant);">还没有账号？</p>
+                            <button id="accShowRegisterBtn" class="submit-btn" type="button">注册新账号</button>
+                        </div>
+                    </div>
+                    <!-- 注册界面 -->
+                    <div id="accountRegisterForm" style="display: none;">
+                        <h3 class="calendar-title" style="margin-top: 30px;">注册</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                            <input type="text" id="accRegUsername" class="md3-input" placeholder="用户名" />
+                            <input type="password" id="accRegPassword" class="md3-input" placeholder="密码" />
+                            <button id="accRegisterBtn" class="submit-btn primary" type="button">注册</button>
+                            <div id="accRegMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
+                            <hr style="border: none; border-top: 1px solid var(--md-outline); margin: 8px 0;" />
+                            <p style="text-align: center; font-size: 13px; color: var(--md-on-surface-variant);">已有账号？</p>
+                            <button id="accShowLoginBtn" class="submit-btn" type="button">返回登录</button>
+                        </div>
+                    </div>
+                    <!-- 个人设置主页（三标签结构） -->
+                    <div id="accountSettings" style="display: none;">
+                        <!-- 标签栏 -->
+                        <div class="vn-tab-bar">
+                            <button class="vn-tab active" data-tab="profile">📋 档案</button>
+                            <button class="vn-tab" data-tab="collection">🏆 图鉴</button>
+                            <button class="vn-tab" data-tab="settings">⚙️ 设置</button>
+                        </div>
+
+                        <!-- Tab 1: 社团成员档案 -->
+                        <div id="vnProfileTab" class="vn-tab-content active">
+                            <div class="vn-character-card">
+                                <div class="vn-card-ornament"></div>
+                                <!-- 头部 -->
+                                <div class="vn-card-header">
+                                    <div class="vn-portrait-frame">
+                                        <img id="vnAvatar" src="" alt="" class="vn-portrait-img" />
+                                        <span class="vn-avatar-fallback"></span>
+                                    </div>
+                                    <div class="vn-character-info">
+                                        <div class="vn-character-name" id="vnCharName"></div>
+                                        <div class="vn-character-title" id="vnCharTitle"></div>
+                                        <div class="vn-signature" id="vnSignature">"这个人很懒，还没有填写签名"</div>
+                                    </div>
+                                </div>
+                                <!-- 同好会区域 -->
+                                <div class="vn-club-section">
+                                    <div class="vn-club-section-header">所属同好会</div>
+                                    <div id="vnClubList" class="vn-club-list"></div>
+                                </div>
+                                <!-- 统计数据 -->
+                                <div class="vn-stats-grid">
+                                    <div class="vn-stat-item"><span class="vn-stat-num" id="statClubs">0</span><span class="vn-stat-label">同好会</span></div>
+                                    <div class="vn-stat-item"><span class="vn-stat-num" id="statPubs">0</span><span class="vn-stat-label">刊物</span></div>
+                                    <div class="vn-stat-item"><span class="vn-stat-num" id="statEvents">0</span><span class="vn-stat-label">活动</span></div>
+                                    <div class="vn-stat-item"><span class="vn-stat-num" id="statDays">0</span><span class="vn-stat-label">天</span></div>
+                                </div>
+                                <!-- 底部 -->
+                                <div class="vn-card-footer">
+                                    <span id="vnMemberSince"></span>
+                                    <span id="vnLastActive"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tab 2: 收集图鉴 -->
+                        <div id="vnCollectionTab" class="vn-tab-content">
+                            <div class="vn-collection-tabs">
+                                <button class="vn-collection-tab active" data-collection="clubs">同好会</button>
+                                <button class="vn-collection-tab" data-collection="publications">刊物</button>
+                                <button class="vn-collection-tab" data-collection="events">活动</button>
+                            </div>
+                            <div id="vnCollectionGrid" class="vn-collection-grid"></div>
+                        </div>
+
+                        <!-- Tab 3: 设置（保留现有功能） -->
+                        <div id="vnSettingsTab" class="vn-tab-content">
+                            <!-- 头像区 -->
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px;">
+                                <div id="accAvatarWrap" style="position: relative; cursor: pointer;">
+                                <img id="accUserAvatar" src="" alt="" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover;" />
+                                <div style="position: absolute; bottom: 0; right: -4px; background: var(--md-primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid var(--md-surface);">📷</div>
+                            </div>
+                            <input type="file" id="accAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" />
+                            <div id="accAvatarStatus" style="font-size: 12px; min-height: 18px;"></div>
+                        </div>
+
+                        <!-- 基本信息 -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">基本信息</h4>
+                            <div class="settings-row">
+                                <span class="settings-label">昵称</span>
+                                <input type="text" id="accNicknameInput" class="nickname-input" placeholder="设置昵称" maxlength="30" />
+                                <button id="accNicknameSaveBtn" class="btn-small btn-primary">保存</button>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-label">签名</span>
+                                <input type="text" id="accBioInput" class="nickname-input" placeholder="设置个性签名" maxlength="300" />
+                                <button id="accBioSaveBtn" class="btn-small btn-primary">保存</button>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-label">用户名</span>
+                                <span id="accSettingsUsername" class="settings-value"></span>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-label">等级</span>
+                                <span id="accSettingsRole" class="settings-value"></span>
+                            </div>
+                        </div>
+
+                        <!-- 安全设置 -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">安全设置</h4>
+                            <div class="settings-row">
+                                <span class="settings-label">邮箱</span>
+                                <span id="accSettingsEmail" class="settings-value idle">未绑定</span>
+                                <div id="accSettingsEmailActions" style="display: flex; gap: 6px;">
+                                    <button id="accSettingsBindEmailBtn" class="btn-small">绑定</button>
+                                    <button id="accSettingsUnbindEmailBtn" class="btn-small btn-danger" style="display: none;">解绑</button>
+                                </div>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-label">密码</span>
+                                <span class="settings-value idle">已加密</span>
+                                <button id="accSettingsChangePwdBtn" class="btn-small">修改</button>
+                            </div>
+                        </div>
+
+                        <!-- 社交账号绑定 -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">社交账号绑定</h4>
+                            <div class="settings-row">
+                                <span class="settings-label">QQ</span>
+                                <span id="accQQStatus" class="social-bind-status unbound">未绑定</span>
+                                <button id="accQQBindBtn" class="btn-small">绑定</button>
+                                <button id="accQQUnbindBtn" class="btn-small btn-danger" style="display: none;">解绑</button>
+                            </div>
+                            <div class="settings-row">
+                                <span class="settings-label">Discord</span>
+                                <span id="accDiscordStatus" class="social-bind-status unbound">未绑定</span>
+                                <button id="accDiscordBindBtn" class="btn-small">绑定</button>
+                                <button id="accDiscordUnbindBtn" class="btn-small btn-danger" style="display: none;">解绑</button>
+                            </div>
+                        </div>
+
+                        <!-- 同好会管理 -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">我的同好会</h4>
+                            <div id="accClubList"></div>
+                        </div>
+
+                        <!-- 管理操作 -->
+                        <div class="settings-section">
+                            <h4 class="settings-section-title">管理</h4>
+                            <div class="settings-row">
+                                <button id="accClubManageBtn" class="btn-small" style="display: none;">同好会管理</button>
+                            </div>
+                            <div class="settings-row">
+                                <button id="accPublicationManageBtn" class="btn-small" style="display: none;">刊物管理</button>
+                            </div>
+                        </div>
+
+                        <!-- 退出登录 -->
+                        <div style="text-align: center; margin-top: 8px;">
+                            <button id="accLogoutBtn" class="btn-small btn-danger" style="padding: 6px 24px;">退出登录</button>
+                        </div>
+                        </div>
+                    </div>
+
+                    <!-- 修改密码子视图 -->
+                    <div id="accountChangePasswordForm" style="display: none;">
+                        <h3 class="calendar-title" style="margin-top: 30px;">修改密码</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                            <input type="password" id="accPwdCurrent" class="md3-input" placeholder="当前密码" />
+                            <input type="password" id="accPwdNew" class="md3-input" placeholder="新密码" />
+                            <input type="password" id="accPwdConfirm" class="md3-input" placeholder="确认新密码" />
+                            <button id="accChangePwdSaveBtn" class="submit-btn primary" type="button">保存</button>
+                            <div id="accPwdMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
+                            <button id="accPwdCancelBtn" class="submit-btn" type="button">返回</button>
+                        </div>
+                    </div>
+                    <!-- 绑定邮箱子视图 -->
+                    <div id="accountBindEmailForm" style="display: none;">
+                        <h3 class="calendar-title" style="margin-top: 30px;">绑定邮箱</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                            <div style="display: flex; gap: 8px;">
+                                <input type="email" id="accEmailInput" class="md3-input" placeholder="请输入邮箱地址" style="flex: 1;" />
+                                <button id="accSendCodeBtn" class="submit-btn" type="button" style="width: auto; padding: 8px 16px; font-size: 13px; white-space: nowrap;">发送验证码</button>
+                            </div>
+                            <input type="text" id="accCodeInput" class="md3-input" placeholder="请输入验证码" style="display: none;" maxlength="6" />
+                            <button id="accEmailSaveBtn" class="submit-btn primary" type="button" style="display: none;">绑定</button>
+                            <div id="accEmailMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
+                            <button id="accEmailCancelBtn" class="submit-btn" type="button">返回</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 头像裁剪弹窗 -->
+        <div id="avatarCropModal" class="crop-modal" style="display:none;">
+            <div class="crop-modal-backdrop"></div>
+            <div class="crop-modal-content">
+                <h3 style="margin: 0 0 12px; font-size: 16px;">裁剪头像</h3>
+                <div class="crop-container">
+                    <img id="cropImage" src="" alt="" />
+                </div>
+                <div class="crop-actions">
+                    <button id="cropCancelBtn" class="submit-btn" type="button">取消</button>
+                    <button id="cropConfirmBtn" class="submit-btn primary" type="button">确认</button>
+                </div>
+            </div>
+        </div>
 
         <!-- 管理员编辑面板 -->
         <div id="adminPanel" class="admin-panel">
+            <button id="adminPanelClose" class="admin-panel-close" type="button">×</button>
             <h3 id="adminPanelTitle">编辑同好会</h3>
             <input type="hidden" id="editId">
-            
-            <!-- 国家选择 -->
-            <select id="editCountry">
-                <option value="china">🇨🇳 中国</option>
-                <option value="japan">🇯🇵 日本</option>
-            </select>
-            
-            <!-- 中国省份下拉 -->
-            <div id="provinceGroup">
-                <select id="editProvince">
-                    <option value="">请选择省份</option>
-                    <optgroup label="直辖市">
-                        <option>北京市</option><option>天津市</option><option>上海市</option><option>重庆市</option>
-                    </optgroup>
-                    <optgroup label="省份">
-                        <option>广东省</option><option>江苏省</option><option>浙江省</option><option>四川省</option>
-                        <option>湖北省</option><option>湖南省</option><option>安徽省</option><option>福建省</option>
-                        <option>山东省</option><option>河南省</option><option>河北省</option><option>陕西省</option>
-                        <option>辽宁省</option><option>吉林省</option><option>黑龙江省</option><option>江西省</option>
-                        <option>广西壮族自治区</option><option>海南省</option><option>山西省</option><option>云南省</option>
-                        <option>贵州省</option><option>甘肃省</option><option>青海省</option><option>台湾省</option>
-                    </optgroup>
-                    <optgroup label="自治区">
-                        <option>内蒙古自治区</option><option>新疆维吾尔自治区</option>
-                        <option>宁夏回族自治区</option><option>西藏自治区</option>
-                    </optgroup>
-                    <optgroup label="特别行政区">
-                        <option>香港特别行政区</option><option>澳门特别行政区</option>
-                    </optgroup>
-                    <optgroup label="其他">
-                        <option>海外</option>
-                    </optgroup>
-                </select>
+
+            <!-- ===== 同好会头像 ===== -->
+            <div class="admin-panel-section">
+                <div class="admin-panel-section-title">同好会头像</div>
+                <div id="editAvatarSection" class="edit-avatar-section">
+                    <img id="editClubAvatar" src="" alt="" class="edit-avatar-img" />
+                    <div class="edit-avatar-actions">
+                        <input type="file" id="editClubAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" />
+                        <input type="hidden" id="editClubAvatarUrl" />
+                        <button id="editClubAvatarBtn" type="button" class="edit-avatar-btn">📷 上传头像</button>
+                        <button id="editClubAvatarRemoveBtn" type="button" class="edit-avatar-btn edit-avatar-remove" style="display: none;">移除</button>
+                        <span id="editClubAvatarStatus" class="edit-avatar-status"></span>
+                    </div>
+                </div>
             </div>
-            
-            <!-- 日本都道府县下拉 -->
-            <div id="prefectureGroup" style="display: none;">
-                <select id="editPrefecture">
-                    <option value="">请选择都道府县</option>
-                    <optgroup label="北海道·东北">
-                        <option>北海道</option><option>青森县</option><option>岩手县</option>
-                        <option>宫城县</option><option>秋田县</option><option>山形县</option>
-                        <option>福岛县</option>
-                    </optgroup>
-                    <optgroup label="关东">
-                        <option>东京都</option><option>神奈川县</option><option>埼玉县</option>
-                        <option>千叶县</option><option>茨城县</option><option>栃木县</option>
-                        <option>群马县</option>
-                    </optgroup>
-                    <optgroup label="中部">
-                        <option>爱知县</option><option>静冈县</option><option>岐阜县</option>
-                        <option>长野县</option><option>新潟县</option><option>富山县</option>
-                        <option>石川县</option><option>福井县</option><option>山梨县</option>
-                    </optgroup>
-                    <optgroup label="关西·近畿">
-                        <option>大阪府</option><option>京都府</option><option>兵库县</option>
-                        <option>奈良县</option><option>滋贺县</option><option>和歌山县</option>
-                        <option>三重县</option>
-                    </optgroup>
-                    <optgroup label="中国·四国">
-                        <option>广岛县</option><option>冈山县</option><option>山口县</option>
-                        <option>岛根县</option><option>鸟取县</option><option>香川县</option>
-                        <option>德岛县</option><option>爱媛县</option><option>高知县</option>
-                    </optgroup>
-                    <optgroup label="九州·冲绳">
-                        <option>福冈县</option><option>佐贺县</option><option>长崎县</option>
-                        <option>熊本县</option><option>大分县</option><option>宫崎县</option>
-                        <option>鹿儿岛县</option><option>冲绳县</option>
-                    </optgroup>
+
+            <!-- ===== 基本信息 ===== -->
+            <div class="admin-panel-section">
+                <div class="admin-panel-section-title">基本信息</div>
+
+                <!-- 国家选择 -->
+                <select id="editCountry">
+                    <option value="china">🇨🇳 中国</option>
+                    <option value="japan">🇯🇵 日本</option>
+                    <option value="overseas">🌍 海外</option>
                 </select>
+
+                <input type="text" id="editName" placeholder="组织名称 *">
+
+                <select id="editType">
+                    <option value="school">高校同好会</option>
+                    <option value="region">地区高校联合</option>
+                    <option value="vnfest">视觉小说学园祭</option>
+                </select>
+
+                <!-- 中国省份下拉 -->
+                <div id="provinceGroup">
+                    <select id="editProvince">
+                        <option value="">请选择省份</option>
+                        <optgroup label="直辖市">
+                            <option>北京市</option><option>天津市</option><option>上海市</option><option>重庆市</option>
+                        </optgroup>
+                        <optgroup label="省份">
+                            <option>广东省</option><option>江苏省</option><option>浙江省</option><option>四川省</option>
+                            <option>湖北省</option><option>湖南省</option><option>安徽省</option><option>福建省</option>
+                            <option>山东省</option><option>河南省</option><option>河北省</option><option>陕西省</option>
+                            <option>辽宁省</option><option>吉林省</option><option>黑龙江省</option><option>江西省</option>
+                            <option>广西壮族自治区</option><option>海南省</option><option>山西省</option><option>云南省</option>
+                            <option>贵州省</option><option>甘肃省</option><option>青海省</option><option>台湾省</option>
+                        </optgroup>
+                        <optgroup label="自治区">
+                            <option>内蒙古自治区</option><option>新疆维吾尔自治区</option>
+                            <option>宁夏回族自治区</option><option>西藏自治区</option>
+                        </optgroup>
+                        <optgroup label="特别行政区">
+                            <option>香港特别行政区</option><option>澳门特别行政区</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- 日本都道府县下拉 -->
+                <div id="prefectureGroup" style="display: none;">
+                    <select id="editPrefecture">
+                        <option value="">请选择都道府县</option>
+                        <optgroup label="北海道·东北">
+                            <option>北海道</option><option>青森县</option><option>岩手县</option>
+                            <option>宫城县</option><option>秋田县</option><option>山形县</option>
+                            <option>福岛县</option>
+                        </optgroup>
+                        <optgroup label="关东">
+                            <option>东京都</option><option>神奈川县</option><option>埼玉县</option>
+                            <option>千叶县</option><option>茨城县</option><option>栃木县</option>
+                            <option>群马县</option>
+                        </optgroup>
+                        <optgroup label="中部">
+                            <option>爱知县</option><option>静冈县</option><option>岐阜县</option>
+                            <option>长野县</option><option>新潟县</option><option>富山县</option>
+                            <option>石川县</option><option>福井县</option><option>山梨县</option>
+                        </optgroup>
+                        <optgroup label="关西·近畿">
+                            <option>大阪府</option><option>京都府</option><option>兵库县</option>
+                            <option>奈良县</option><option>滋贺县</option><option>和歌山县</option>
+                            <option>三重县</option>
+                        </optgroup>
+                        <optgroup label="中国·四国">
+                            <option>广岛县</option><option>冈山县</option><option>山口县</option>
+                            <option>岛根县</option><option>鸟取县</option><option>香川县</option>
+                            <option>德岛县</option><option>爱媛县</option><option>高知县</option>
+                        </optgroup>
+                        <optgroup label="九州·冲绳">
+                            <option>福冈县</option><option>佐贺县</option><option>长崎县</option>
+                            <option>熊本县</option><option>大分县</option><option>宫崎县</option>
+                            <option>鹿儿岛县</option><option>冲绳县</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <input type="text" id="editSchool" placeholder="学校/组织">
             </div>
-            
-            <input type="text" id="editName" placeholder="组织名称 *">
-            <select id="editType">
-                <option value="school">高校同好会</option>
-                <option value="region">地区高校联合</option>
-                <option value="vnfest">视觉小说学园祭</option>
-            </select>
-            <input type="text" id="editInfo" placeholder="联系方式 *">
-            <textarea id="editRemark" rows="4" placeholder="详细介绍..."></textarea>
-            <input type="text" id="editSchool" placeholder="学校/组织">
+
+            <!-- ===== 对外平台 ===== -->
+            <div class="admin-panel-section">
+                <div class="admin-panel-section-title">对外平台</div>
+                <div id="editExternalLinksContainer">
+                    <div class="ext-link-row">
+                        <select class="ext-link-platform" data-index="0">
+                            <option value="">选择平台</option>
+                            <option value="B站">📺 B站/Bilibili</option>
+                            <option value="Twitter">🐦 Twitter/X</option>
+                            <option value="Bangumi">📖 Bangumi</option>
+                            <option value="微博">📱 微博</option>
+                            <option value="Discord">💬 Discord</option>
+                            <option value="QQ">💬 QQ</option>
+                            <option value="微信">💬 微信</option>
+                            <option value="GitHub">💻 GitHub</option>
+                            <option value="知乎">📕 知乎</option>
+                            <option value="小红书">📕 小红书</option>
+                            <option value="豆瓣">📕 豆瓣</option>
+                            <option value="贴吧">📕 贴吧</option>
+                            <option value="Niconico">🎵 Niconico</option>
+                            <option value="YouTube">▶️ YouTube</option>
+                            <option value="Pixiv">🎨 Pixiv</option>
+                            <option value="Lofter">📝 Lofter</option>
+                            <option value="Fanbox">💝 Fanbox</option>
+                            <option value="Patreon">💝 Patreon</option>
+                            <option value="Fantia">💝 Fantia</option>
+                            <option value="官网">🌐 官网</option>
+                            <option value="其他">🔗 其他</option>
+                        </select>
+                        <input type="text" class="ext-link-url" data-index="0" placeholder="链接 URL（https://...）">
+                    </div>
+                    <div class="ext-link-row">
+                        <select class="ext-link-platform" data-index="1">
+                            <option value="">选择平台</option>
+                            <option value="B站">📺 B站/Bilibili</option>
+                            <option value="Twitter">🐦 Twitter/X</option>
+                            <option value="Bangumi">📖 Bangumi</option>
+                            <option value="微博">📱 微博</option>
+                            <option value="Discord">💬 Discord</option>
+                            <option value="QQ">💬 QQ</option>
+                            <option value="微信">💬 微信</option>
+                            <option value="GitHub">💻 GitHub</option>
+                            <option value="知乎">📕 知乎</option>
+                            <option value="小红书">📕 小红书</option>
+                            <option value="豆瓣">📕 豆瓣</option>
+                            <option value="贴吧">📕 贴吧</option>
+                            <option value="Niconico">🎵 Niconico</option>
+                            <option value="YouTube">▶️ YouTube</option>
+                            <option value="Pixiv">🎨 Pixiv</option>
+                            <option value="Lofter">📝 Lofter</option>
+                            <option value="Fanbox">💝 Fanbox</option>
+                            <option value="Patreon">💝 Patreon</option>
+                            <option value="Fantia">💝 Fantia</option>
+                            <option value="官网">🌐 官网</option>
+                            <option value="其他">🔗 其他</option>
+                        </select>
+                        <input type="text" class="ext-link-url" data-index="1" placeholder="链接 URL（https://...）">
+                    </div>
+                    <div class="ext-link-row">
+                        <select class="ext-link-platform" data-index="2">
+                            <option value="">选择平台</option>
+                            <option value="B站">📺 B站/Bilibili</option>
+                            <option value="Twitter">🐦 Twitter/X</option>
+                            <option value="Bangumi">📖 Bangumi</option>
+                            <option value="微博">📱 微博</option>
+                            <option value="Discord">💬 Discord</option>
+                            <option value="QQ">💬 QQ</option>
+                            <option value="微信">💬 微信</option>
+                            <option value="GitHub">💻 GitHub</option>
+                            <option value="知乎">📕 知乎</option>
+                            <option value="小红书">📕 小红书</option>
+                            <option value="豆瓣">📕 豆瓣</option>
+                            <option value="贴吧">📕 贴吧</option>
+                            <option value="Niconico">🎵 Niconico</option>
+                            <option value="YouTube">▶️ YouTube</option>
+                            <option value="Pixiv">🎨 Pixiv</option>
+                            <option value="Lofter">📝 Lofter</option>
+                            <option value="Fanbox">💝 Fanbox</option>
+                            <option value="Patreon">💝 Patreon</option>
+                            <option value="Fantia">💝 Fantia</option>
+                            <option value="官网">🌐 官网</option>
+                            <option value="其他">🔗 其他</option>
+                        </select>
+                        <input type="text" class="ext-link-url" data-index="2" placeholder="链接 URL（https://...）">
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== 联系信息 ===== -->
+            <div class="admin-panel-section">
+                <div class="admin-panel-section-title">联系信息</div>
+                <input type="text" id="editInfo" placeholder="联系方式 *">
+                <textarea id="editRemark" rows="4" placeholder="详细介绍..."></textarea>
+            </div>
+
+            <!-- ===== 其他设置 ===== -->
+            <div class="admin-panel-section">
+                <div class="admin-panel-section-title">其他设置</div>
+                <label class="md3-switch" for="editVisibleByDefault">
+                    <input type="checkbox" id="editVisibleByDefault" />
+                    <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+                    <span class="md3-switch-label">公开显示联系方式</span>
+                </label>
+                <label class="md3-switch" for="editClubProtected" style="margin-top:8px;">
+                    <input type="checkbox" id="editClubProtected" />
+                    <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
+                    <span class="md3-switch-label">同好会保护（仅绑定成员可见联系方式）</span>
+                </label>
+            </div>
+
             <div class="admin-panel-buttons">
-                <button id="adminCancelBtn" class="btn-secondary">取消</button>
-                <button id="adminSaveBtn" class="btn-primary">保存</button>
-                <button id="adminDeleteBtn" class="btn-danger" style="display: none;">删除</button>
+                <button id="adminSaveBtn" class="btn-primary admin-save-btn">💾 保存</button>
+                <div class="admin-panel-secondary-row">
+                    <button id="adminCancelBtn" class="btn-secondary">取消</button>
+                    <button id="adminDeleteBtn" class="btn-danger" style="display: none;">🗑 删除</button>
+                </div>
+            </div>
+        </div>
+        <div id="adminPanelBackdrop" class="admin-panel-backdrop"></div>
+
+        <!-- 成员名单模态框 -->
+        <div id="memberListModal" class="calendar-modal" aria-hidden="true">
+            <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 500px;">
+                <button id="memberListModalClose" class="calendar-modal-close" type="button">×</button>
+                <div class="calendar-modal-scroll">
+                    <h3 class="calendar-title" style="margin-top: 30px;">成员名单</h3>
+                    <div id="memberListContent" style="margin-top: 16px; min-height: 100px;">
+                        <p style="text-align: center; opacity: 0.6;">加载中...</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -490,6 +1059,7 @@
     </footer>
 
     <!-- 脚本文件 -->
+    <script defer src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
     <script defer src="https://cdn.jsdmirror.com/npm/d3@7.9.0/dist/d3.min.js"></script>
     <script defer src="./js/china.js"></script>
     <script defer src="./js/japan.js"></script>
@@ -511,6 +1081,27 @@
             if (submitEventBtn) {
                 submitEventBtn.addEventListener('click', function() {
                     window.open('./submit_event.html', '_blank');
+                });
+            }
+
+            var submitPublicationBtn = document.getElementById('submitPublicationBtn');
+            if (submitPublicationBtn) {
+                submitPublicationBtn.addEventListener('click', function() {
+                    window.open('./submit_publication.html', '_blank');
+                });
+            }
+
+            var submitGalonlyBtn = document.getElementById('submitGalonlyBtn');
+            if (submitGalonlyBtn) {
+                submitGalonlyBtn.addEventListener('click', function() {
+                    window.open('./Galgame_events/galgameonly_list.html', '_blank');
+                });
+            }
+
+            var submitGalonlyBtnDrawer = document.getElementById('submitGalonlyBtnDrawer');
+            if (submitGalonlyBtnDrawer) {
+                submitGalonlyBtnDrawer.addEventListener('click', function() {
+                    window.open('./Galgame_events/galgameonly_list.html', '_blank');
                 });
             }
         });

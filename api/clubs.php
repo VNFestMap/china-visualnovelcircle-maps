@@ -14,35 +14,77 @@ $dataFile = __DIR__ . '/../data/clubs.json';
 // 加载配置
 require_once __DIR__ . '/../config.php';
 
-// 使用配置中的 token
-$adminToken = ADMIN_TOKEN;
-
-function checkAuth() {
-    global $adminToken;
-    $headers = getallheaders();
-    $token = $headers['X-Admin-Token'] ?? '';
-    return $token === $adminToken;
-}
-
 // GET - 读取数据
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    if (file_exists($dataFile)) {
-        echo file_get_contents($dataFile);
-    } else {
+    require_once __DIR__ . '/../includes/auth.php';
+    if (!file_exists($dataFile)) {
         echo json_encode(['success' => true, 'total' => 0, 'data' => []]);
+        exit();
     }
+    $json = json_decode(file_get_contents($dataFile), true);
+    $rows = $json['data'] ?? [];
+
+    // 检查当前用户的绑定状态和角色
+    $user = getCurrentUser();
+    $effectiveLevel = $user ? (ROLE_HIERARCHY[$user['role']] ?? -1) : -1;
+    $memberLevel = ROLE_HIERARCHY['member'];
+
+    $memberships = [];
+    if ($user) {
+        $db = getDB();
+        $stmt = $db->prepare("SELECT club_id, status, role FROM club_memberships WHERE user_id = ?");
+        $stmt->execute([$user['id']]);
+        foreach ($stmt->fetchAll() as $m) {
+            $memberships[$m['club_id']] = $m['status'];
+            // 取俱乐部角色中的最高等级
+            if ($m['status'] === 'active') {
+                $clubLevel = ROLE_HIERARCHY[$m['role']] ?? -1;
+                if ($clubLevel > $effectiveLevel) $effectiveLevel = $clubLevel;
+            }
+        }
+    }
+    $canSeeAllInfo = $effectiveLevel >= $memberLevel;
+
+    foreach ($rows as &$item) {
+        $clubId = $item['id'] ?? 0;
+        $isMember = isset($memberships[$clubId]) && $memberships[$clubId] === 'active';
+        $visibleByDefault = !empty($item['visible_by_default']);
+        // 管理员及以上系统角色可查看所有学校的信息
+
+        // 联系方式可见性: 非成员 + 非公开 + 非管理员 → 隐藏
+        $isProtected = !empty($item['protected']);
+        if ($isProtected) {
+            // 保护模式：仅成员或 super_admin 可见
+            $isSuperAdmin = $user && ($user['role'] ?? '') === 'super_admin';
+            $item['info_hidden'] = !$isMember && !$isSuperAdmin;
+        } else {
+            $item['info_hidden'] = !$isMember && !$visibleByDefault && !$canSeeAllInfo;
+        }
+        // 申请资格: 已登录 + 非该俱乐部成员 → 可申请（与可见性解耦）
+        $item['can_apply'] = ($user !== null) && !$isMember;
+        if ($item['info_hidden']) {
+            $item['info'] = '申请绑定后可见';
+        }
+    }
+    unset($item);
+
+    $json['data'] = $rows;
+    echo json_encode($json, JSON_UNESCAPED_UNICODE);
     exit();
 }
 
 // 以下需要验证
-if (!checkAuth()) {
-    http_response_code(401);
-    echo json_encode(['success' => false, 'message' => '未授权访问']);
-    exit();
-}
+require_once __DIR__ . '/../includes/auth.php';
+require_once __DIR__ . '/../includes/audit.php';
 
-// POST - 添加
+// POST - 添加（仅 super_admin）
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $authUser = requireAdmin();
+    if ($authUser['role'] !== 'super_admin') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => '无权添加同好会']);
+        exit();
+    }
     $input = json_decode(file_get_contents('php://input'), true);
     if (!$input || !isset($input['name']) || !isset($input['province']) || !isset($input['info'])) {
         echo json_encode(['success' => false, 'message' => '缺少必填字段']);
@@ -69,7 +111,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'raw_text' => $input['name'] . ' ' . $input['info'],
         'created_at' => date('Y-m-d H:i:s'),
         'project' => 'galgame',
-        'remark' => $input['remark'] ?? ''
+        'remark' => $input['remark'] ?? '',
+        'logo_url' => $input['logo_url'] ?? '',
+        'external_links' => $input['external_links'] ?? '',
+        'country' => $input['country'] ?? 'china',
+        'protected' => $input['protected'] ?? false,
     ];
     
     $rows[] = $newItem;
@@ -87,6 +133,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
         echo json_encode(['success' => false, 'message' => '无效数据']);
         exit();
     }
+
+    // 权限检查：允许系统管理员或俱乐部级管理员编辑
+    $authUser = requireLogin();
+    $clubId = (int)$input['id'];
+    if ($authUser['role'] !== 'super_admin' && !canManageClub($authUser, $clubId)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => '无权修改此同好会']);
+        exit();
+    }
     
     $current = json_decode(file_get_contents($dataFile), true);
     $rows = $current['data'] ?? [];
@@ -102,6 +157,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
             $rows[$i]['type'] = $input['type'] ?? $item['type'];
             $rows[$i]['raw_text'] = ($input['name'] ?? $item['name']) . ' ' . ($input['info'] ?? $item['info']);
             $rows[$i]['remark'] = $input['remark'] ?? $item['remark'];
+            $rows[$i]['logo_url'] = $input['logo_url'] ?? $item['logo_url'] ?? '';
+            $rows[$i]['external_links'] = $input['external_links'] ?? $item['external_links'] ?? '';
+            $rows[$i]['country'] = $input['country'] ?? $item['country'] ?? 'china';
+            if (isset($input['visible_by_default'])) {
+                $rows[$i]['visible_by_default'] = $input['visible_by_default'] ? true : false;
+            }
+            if (isset($input['protected'])) {
+                $rows[$i]['protected'] = $input['protected'] ? true : false;
+            }
             $updated = true;
             break;
         }
@@ -120,9 +184,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
 // DELETE - 删除
 if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $authUser = requireAdmin();
     $input = json_decode(file_get_contents('php://input'), true);
     if (!$input || !isset($input['id'])) {
         echo json_encode(['success' => false, 'message' => '无效数据']);
+        exit();
+    }
+
+    // 权限检查：仅 super_admin
+    if ($authUser['role'] !== 'super_admin') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => '无权删除同好会']);
         exit();
     }
     

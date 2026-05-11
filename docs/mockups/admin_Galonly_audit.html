@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GalOnly 审核面板 - 设计预览</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #2d0f1a 50%, #1a0a0a 100%);
+    --card-bg: rgba(255,255,255,0.06);
+    --card-border: rgba(255,255,255,0.08);
+    --accent-pink: #e91e63;
+    --accent-red: #e74c3c;
+    --accent-orange: #ff6b35;
+    --glass-blur: blur(16px);
+    --text-primary: rgba(255,255,255,0.9);
+    --text-secondary: rgba(255,255,255,0.5);
+    --radius: 12px;
+}
+body {
+    font-family: 'Noto Sans SC', 'Segoe UI', sans-serif;
+    background: var(--bg-gradient);
+    min-height: 100vh;
+    color: var(--text-primary);
+    padding: 32px;
+}
+
+/* Header */
+.header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px;
+}
+.header h1 {
+    font-size: 24px; font-weight: 700;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header-actions { display: flex; gap: 12px; }
+.header-link {
+    color: var(--text-secondary); text-decoration: none; font-size: 14px;
+    padding: 8px 16px; border-radius: 8px; transition: all 0.2s;
+}
+.header-link:hover { background: var(--card-bg); color: var(--text-primary); }
+
+/* Stats row */
+.stats-row { display: flex; gap: 16px; margin-bottom: 24px; }
+.stat-card {
+    flex: 1; padding: 20px; border-radius: var(--radius);
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    backdrop-filter: var(--glass-blur);
+}
+.stat-num { font-size: 28px; font-weight: 800; }
+.stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+/* Filters */
+.filters-row {
+    display: flex; gap: 12px; align-items: center; margin-bottom: 20px;
+}
+.filter-select {
+    padding: 10px 16px; border-radius: 8px;
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    color: #fff; font-size: 13px; font-family: inherit;
+    cursor: pointer; appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+}
+.filter-select option { background: #1a0a2e; color: #fff; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+.tab-btn {
+    padding: 10px 24px; border-radius: 8px; border: none;
+    background: transparent; color: var(--text-secondary);
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; font-family: inherit;
+}
+.tab-btn:hover { background: var(--card-bg); }
+.tab-btn.active { background: var(--card-bg); color: var(--text-primary); }
+
+/* App list */
+.app-list { display: flex; flex-direction: column; gap: 16px; }
+
+/* App card */
+.app-card {
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: var(--radius); padding: 24px;
+    backdrop-filter: var(--glass-blur);
+}
+.app-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 16px;
+}
+.applicant {
+    display: flex; align-items: center; gap: 12px;
+}
+.applicant-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+}
+.applicant-info {}
+.applicant-name { font-size: 15px; font-weight: 600; }
+.applicant-club { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.app-status-badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+}
+.app-status-pending { background: rgba(255,193,7,0.15); color: #ffc107; }
+.app-status-approved { background: rgba(76,175,80,0.15); color: #4caf50; }
+
+.app-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-bottom: 16px;
+}
+.app-field {}
+.app-field-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.app-field-value { font-size: 14px; color: var(--text-primary); }
+.app-field-value.image-link { color: var(--accent-orange); text-decoration: underline; cursor: pointer; }
+
+/* Vote progress */
+.vote-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+.vote-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+.vote-row { display: flex; gap: 24px; margin-bottom: 12px; }
+.vote-item {}
+.vote-label { font-size: 12px; color: var(--text-secondary); }
+.vote-count { font-size: 20px; font-weight: 700; }
+.vote-count.approve { color: #4caf50; }
+.vote-count.reject { color: #f44336; }
+
+/* Progress bars */
+.vote-bar-track {
+    height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px;
+    overflow: hidden; margin-top: 6px; width: 120px;
+}
+.vote-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
+.vote-bar-fill.approve { background: #4caf50; }
+.vote-bar-fill.reject { background: #f44336; }
+
+/* Vote buttons */
+.vote-actions { display: flex; gap: 10px; margin-top: 12px; }
+.btn-vote {
+    padding: 10px 24px; border-radius: 8px; border: none;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; font-family: inherit;
+}
+.btn-vote:hover { opacity: 0.9; }
+.btn-vote.approve { background: rgba(76,175,80,0.2); color: #4caf50; border: 1px solid rgba(76,175,80,0.3); }
+.btn-vote.reject { background: rgba(244,67,54,0.2); color: #f44336; border: 1px solid rgba(244,67,54,0.3); }
+.btn-vote:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.voted-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 16px; border-radius: 8px;
+    background: rgba(255,255,255,0.06); color: var(--text-secondary);
+    font-size: 13px; font-weight: 500;
+}
+
+.result-badge {
+    display: inline-block; padding: 8px 20px; border-radius: 8px;
+    font-size: 14px; font-weight: 700;
+}
+.result-badge.approved { background: rgba(76,175,80,0.15); color: #4caf50; border: 1px solid rgba(76,175,80,0.3); }
+.result-badge.rejected { background: rgba(244,67,54,0.15); color: #f44336; border: 1px solid rgba(244,67,54,0.3); }
+
+.app-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.04); }
+.app-id { font-size: 12px; color: rgba(255,255,255,0.2); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); font-size: 14px; }
+
+@media (max-width: 768px) {
+    body { padding: 16px; }
+    .app-grid { grid-template-columns: 1fr; }
+    .stats-row { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>GalOnly 审核面板</h1>
+    <div class="header-actions">
+        <a class="header-link" href="../Galgame_events/galgameonly_list.html">活动列表</a>
+        <a class="header-link" href="../admin/club_manager.html">同好会管理</a>
+    </div>
+</div>
+
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-num" style="color:#ffc107;">3</div>
+        <div class="stat-label">待审核申请</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num" style="color:#4caf50;">2</div>
+        <div class="stat-label">已通过</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num" style="color:#f44336;">1</div>
+        <div class="stat-label">已拒绝</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-num" style="color:#9c27b0;">7</div>
+        <div class="stat-label">审核员总数</div>
+    </div>
+</div>
+
+<div class="filters-row">
+    <select class="filter-select">
+        <option value="">全部活动</option>
+        <option value="1" selected>上海 GalgameOnly</option>
+    </select>
+</div>
+
+<div class="tabs">
+    <button class="tab-btn active">待审核</button>
+    <button class="tab-btn">已通过</button>
+    <button class="tab-btn">已拒绝</button>
+</div>
+
+<div class="app-list">
+
+    <!-- Application Card: Pending -->
+    <div class="app-card">
+        <div class="app-header">
+            <div class="applicant">
+                <div class="applicant-avatar">张</div>
+                <div class="applicant-info">
+                    <div class="applicant-name">张三</div>
+                    <div class="applicant-club">xx大学 Galgame 同好会 · 中国</div>
+                </div>
+            </div>
+            <span class="app-status-badge app-status-pending">审核中</span>
+        </div>
+
+        <div class="app-grid">
+            <div class="app-field">
+                <div class="app-field-label">联系方式</div>
+                <div class="app-field-value">138****0001</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">联合参展</div>
+                <div class="app-field-value">否</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">升摊</div>
+                <div class="app-field-value">是</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">制品图片</div>
+                <div class="app-field-value image-link">查看图片 →</div>
+            </div>
+            <div class="app-field" style="grid-column: 1 / -1;">
+                <div class="app-field-label">备注</div>
+                <div class="app-field-value" style="color:var(--text-secondary);">希望安排在靠前的位置，谢谢！</div>
+            </div>
+        </div>
+
+        <div class="vote-section">
+            <div class="vote-title">审核投票</div>
+            <div class="vote-row">
+                <div class="vote-item">
+                    <div class="vote-label">通过</div>
+                    <div class="vote-count approve">3</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill approve" style="width:75%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary);">/ 4</div>
+                </div>
+                <div class="vote-item">
+                    <div class="vote-label">反对</div>
+                    <div class="vote-count reject">1</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill reject" style="width:25%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary);">/ 4</div>
+                </div>
+            </div>
+            <div class="vote-actions">
+                <button class="btn-vote approve">通过</button>
+                <button class="btn-vote reject">不通过</button>
+            </div>
+        </div>
+
+        <div class="app-footer">
+            <span class="app-id">申请 #1 · 2026-07-01 14:30</span>
+        </div>
+    </div>
+
+    <!-- Application Card: Already voted -->
+    <div class="app-card">
+        <div class="app-header">
+            <div class="applicant">
+                <div class="applicant-avatar">李</div>
+                <div class="applicant-info">
+                    <div class="applicant-name">李四</div>
+                    <div class="applicant-club">xx师范大学 动漫社 · 中国</div>
+                </div>
+            </div>
+            <span class="app-status-badge app-status-pending">审核中</span>
+        </div>
+
+        <div class="app-grid">
+            <div class="app-field">
+                <div class="app-field-label">联系方式</div>
+                <div class="app-field-value">139****0002</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">联合参展</div>
+                <div class="app-field-value">是 - xx大学Galgame同好会联合</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">升摊</div>
+                <div class="app-field-value">否</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">制品图片</div>
+                <div class="app-field-value image-link">查看图片 →</div>
+            </div>
+            <div class="app-field" style="grid-column: 1 / -1;">
+                <div class="app-field-label">备注</div>
+                <div class="app-field-value" style="color:var(--text-secondary);">联合多个学校一起参展</div>
+            </div>
+        </div>
+
+        <div class="vote-section">
+            <div class="vote-title">审核投票</div>
+            <div class="vote-row">
+                <div class="vote-item">
+                    <div class="vote-label">通过</div>
+                    <div class="vote-count approve">2</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill approve" style="width:50%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary);">/ 4</div>
+                </div>
+                <div class="vote-item">
+                    <div class="vote-label">反对</div>
+                    <div class="vote-count reject">0</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill reject" style="width:0%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary);">/ 4</div>
+                </div>
+            </div>
+            <div>
+                <span class="voted-badge">你已投票 · 通过</span>
+            </div>
+        </div>
+
+        <div class="app-footer">
+            <span class="app-id">申请 #2 · 2026-07-01 15:00</span>
+        </div>
+    </div>
+
+    <!-- Application Card: Resolved - Approved -->
+    <div class="app-card" style="border-color: rgba(76,175,80,0.2);">
+        <div class="app-header">
+            <div class="applicant">
+                <div class="applicant-avatar">王</div>
+                <div class="applicant-info">
+                    <div class="applicant-name">王五</div>
+                    <div class="applicant-club">xx工业大学 Galgame 同好会 · 中国</div>
+                </div>
+            </div>
+            <span class="result-badge approved">审核通过</span>
+        </div>
+
+        <div class="app-grid">
+            <div class="app-field">
+                <div class="app-field-label">联系方式</div>
+                <div class="app-field-value">137****0003</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">联合参展</div>
+                <div class="app-field-value">否</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">升摊</div>
+                <div class="app-field-value">是</div>
+            </div>
+            <div class="app-field">
+                <div class="app-field-label">制品图片</div>
+                <div class="app-field-value image-link">查看图片 →</div>
+            </div>
+        </div>
+
+        <div class="vote-section">
+            <div class="vote-row">
+                <div class="vote-item">
+                    <div class="vote-label">通过</div>
+                    <div class="vote-count approve">4</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill approve" style="width:100%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:#4caf50;">已达门槛</div>
+                </div>
+                <div class="vote-item">
+                    <div class="vote-label">反对</div>
+                    <div class="vote-count reject">0</div>
+                    <div class="vote-bar-track">
+                        <div class="vote-bar-fill reject" style="width:0%;"></div>
+                    </div>
+                    <div style="font-size:11px; color:var(--text-secondary);">/ 4</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-footer">
+            <span class="app-id">申请 #3 · 2026-06-30 10:00</span>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,135 @@
+<h2>刊物投稿模块 - 整体设计方案</h2>
+<p class="subtitle">以下展示改动后的刊物投稿一级菜单和新增的二级详情弹窗</p>
+
+<div class="section">
+  <h3>改动 1: 一级列表简化</h3>
+  <p>现有列表显示封面图+完整信息 → 改为仅显示同好会头像 + 关键信息 (名称/状态/截止日期)</p>
+
+  <div style="display:flex;gap:24px;margin-top:12px;">
+    <div style="flex:1;">
+      <div class="label">简化前 (当前)</div>
+      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface);">
+        <div style="display:flex;gap:12px;padding:12px;border-bottom:1px solid var(--border);">
+          <div style="width:80px;height:60px;background:#e0e0e0;border-radius:6px;flex-shrink:0;"></div>
+          <div style="flex:1;">
+            <div style="font-weight:bold;">同好会年刊Vol2</div>
+            <div style="font-size:12px;color:#888;">盐城工学院橘柚视觉小说同好会</div>
+            <div style="font-size:12px;color:#888;">截稿: 2026-06-20</div>
+            <div style="margin-top:4px;"><span style="background:#e3f2fd;padding:2px 8px;border-radius:4px;font-size:11px;">征稿中</span></div>
+            <div style="font-size:11px;color:#aaa;margin-top:4px;">投稿: 2997016663@qq.com</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;padding:12px;border-bottom:1px solid var(--border);">
+          <div style="width:80px;height:60px;background:#e0e0e0;border-radius:6px;flex-shrink:0;"></div>
+          <div style="flex:1;">...</div>
+        </div>
+      </div>
+    </div>
+    <div style="flex:1;">
+      <div class="label">简化后 (新)</div>
+      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface);">
+        <div style="display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--border);cursor:pointer;" onclick="toggleSelect(this)" data-choice="simplified-list">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">橘</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold;">同好会年刊Vol2</div>
+            <div style="font-size:11px;color:#888;">盐城工学院橘柚视觉小说同好会</div>
+          </div>
+          <span style="background:#e3f2fd;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap;">征稿中</span>
+          <span style="font-size:11px;color:#888;white-space:nowrap;">截稿 06-20</span>
+          <span style="color:#667eea;font-size:11px;">详情 →</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;padding:10px;cursor:pointer;" onclick="toggleSelect(this)" data-choice="simplified-list-2">
+          <div style="width:36px;height:36px;background:linear-gradient(135deg,#4CAF50,#2E7D32);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;">科</div>
+          <div style="flex:1;">
+            <div style="font-weight:bold;">科大校刊</div>
+            <div style="font-size:11px;color:#888;">中国科学技术大学 +2 同好会</div>
+          </div>
+          <span style="background:#fff3e0;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap;">策划中</span>
+          <span style="font-size:11px;color:#888;white-space:nowrap;">截稿 07-15</span>
+          <span style="color:#667eea;font-size:11px;">详情 →</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:6px;">点击任意行 → 打开二级详情弹窗</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>改动 2: 新增二级详情弹窗</h3>
+  <p>点击列表项后弹出，显示完整刊物信息 + 关联同好会 + 上传稿件功能</p>
+
+  <div style="border:1px solid var(--border);border-radius:12px;padding:20px;background:var(--surface);max-width:520px;margin-top:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="margin:0;">同好会年刊Vol2</h3>
+      <span style="color:#999;cursor:pointer;">✕</span>
+    </div>
+
+    <div style="display:flex;gap:16px;margin-bottom:16px;">
+      <div style="width:120px;height:90px;background:linear-gradient(135deg,#e0e0e0,#ccc);border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#888;">封面素材</div>
+      <div style="flex:1;font-size:13px;">
+        <div><strong>主办同好会:</strong></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;margin-bottom:8px;">
+          <span style="display:flex;align-items:center;gap:4px;background:var(--bg);padding:2px 10px 2px 4px;border-radius:20px;border:1px solid var(--border);font-size:12px;">
+            <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:inline-block;"></span> 橘柚同好会
+          </span>
+          <span style="display:flex;align-items:center;gap:4px;background:var(--bg);padding:2px 10px 2px 4px;border-radius:20px;border:1px solid var(--border);font-size:12px;">
+            <span style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#FF6B6B,#ee5a24);display:inline-block;"></span> 动漫社
+          </span>
+        </div>
+        <div><strong>截稿日期:</strong> 2026-06-20</div>
+        <div><strong>投稿联系:</strong> 2997016663@qq.com</div>
+      </div>
+    </div>
+
+    <div style="padding:12px;background:var(--bg);border-radius:8px;margin-bottom:16px;font-size:13px;line-height:1.6;">
+      <strong>刊物介绍:</strong><br>
+      盐城工学院橘柚视觉小说同好会年刊Vol2征稿中！欢迎各位社员踊跃投稿...
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:16px;">
+      <h4 style="margin:0 0 12px 0;">📄 上传稿件</h4>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input class="mock-input" placeholder="选择文件 (PDF/图片)" style="flex:1;">
+        <button class="mock-button">上传</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input class="mock-input" placeholder="联系方式 (QQ/邮箱)" style="flex:1;">
+      </div>
+      <div style="font-size:11px;color:#888;margin-top:6px;">已投稿件会自动关联到同好会管理后台</div>
+
+      <h4 style="margin:12px 0 8px 0;font-size:13px;">已收到的稿件</h4>
+      <div style="display:flex;gap:8px;align-items:center;padding:8px;border:1px solid var(--border);border-radius:8px;">
+        <span style="font-size:13px;">📎</span>
+        <span style="flex:1;font-size:13px;">投稿_视觉小说_张三.pdf</span>
+        <span style="font-size:11px;color:#888;">05-11</span>
+        <span style="background:#e8f5e9;padding:1px 8px;border-radius:4px;font-size:11px;">已收录</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>改动 3: 同好会管理新增「刊物稿件」模块</h3>
+  <p>在 club_manager.html 新增标签页，显示关联同好会的所有刊物和收到的稿件</p>
+  <div style="border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface);">
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <span style="background:var(--bg);padding:6px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);">待审核</span>
+      <span style="background:var(--bg);padding:6px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);">已通过</span>
+      <span style="background:var(--bg);padding:6px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);">成员</span>
+      <span style="background:#e3f2fd;padding:6px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);">设置</span>
+      <span style="background:#e8f5e9;padding:6px 16px;border-radius:20px;font-size:13px;border:1px solid var(--border);">📄 刊物稿件</span>
+    </div>
+    <div style="padding:8px 0;">
+      <div style="display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid var(--border);">
+        <span style="font-weight:bold;flex:1;">同好会年刊Vol2</span>
+        <span style="font-size:12px;">稿件: 3 份</span>
+        <button class="mock-button" style="padding:4px 12px;font-size:12px;">查看稿件</button>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;padding:10px;">
+        <span style="font-weight:bold;flex:1;">科大校刊</span>
+        <span style="font-size:12px;">稿件: 1 份</span>
+        <button class="mock-button" style="padding:4px 12px;font-size:12px;">查看稿件</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,1192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GalOnly 审核面板 - Galgame 同好会地图</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #2d0f1a 50%, #1a0a0a 100%);
+  --card-bg: rgba(255,255,255,0.06);
+  --card-border: rgba(255,255,255,0.08);
+  --card-hover-border: rgba(233,30,99,0.3);
+  --glass-blur: blur(16px);
+  --text-primary: rgba(255,255,255,0.9);
+  --text-secondary: rgba(255,255,255,0.5);
+  --text-muted: rgba(255,255,255,0.3);
+  --accent-pink: #e91e63;
+  --accent-green: #4caf50;
+  --accent-orange: #ff6b35;
+  --accent-red: #e74c3c;
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
+  --radius-card: 16px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+  --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body {
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: var(--text-primary);
+  overflow-x: hidden;
+  transition: background 0.5s ease;
+}
+
+/* Decorative background orbs */
+body::before {
+  content: '';
+  position: fixed;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(233,30,99,0.08) 0%, transparent 70%);
+  top: -200px; right: -200px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-link {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+.header-link:hover {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* ── Stats Row ── */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  flex: 1;
+  min-width: 100px;
+  padding: 16px 20px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  text-align: center;
+  transition: var(--transition);
+}
+.stat-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-2px);
+}
+
+.stat-card .num {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat-card .label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Filters ── */
+.filters-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-select {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--card-border);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: var(--transition);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(240,230,255,0.5)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+  min-width: 180px;
+}
+.filter-select:focus {
+  border-color: var(--accent-orange);
+  box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+}
+.filter-select option {
+  background: #1a0a2e;
+  color: #f0e6ff;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--card-border);
+  overflow-x: auto;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.04);
+}
+.tab-btn.active {
+  background: var(--card-bg);
+  color: var(--text-primary);
+}
+
+/* ── App List ── */
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── App Card ── */
+.app-card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  padding: 20px 22px;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  transition: var(--transition);
+}
+.app-card:hover {
+  border-color: var(--card-hover-border);
+  transform: translateY(-1px);
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.applicant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.applicant-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
+  color: #fff;
+}
+
+.applicant-info {
+  min-width: 0;
+}
+.applicant-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+.applicant-club {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.app-status-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.app-status-pending {
+  background: rgba(255,193,7,0.15);
+  color: #ffc107;
+  border: 1px solid rgba(255,193,7,0.2);
+}
+.app-status-approved {
+  background: rgba(76,175,80,0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76,175,80,0.2);
+}
+.app-status-rejected {
+  background: rgba(244,67,54,0.15);
+  color: #f44336;
+  border: 1px solid rgba(244,67,54,0.2);
+}
+
+/* ── Result Badge ── */
+.result-badge {
+  display: inline-block;
+  padding: 6px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.result-badge.approved {
+  background: rgba(76,175,80,0.15);
+  color: #4caf50;
+  border: 1px solid rgba(76,175,80,0.3);
+}
+.result-badge.rejected {
+  background: rgba(244,67,54,0.15);
+  color: #f44336;
+  border: 1px solid rgba(244,67,54,0.3);
+}
+
+/* ── App Grid Fields ── */
+.app-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.app-field {
+  min-width: 0;
+}
+.app-field.full {
+  grid-column: 1 / -1;
+}
+.app-field-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+.app-field-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  word-break: break-word;
+}
+.app-field-value.image-link {
+  color: var(--accent-orange);
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline-block;
+}
+.app-field-value.image-link:hover {
+  opacity: 0.8;
+}
+
+.app-image-thumb {
+  display: inline-block;
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  transition: var(--transition);
+}
+.app-image-thumb:hover {
+  border-color: var(--accent-orange);
+  transform: scale(1.05);
+}
+
+/* ── Vote Section ── */
+.vote-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.vote-title {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.vote-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.vote-item {
+  min-width: 140px;
+}
+
+.vote-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.vote-count {
+  font-size: 22px;
+  font-weight: 700;
+}
+.vote-count.approve { color: #4caf50; }
+.vote-count.reject { color: #f44336; }
+
+.vote-bar-track {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  width: 120px;
+}
+
+.vote-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.vote-bar-fill.approve { background: #4caf50; }
+.vote-bar-fill.reject { background: #f44336; }
+
+.vote-bar-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.vote-bar-label.threshold-met {
+  color: #4caf50;
+  font-weight: 600;
+}
+
+/* ── Vote Actions ── */
+.vote-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.btn-vote {
+  padding: 10px 28px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+  font-family: inherit;
+}
+.btn-vote:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+.btn-vote:active {
+  transform: translateY(0);
+}
+.btn-vote:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none;
+}
+.btn-vote.approve {
+  background: rgba(76,175,80,0.2);
+  color: #4caf50;
+  border: 1px solid rgba(76,175,80,0.3);
+}
+.btn-vote.reject {
+  background: rgba(244,67,54,0.2);
+  color: #f44336;
+  border: 1px solid rgba(244,67,54,0.3);
+}
+
+/* ── Voted Badge ── */
+.voted-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--card-border);
+}
+
+/* ── App Footer ── */
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.app-id {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ── Empty State ── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+}
+
+/* ── Loading ── */
+.loading-spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--card-border);
+  border-top-color: var(--accent-pink);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  padding: 12px 28px;
+  border-radius: var(--radius-pill);
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  opacity: 0;
+  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+  z-index: 999;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-card);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px 0;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+.modal-close:hover { color: var(--text-primary); }
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  padding: 0 24px 20px;
+}
+
+.btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+
+.btn-glass {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+}
+.btn-glass:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .container { padding: 12px; }
+  .header { padding: 16px 18px; }
+  .header h1 { font-size: 18px; }
+  .stats-row { gap: 8px; }
+  .stat-card { min-width: 72px; padding: 12px 10px; }
+  .stat-card .num { font-size: 24px; }
+  .app-grid { grid-template-columns: 1fr; }
+  .app-card { padding: 16px; }
+  .tabs { padding: 3px; }
+  .tab-btn { padding: 8px 10px; font-size: 12px; }
+  .vote-row { gap: 20px; }
+  .filter-select { min-width: 140px; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>GalOnly 审核面板</h1>
+    <div class="header-actions">
+      <a class="header-link" href="../Galgame_events/galgameonly_list.html">活动列表</a>
+      <a class="header-link" href="../admin/club_manager.html">同好会管理</a>
+      <a class="header-link" href="../index.html">← 返回地图</a>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row" id="statsRow">
+    <div class="stat-card">
+      <div class="num" id="statPending" style="color:#ffc107;">—</div>
+      <div class="label">待审核申请</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statApproved" style="color:#4caf50;">—</div>
+      <div class="label">已通过</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statRejected" style="color:#f44336;">—</div>
+      <div class="label">已拒绝</div>
+    </div>
+    <div class="stat-card">
+      <div class="num" id="statAuditors" style="color:#9c27b0;">—</div>
+      <div class="label">审核员总数</div>
+    </div>
+  </div>
+
+  <!-- Event Filter -->
+  <div class="filters-row">
+    <select class="filter-select" id="eventFilter" onchange="onEventFilterChange()">
+      <option value="">全部活动</option>
+    </select>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs" id="tabBar">
+    <button class="tab-btn active" data-tab="pending">待审核</button>
+    <button class="tab-btn" data-tab="approved">已通过</button>
+    <button class="tab-btn" data-tab="rejected">已拒绝</button>
+  </div>
+
+  <!-- App List -->
+  <div class="app-list" id="appList">
+    <div class="empty-state">加载中...</div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Image Preview Modal -->
+<div id="imageModal" class="modal-overlay" style="display:none;">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header">
+      <span class="modal-title">制品图片预览</span>
+      <button class="modal-close" onclick="closeImageModal()">&times;</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <img id="previewImage" src="" alt="制品图片" style="max-width:100%;max-height:70vh;border-radius:8px;display:block;margin:0 auto;">
+    </div>
+    <div class="modal-footer">
+      <a id="downloadImageBtn" class="btn btn-glass" href="" download style="text-decoration:none;color:var(--accent-orange);">下载原图</a>
+      <button class="btn btn-glass" onclick="closeImageModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== State ======
+const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+const VOTE_THRESHOLD = 4;
+
+let currentUser = null;
+let allApplications = [];
+let allEvents = [];
+let currentTab = 'pending';
+let selectedEventId = 0;
+
+// Club name maps
+let clubNameMapCn = {};
+let clubNameMapJp = {};
+
+// ====== Utilities ======
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/[&<>"]/g, function(m) {
+    return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : '&quot;';
+  });
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  try {
+    var d = new Date(dateStr);
+    if (isNaN(d.getTime())) return String(dateStr);
+    var Y = d.getFullYear();
+    var M = String(d.getMonth() + 1).padStart(2, '0');
+    var D = String(d.getDate()).padStart(2, '0');
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    return Y + '-' + M + '-' + D + ' ' + h + ':' + m;
+  } catch (e) { return String(dateStr); }
+}
+
+function showToast(msg, type) {
+  var el = document.getElementById('toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.background = type === 'error' ? 'rgba(244,67,54,0.15)' : type === 'success' ? 'rgba(76,175,80,0.15)' : '';
+  el.style.borderColor = type === 'error' ? 'rgba(244,67,54,0.3)' : type === 'success' ? 'rgba(76,175,80,0.3)' : '';
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function() { el.classList.remove('show'); }, 2500);
+}
+
+function getClubName(clubId, country) {
+  country = country || 'china';
+  var map = country === 'japan' ? clubNameMapJp : clubNameMapCn;
+  return map[clubId] || ('同好会 #' + clubId);
+}
+
+// ====== Club Name Loading ======
+async function loadClubNames() {
+  try {
+    var cnResp = await fetch('../data/clubs.json?t=' + Date.now());
+    var cnData = await cnResp.json();
+    clubNameMapCn = {};
+    (cnData.data || []).forEach(function(c) {
+      clubNameMapCn[c.id] = c.name || c.school || '未知';
+    });
+  } catch (e) { clubNameMapCn = {}; }
+
+  try {
+    var jpResp = await fetch('../data/clubs_japan.json?t=' + Date.now());
+    var jpData = await jpResp.json();
+    clubNameMapJp = {};
+    (jpData.data || []).forEach(function(c) {
+      clubNameMapJp[c.id] = c.name || c.school || '未知';
+    });
+  } catch (e) { clubNameMapJp = {}; }
+}
+
+// ====== Auth ======
+async function checkAuth() {
+  var listContainer = document.getElementById('appList');
+  try {
+    var r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
+    var data = await r.json();
+    if (!data.logged_in) {
+      listContainer.innerHTML = '<div class="empty-state">请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+      return false;
+    }
+    currentUser = data;
+    // Authorization is verified by the backend API (list_applications checks
+    // hasAuditPermission which covers both super_admin and is_audit flag).
+    // The frontend lets the backend decide and handles 403 in loadApplications.
+    return true;
+  } catch (e) {
+    listContainer.innerHTML = '<div class="empty-state">认证失败，请刷新页面重试<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+    return false;
+  }
+}
+
+// ====== Events Loading ======
+async function loadEvents() {
+  try {
+    var r = await fetch('../api/galonly.php?action=list_events', { credentials: 'same-origin' });
+    var data = await r.json();
+    if (!data.success) {
+      showToast('加载活动列表失败', 'error');
+      return;
+    }
+    allEvents = data.events || [];
+    var sel = document.getElementById('eventFilter');
+    sel.innerHTML = '<option value="">全部活动</option>';
+    allEvents.forEach(function(ev) {
+      var opt = document.createElement('option');
+      opt.value = ev.id;
+      opt.textContent = ev.title || ev.name || ('活动 #' + ev.id);
+      sel.appendChild(opt);
+    });
+  } catch (e) {
+    showToast('加载活动列表失败', 'error');
+  }
+}
+
+// ====== Applications Loading ======
+async function loadApplications() {
+  var appList = document.getElementById('appList');
+  appList.innerHTML = '<div class="empty-state"><span class="loading-spinner"></span>加载申请列表...</div>';
+
+  try {
+    // Always fetch all applications; event filtering is done client-side
+    // so switching events is instant without additional API calls.
+    var r = await fetch('../api/galonly.php?action=list_applications', { credentials: 'same-origin' });
+    if (r.status === 403) {
+      appList.innerHTML = '<div class="empty-state">权限不足，你没有审核权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+      return;
+    }
+    var data = await r.json();
+    if (!data.success) {
+      appList.innerHTML = '<div class="empty-state">' + escapeHtml(data.message || '加载申请失败') + '</div>';
+      return;
+    }
+    allApplications = data.applications || [];
+    renderCurrentTab();
+  } catch (e) {
+    appList.innerHTML = '<div class="empty-state">网络错误，加载申请列表失败</div>';
+  }
+}
+
+// ====== Stats Update ======
+function updateStats(applications) {
+  var pending = 0, approved = 0, rejected = 0;
+  var maxVotes = 0;
+
+  applications.forEach(function(app) {
+    var s = app.status || 'pending';
+    if (s === 'pending') pending++;
+    else if (s === 'approved') approved++;
+    else if (s === 'rejected') rejected++;
+
+    var totalVotes = (app.vote_counts ? (app.vote_counts.approve || 0) + (app.vote_counts.reject || 0) : 0);
+    if (totalVotes > maxVotes) maxVotes = totalVotes;
+  });
+
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statRejected').textContent = rejected;
+  document.getElementById('statAuditors').textContent = applications.length > 0 ? maxVotes : '—';
+}
+
+// ====== Render ======
+function renderCurrentTab() {
+  var filtered = allApplications;
+
+  // Filter by event
+  if (selectedEventId > 0) {
+    filtered = filtered.filter(function(app) {
+      return parseInt(app.event_id) === selectedEventId;
+    });
+  }
+
+  // Filter by tab
+  if (currentTab === 'pending') {
+    filtered = filtered.filter(function(app) { return (app.status || 'pending') === 'pending'; });
+  } else if (currentTab === 'approved') {
+    filtered = filtered.filter(function(app) { return app.status === 'approved'; });
+  } else if (currentTab === 'rejected') {
+    filtered = filtered.filter(function(app) { return app.status === 'rejected'; });
+  }
+
+  updateStats(allApplications);
+  renderAppList(filtered);
+}
+
+function renderAppList(applications) {
+  var appList = document.getElementById('appList');
+
+  if (applications.length === 0) {
+    appList.innerHTML = '<div class="empty-state">暂无申请记录</div>';
+    return;
+  }
+
+  var html = '';
+  applications.forEach(function(app) {
+    html += renderAppCard(app);
+  });
+  appList.innerHTML = html;
+}
+
+function renderAppCard(app) {
+  var nickname = app.nickname || app.username || '未知';
+  var firstChar = (nickname || '?')[0];
+
+  // Clubs display
+  var clubs = app.clubs || [];
+  var clubsStr = '';
+  if (clubs.length > 0) {
+    clubsStr = clubs.map(function(c) {
+      var name = getClubName(parseInt(c.club_id), c.club_country || 'china');
+      var tag = (c.club_country === 'japan') ? '🇯🇵' : '🇨🇳';
+      return tag + ' ' + escapeHtml(name);
+    }).join(', ');
+  } else {
+    clubsStr = '未关联同好会';
+  }
+
+  var isResolved = (app.status === 'approved' || app.status === 'rejected');
+  var hasImage = app.image_path && app.image_path.trim() !== '';
+
+  // Determine header badge
+  var headerBadgeHtml = '';
+  if (isResolved) {
+    var badgeCls = app.status === 'approved' ? 'approved' : 'rejected';
+    var badgeText = app.status === 'approved' ? '审核通过' : '已拒绝';
+    headerBadgeHtml = '<span class="result-badge ' + badgeCls + '">' + badgeText + '</span>';
+  } else {
+    headerBadgeHtml = '<span class="app-status-badge app-status-pending">审核中</span>';
+  }
+
+  // 重审标记
+  if (app.resubmitted && !isResolved) {
+    headerBadgeHtml += ' <span class="app-status-badge" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.2);">重审</span>';
+  }
+
+  // Border accent for resolved cards
+  var cardBorderStyle = '';
+  if (app.status === 'approved') {
+    cardBorderStyle = ' style="border-color:rgba(76,175,80,0.2);"';
+  } else if (app.status === 'rejected') {
+    cardBorderStyle = ' style="border-color:rgba(244,67,54,0.2);"';
+  }
+
+  // Grid fields
+  var contactDisplay = app.contact ? escapeHtml(app.contact) : '<span style="color:var(--text-muted);">未填写</span>';
+  var boothNameDisplay = app.booth_name ? escapeHtml(app.booth_name) : '<span style="color:var(--text-muted);">未填写</span>';
+
+  var jointDisplay = '';
+  if (parseInt(app.is_joint) === 1) {
+    jointDisplay = '是';
+    if (app.joint_name && app.joint_name.trim()) {
+      jointDisplay += ' · ' + escapeHtml(app.joint_name.trim());
+    }
+  } else {
+    jointDisplay = '否';
+  }
+
+  var upgradeDisplay = parseInt(app.wants_upgrade) === 1 ? '是' : '否';
+
+  var imageHtml = '';
+  if (hasImage) {
+    var imgUrl = '../' + app.image_path;
+    imageHtml = '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+      '<img src="' + escapeHtml(imgUrl) + '" class="app-image-thumb" onclick="openImageModal(\'' + escapeHtml(imgUrl) + '\')" alt="制品图片">' +
+      '<a href="' + escapeHtml(imgUrl) + '" download style="color:var(--accent-orange);font-size:12px;text-decoration:underline;">下载</a>' +
+      '</div>';
+  } else {
+    imageHtml = '<span style="color:var(--text-muted);">无</span>';
+  }
+
+  var notesHtml = '';
+  if (app.notes && app.notes.trim()) {
+    notesHtml = '<div class="app-field full"><div class="app-field-label">备注</div><div class="app-field-value" style="color:var(--text-secondary);">' + escapeHtml(app.notes) + '</div></div>';
+  }
+
+  // Vote section
+  var approveCount = app.vote_counts ? (app.vote_counts.approve || 0) : 0;
+  var rejectCount = app.vote_counts ? (app.vote_counts.reject || 0) : 0;
+  var approvePct = Math.min(100, (approveCount / VOTE_THRESHOLD) * 100);
+  var rejectPct = Math.min(100, (rejectCount / VOTE_THRESHOLD) * 100);
+
+  var approveThresholdMet = approveCount >= VOTE_THRESHOLD;
+  var rejectThresholdMet = rejectCount >= VOTE_THRESHOLD;
+
+  var approveBarLabel = approveThresholdMet ? '<span class="vote-bar-label threshold-met">已达门槛</span>' : ('<span class="vote-bar-label">/ ' + VOTE_THRESHOLD + '</span>');
+  var rejectBarLabel = rejectThresholdMet ? '<span class="vote-bar-label threshold-met" style="color:#f44336;">已达门槛</span>' : ('<span class="vote-bar-label">/ ' + VOTE_THRESHOLD + '</span>');
+
+  var voteActionsHtml = '';
+  if (isResolved) {
+    // Resolved — no actions needed
+    voteActionsHtml = '';
+  } else if (app.my_vote) {
+    var voteText = app.my_vote === 'approve' ? '通过' : '不通过';
+    voteActionsHtml = '<div><span class="voted-badge">你已投票 · ' + voteText + '</span></div>';
+  } else {
+    voteActionsHtml = '<div class="vote-actions">' +
+      '<button class="btn-vote approve" onclick="castVote(' + app.id + ',\'approve\')">通过</button>' +
+      '<button class="btn-vote reject" onclick="castVote(' + app.id + ',\'reject\')">不通过</button>' +
+      '</div>';
+  }
+
+  var voteSectionHtml = '';
+  if (isResolved || app.my_vote || (!app.my_vote && !isResolved)) {
+    voteSectionHtml = '<div class="vote-section">' +
+      '<div class="vote-title">审核投票</div>' +
+      '<div class="vote-row">' +
+        '<div class="vote-item">' +
+          '<div class="vote-label">通过</div>' +
+          '<div class="vote-count approve">' + approveCount + '</div>' +
+          '<div class="vote-bar-track"><div class="vote-bar-fill approve" style="width:' + approvePct + '%;"></div></div>' +
+          approveBarLabel +
+        '</div>' +
+        '<div class="vote-item">' +
+          '<div class="vote-label">反对</div>' +
+          '<div class="vote-count reject">' + rejectCount + '</div>' +
+          '<div class="vote-bar-track"><div class="vote-bar-fill reject" style="width:' + rejectPct + '%;"></div></div>' +
+          rejectBarLabel +
+        '</div>' +
+      '</div>' +
+      voteActionsHtml +
+    '</div>';
+  }
+
+  return '<div class="app-card"' + cardBorderStyle + '>' +
+    '<div class="app-header">' +
+      '<div class="applicant">' +
+        '<div class="applicant-avatar">' + escapeHtml(firstChar) + '</div>' +
+        '<div class="applicant-info">' +
+          '<div class="applicant-name">' + escapeHtml(nickname) + '</div>' +
+          '<div class="applicant-club">' + clubsStr + '</div>' +
+        '</div>' +
+      '</div>' +
+      headerBadgeHtml +
+    '</div>' +
+
+    '<div class="app-grid">' +
+      '<div class="app-field"><div class="app-field-label">联系方式</div><div class="app-field-value">' + contactDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">摊位名称</div><div class="app-field-value">' + boothNameDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">联合参展</div><div class="app-field-value">' + jointDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">升摊</div><div class="app-field-value">' + upgradeDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">制品图片</div><div class="app-field-value">' + imageHtml + '</div></div>' +
+      notesHtml +
+    '</div>' +
+
+    voteSectionHtml +
+
+    '<div class="app-footer">' +
+      '<span class="app-id">申请 #' + app.id + ' · 提交: ' + formatDate(app.created_at) + (app.updated_at && app.updated_at !== app.created_at ? ' · 更新: ' + formatDate(app.updated_at) : '') + '</span>' +
+    '</div>' +
+  '</div>';
+}
+
+// ====== Vote ======
+async function castVote(applicationId, vote) {
+  var btn = document.querySelector('.btn-vote.approve[onclick*="' + applicationId + '"]') ||
+            document.querySelector('.btn-vote.reject[onclick*="' + applicationId + '"]');
+  if (btn) btn.disabled = true;
+
+  try {
+    var r = await fetch('../api/galonly.php?action=vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ application_id: applicationId, vote: vote })
+    });
+    var data = await r.json();
+
+    if (!data.success) {
+      showToast(data.message || '投票失败', 'error');
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    showToast('投票成功', 'success');
+
+    // Re-fetch all applications to update display
+    await loadApplications();
+  } catch (e) {
+    showToast('网络错误，投票失败', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ====== Image Modal ======
+function openImageModal(src) {
+  var img = document.getElementById('previewImage');
+  img.src = src;
+  var downloadBtn = document.getElementById('downloadImageBtn');
+  if (downloadBtn) downloadBtn.href = src;
+  document.getElementById('imageModal').style.display = 'flex';
+}
+
+function closeImageModal() {
+  document.getElementById('imageModal').style.display = 'none';
+  document.getElementById('previewImage').src = '';
+}
+
+// ====== Event Filter ======
+function onEventFilterChange() {
+  var sel = document.getElementById('eventFilter');
+  var val = sel.value;
+  selectedEventId = val ? parseInt(val) : 0;
+  renderCurrentTab();
+}
+
+// ====== Tab Switching ======
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  renderCurrentTab();
+}
+
+// ====== Init ======
+async function init() {
+  // Auth
+  var authorized = await checkAuth();
+  if (!authorized) return;
+
+  // Load club names
+  await loadClubNames();
+
+  // Load events
+  await loadEvents();
+
+  // Load applications
+  await loadApplications();
+}
+
+// ====== Tab Event Delegation ======
+document.getElementById('tabBar').addEventListener('click', function(e) {
+  var btn = e.target.closest('.tab-btn');
+  if (btn) switchTab(btn.dataset.tab);
+});
+
+// Close image modal on overlay click
+document.getElementById('imageModal').addEventListener('click', function(e) {
+  if (e.target === e.currentTarget) closeImageModal();
+});
+
+// ====== Start ======
+init();
+</script>
+</body>
+</html>

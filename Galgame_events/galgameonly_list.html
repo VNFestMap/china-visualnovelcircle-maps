@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GalOnly 活动列表 - 高校专属通道</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+    font-family: 'Noto Sans SC', 'Segoe UI', 'PingFang SC', sans-serif;
+    background: linear-gradient(135deg, #1a0a0a 0%, #2d0f0f 30%, #1a0a0a 100%);
+    min-height: 100vh;
+    color: #fff;
+}
+/* Header */
+.header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(20,10,10,0.85); backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    padding: 16px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.header-title {
+    font-size: 20px; font-weight: 700;
+    background: linear-gradient(135deg, #ff6b35, #e74c3c, #ff6b35);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header-subtitle { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+.header-actions { display: flex; gap: 12px; align-items: center; }
+.header-link {
+    color: rgba(255,255,255,0.6); text-decoration: none; font-size: 14px;
+    padding: 8px 16px; border-radius: 8px; transition: all 0.2s;
+}
+.header-link:hover { background: rgba(255,255,255,0.08); color: #fff; }
+.btn-audit {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: #fff; padding: 8px 20px; border-radius: 8px;
+    text-decoration: none; font-size: 14px; font-weight: 600;
+    border: none; cursor: pointer; transition: opacity 0.2s;
+}
+.btn-audit:hover { opacity: 0.9; }
+
+.container { max-width: 720px; margin: 0 auto; padding: 100px 20px 60px; }
+
+.page-title {
+    text-align: center; margin-bottom: 8px;
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, #ff6b35, #e74c3c);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.page-subtitle {
+    text-align: center; color: rgba(255,255,255,0.4);
+    font-size: 14px; margin-bottom: 40px;
+}
+
+/* Loading & Error states */
+.loading-state, .error-state {
+    text-align: center; padding: 60px 20px;
+    color: rgba(255,255,255,0.3); font-size: 15px;
+}
+.error-state { color: #f44336; }
+
+/* Event Card */
+.event-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 28px; margin-bottom: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: all 0.3s;
+    display: none;
+}
+.event-card.visible { display: block; }
+.event-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.12);
+    transform: translateY(-2px);
+}
+.event-name {
+    font-size: 22px; font-weight: 700; margin-bottom: 12px;
+    color: #fff;
+}
+.event-meta {
+    display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 12px;
+}
+.event-meta-item {
+    font-size: 13px; color: rgba(255,255,255,0.5);
+    display: flex; align-items: center; gap: 6px;
+}
+.event-meta-item .label { color: rgba(255,255,255,0.3); }
+.event-desc {
+    font-size: 14px; color: rgba(255,255,255,0.6);
+    line-height: 1.7; margin-bottom: 20px;
+}
+.event-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+}
+/* Status badges */
+.status-badge {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-size: 13px; font-weight: 600;
+}
+.status-none { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.5); }
+.status-pending { background: rgba(255,193,7,0.15); color: #ffc107; }
+.status-approved { background: rgba(76,175,80,0.15); color: #4caf50; }
+.status-rejected { background: rgba(244,67,54,0.15); color: #f44336; }
+
+.btn-apply {
+    background: linear-gradient(135deg, #ff6b35, #e74c3c);
+    color: #fff; border: none; padding: 10px 28px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; text-decoration: none; display: inline-block;
+}
+.btn-apply:hover { opacity: 0.9; }
+.btn-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-apply-not-logged-in {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+}
+.btn-apply-not-logged-in:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+
+/* Footer */
+.footer-section {
+    text-align: center; margin-top: 40px; padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-section a {
+    color: rgba(255,255,255,0.4); font-size: 13px; text-decoration: none;
+    transition: color 0.2s; display: inline-block; margin: 0 12px;
+}
+.footer-section a:hover { color: rgba(255,255,255,0.7); }
+
+.no-events {
+    text-align: center; padding: 60px 20px;
+    color: rgba(255,255,255,0.3); font-size: 15px;
+}
+
+/* Status row on card */
+.status-row { display: flex; align-items: center; gap: 12px; }
+.status-label { font-size: 13px; color: rgba(255,255,255,0.4); }
+
+@media (max-width: 600px) {
+    .container { padding: 90px 16px 40px; }
+    .header { padding: 12px 16px; }
+    .header-title { font-size: 16px; }
+    .header-subtitle { font-size: 11px; }
+    .event-card { padding: 20px; }
+    .event-name { font-size: 18px; }
+    .event-footer { flex-direction: column; align-items: flex-start; }
+    .header-actions .header-link { padding: 6px 10px; font-size: 12px; }
+    .btn-audit { padding: 6px 14px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div>
+        <div class="header-title">GalOnly 高校专属通道</div>
+        <div class="header-subtitle">Galgame Only 展会 · 高校同好会参展申请平台</div>
+    </div>
+    <div class="header-actions">
+        <a class="header-link" href="../index.html">返回主页</a>
+        <a class="btn-audit" id="auditLink" href="../admin/Galonly_audit.html" style="display:none;">审核活动</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-title">活动列表</div>
+    <div class="page-subtitle">选择活动，申请高校专属摊位</div>
+
+    <div id="eventList">
+        <div class="loading-state" id="loadingState">加载中...</div>
+    </div>
+
+    <div class="footer-section" id="footerSection">
+        <a href="../index.html">&#8592; 返回主页</a>
+        <a href="../admin/Galonly_audit.html" id="footerAuditLink" style="display:none;">审核活动</a>
+    </div>
+</div>
+
+<script>
+(function () {
+    var eventListEl = document.getElementById('eventList');
+    var auditLink = document.getElementById('auditLink');
+    var footerAuditLink = document.getElementById('footerAuditLink');
+    var loggedIn = false;
+    var isAuditor = false;
+
+    function hasAuditPermission(user) {
+        if (!user) return false;
+        if (user.role === 'super_admin') return true;
+        return !!(user.is_audit);
+    }
+
+    function showAuditLinks(show) {
+        auditLink.style.display = show ? '' : 'none';
+        footerAuditLink.style.display = show ? '' : 'none';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(text));
+        return d.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '待定';
+        try {
+            var parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return parts[0] + '年' + parseInt(parts[1], 10) + '月' + parseInt(parts[2], 10) + '日';
+            }
+            return dateStr;
+        } catch (e) {
+            return dateStr;
+        }
+    }
+
+    function getStatusBadgeHtml(status) {
+        var map = {
+            'pending': { cls: 'status-pending', text: '审核中' },
+            'approved': { cls: 'status-approved', text: '已通过' },
+            'rejected': { cls: 'status-rejected', text: '已拒绝' }
+        };
+        var info = map[status];
+        if (info) {
+            return '<span class="status-badge ' + info.cls + '">' + info.text + '</span>';
+        }
+        return '<span class="status-badge status-none">未申请</span>';
+    }
+
+    function getApplyButtonHtml(event, loggedIn) {
+        var eventId = event.id;
+        var status = event.user_application_status;
+        var regOpen = event.registration_open;
+
+        // If already applied, show edit button
+        if (status && status !== null) {
+            var appId = event.user_application_id || '';
+            return '<a class="btn-apply" href="Shanghai_Galonly_submit.html?event_id=' + eventId + '&amp;application_id=' + appId + '">编辑</a>';
+        }
+
+        // If registration is not open, show disabled button
+        if (!regOpen) {
+            return '<button class="btn-apply" disabled>暂未开始</button>';
+        }
+
+        // Not logged in
+        if (!loggedIn) {
+            return '<button class="btn-apply btn-apply-not-logged-in" data-action="login">请先登录</button>';
+        }
+
+        // Logged in, status is null, reg is open
+        return '<a class="btn-apply" href="Shanghai_Galonly_submit.html?event_id=' + eventId + '">申请摊位</a>';
+    }
+
+    function renderEvents(events) {
+        eventListEl.innerHTML = '';
+
+        if (!events || events.length === 0) {
+            eventListEl.innerHTML = '<div class="no-events">暂无开放申请的活动</div>';
+            return;
+        }
+
+        events.forEach(function (event) {
+            var card = document.createElement('div');
+            card.className = 'event-card visible';
+
+            var name = escapeHtml(event.name || '未命名活动');
+            var dateDisplay = formatDate(event.date);
+            var location = escapeHtml(event.location || '待定');
+            var desc = escapeHtml(event.description || '暂无描述');
+            var statusBadge = getStatusBadgeHtml(event.user_application_status);
+            var applyBtn = getApplyButtonHtml(event, loggedIn);
+
+            var applySection = '';
+            if (event.user_application_status && event.user_application_status !== null) {
+                applySection = '<div class="status-row">' +
+                    '<span class="status-label">你的申请:</span>' +
+                    statusBadge +
+                '</div>';
+            } else if (applyBtn) {
+                applySection = '<div class="status-row">' +
+                    '<span class="status-label">你的申请:</span>' +
+                    '<span class="status-badge status-none">未申请</span>' +
+                '</div>';
+            }
+
+            card.innerHTML =
+                '<div class="event-name">' + name + '</div>' +
+                '<div class="event-meta">' +
+                    '<span class="event-meta-item"><span class="label">时间:</span> ' + dateDisplay + '</span>' +
+                    '<span class="event-meta-item"><span class="label">地点:</span> ' + location + '</span>' +
+                '</div>' +
+                '<div class="event-desc">' + desc + '</div>' +
+                '<div class="event-footer">' +
+                    applySection +
+                    (applyBtn || '') +
+                '</div>';
+
+            eventListEl.appendChild(card);
+        });
+
+        // Attach click handler for "请先登录" buttons
+        eventListEl.addEventListener('click', function (e) {
+            var target = e.target;
+            if (target && target.dataset && target.dataset.action === 'login') {
+                alert('请先登录后再申请摊位');
+                // Redirect to login page or open login modal
+                window.location.href = '../login.html';
+            }
+        });
+    }
+
+    function loadData() {
+        // Fetch auth status and events in parallel
+        var authPromise = fetch('../api/auth.php?action=me', {
+            credentials: 'same-origin'
+        }).then(function (r) { return r.json(); }).catch(function () {
+            return { logged_in: false, user: null };
+        });
+
+        var eventsPromise = fetch('../api/galonly.php?action=list_events', {
+            credentials: 'same-origin'
+        }).then(function (r) { return r.json(); }).catch(function () {
+            return { success: false, events: [] };
+        });
+
+        Promise.all([authPromise, eventsPromise]).then(function (results) {
+            var authData = results[0];
+            var eventsData = results[1];
+
+            loggedIn = !!authData.logged_in;
+            var user = authData.user || null;
+            isAuditor = hasAuditPermission(user);
+
+            showAuditLinks(isAuditor);
+
+            if (eventsData.success && eventsData.events) {
+                renderEvents(eventsData.events);
+            } else {
+                eventListEl.innerHTML = '<div class="error-state">加载活动列表失败，请稍后重试</div>';
+            }
+        });
+    }
+
+    loadData();
+})();
+</script>
+</body>
+</html>

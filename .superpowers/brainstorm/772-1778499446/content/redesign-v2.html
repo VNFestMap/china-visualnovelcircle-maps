@@ -1,0 +1,275 @@
+<h2>🌸 第二版设计 — 多同好会展示 + 新元素</h2>
+<p class="subtitle">粉色 Galgame 可爱风，同好会有专属区域</p>
+
+<div class="section">
+  <h3>当前可用的数据</h3>
+  <p class="subtitle">以下是可以展现在档案卡上的元素：</p>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:13px;">
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ 头像 (已有)</div>
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ 昵称 (已有)</div>
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ 角色/称号 (已有)</div>
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ 同好会列表 (已有)</div>
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ 统计数据 (已有)</div>
+    <div style="background:#fef6f8; padding:10px 14px; border-radius:8px; color:#4a3647;">✅ QQ/Discord 绑定 (已有)</div>
+    <div style="background:#fff0f3; padding:10px 14px; border-radius:8px; color:#ff6b97; font-weight:500;">➕ 个性签名 (短文本)</div>
+    <div style="background:#fff0f3; padding:10px 14px; border-radius:8px; color:#ff6b97; font-weight:500;">➕ 成就徽章</div>
+    <div style="background:#fff0f3; padding:10px 14px; border-radius:8px; color:#ff6b97; font-weight:500;">➕ 社团贡献值</div>
+    <div style="background:#fff0f3; padding:10px 14px; border-radius:8px; color:#ff6b97; font-weight:500;">➕ 个人状态/心情</div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 A：档案卡 + 同好会面板</h3>
+  <p class="subtitle">上下分区，上面是角色卡，下面是同好会专属区域</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(255,107,151,0.2); background:white;">
+      <!-- 顶部装饰 -->
+      <div style="height:5px; background:linear-gradient(90deg, #ffb6c9, #ff6b97, #ffb6c9);"></div>
+
+      <!-- 角色卡头部 -->
+      <div style="padding:20px 20px 16px; display:flex; gap:16px; align-items:center;">
+        <!-- 头像 + 小皇冠 -->
+        <div style="position:relative;">
+          <div style="width:76px; height:76px; border-radius:50%; overflow:hidden; border:3px solid #ffb6c9; box-shadow:0 4px 16px rgba(255,107,151,0.2);">
+            <div style="width:100%; height:100%; background:linear-gradient(135deg, #fcc8d8, #ff9eb5); display:flex; align-items:center; justify-content:center; color:white; font-size:26px; font-weight:700;">U</div>
+          </div>
+          <div style="position:absolute; top:-6px; right:-6px; font-size:18px;">👑</div>
+        </div>
+        <!-- 信息 -->
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:21px; font-weight:800; color:#4a3647;">用户名</div>
+          <div style="font-size:11px; color:#ff6b97; letter-spacing:3px; margin-top:2px;">💕 同好会成员</div>
+          <!-- 个性签名 -->
+          <div style="font-size:12px; color:#b08a95; margin-top:6px; font-style:italic; border-left:2px solid #ffd9e4; padding-left:8px;">"今日也在寻找好看的视觉小说"</div>
+        </div>
+      </div>
+
+      <!-- 同好会专属区域 -->
+      <div style="margin:0 16px; border-radius:14px; background:#fef6f8; border:1.5px solid #ffd9e4; overflow:hidden;">
+        <div style="background:linear-gradient(90deg, #ffd9e4, #fce4ec); padding:8px 14px; font-size:12px; font-weight:600; color:#b05a7a; letter-spacing:2px;">
+          🏫 所属同好会
+        </div>
+        <div style="padding:12px;">
+          <!-- 同好会 1 -->
+          <div style="display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid #ffd9e4;">
+            <span style="font-size:22px;">🎪</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:600; color:#4a3647;">XX大学视觉小说同好会</div>
+              <div style="font-size:10px; color:#ff6b97;">会长 · 2024.03 加入</div>
+            </div>
+            <span style="font-size:10px; padding:2px 10px; border-radius:999px; background:#ff6b97; color:white; font-weight:500;">会长</span>
+          </div>
+          <!-- 同好会 2 -->
+          <div style="display:flex; align-items:center; gap:10px; padding:6px 0;">
+            <span style="font-size:22px;">🎮</span>
+            <div style="flex:1; min-width:0;">
+              <div style="font-size:13px; font-weight:600; color:#4a3647;">Galgame 同好联盟</div>
+              <div style="font-size:10px; color:#ff6b97;">成员 · 2025.01 加入</div>
+            </div>
+            <span style="font-size:10px; padding:2px 10px; border-radius:999px; background:#ffb6c9; color:white; font-weight:500;">成员</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 成就徽章 -->
+      <div style="margin:12px 16px 0;">
+        <div style="font-size:11px; font-weight:600; color:#b08a95; letter-spacing:2px; margin-bottom:8px;">🎀 成就</div>
+        <div style="display:flex; gap:8px;">
+          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #ffd9e4, #ffb6c9); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 8px rgba(255,107,151,0.15);">📖</div>
+          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #ffd9e4, #ffb6c9); display:flex; align-items:center; justify-content:center; font-size:20px; box-shadow:0 2px 8px rgba(255,107,151,0.15);">📅</div>
+          <div style="width:44px; height:44px; border-radius:50%; background:#f5f5f5; display:flex; align-items:center; justify-content:center; font-size:20px; opacity:0.4;">🔒</div>
+        </div>
+      </div>
+
+      <!-- 统计数据 -->
+      <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:16px;">
+        <div style="background:#fef6f8; border-radius:12px; padding:10px 4px; text-align:center;">
+          <span style="display:block; font-size:18px; font-weight:800; color:#ff6b97;">2</span>
+          <span style="display:block; font-size:10px; color:#b08a95;">同好会</span>
+        </div>
+        <div style="background:#fef6f8; border-radius:12px; padding:10px 4px; text-align:center;">
+          <span style="display:block; font-size:18px; font-weight:800; color:#ff6b97;">1</span>
+          <span style="display:block; font-size:10px; color:#b08a95;">刊物</span>
+        </div>
+        <div style="background:#fef6f8; border-radius:12px; padding:10px 4px; text-align:center;">
+          <span style="display:block; font-size:18px; font-weight:800; color:#ff6b97;">3</span>
+          <span style="display:block; font-size:10px; color:#b08a95;">活动</span>
+        </div>
+        <div style="background:#fef6f8; border-radius:12px; padding:10px 4px; text-align:center;">
+          <span style="display:block; font-size:18px; font-weight:800; color:#ff6b97;">45</span>
+          <span style="display:block; font-size:10px; color:#b08a95;">天</span>
+        </div>
+      </div>
+
+      <!-- 底部 -->
+      <div style="padding:10px 20px; background:#fef6f8; font-size:11px; color:#b08a95; display:flex; justify-content:space-between; border-top:1px solid #ffd9e4;">
+        <span>📅 2024.03.15 加入</span>
+        <span>💗 3天前活跃</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 B：上下分层 — 角色卡 + 图鉴式同好会展示</h3>
+  <p class="subtitle">同好会像 collectible cards 展示，每个同好会有自己的小卡片</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(255,107,151,0.2); background:white;">
+      <!-- 角色卡上半部分：大头像，名字居中 -->
+      <div style="background:linear-gradient(135deg, #ff6b97, #ff8fab); padding:24px 20px 20px; text-align:center; position:relative;">
+        <div style="position:absolute; top:8px; left:14px; font-size:22px; opacity:0.3;">🌸</div>
+        <div style="position:absolute; top:8px; right:14px; font-size:22px; opacity:0.3;">⭐</div>
+        <div style="width:72px; height:72px; border-radius:50%; overflow:hidden; border:4px solid rgba(255,255,255,0.8); margin:0 auto 10px; box-shadow:0 4px 16px rgba(0,0,0,0.1);">
+          <div style="width:100%; height:100%; background:linear-gradient(135deg, #a8d8ea, #fcc8d8); display:flex; align-items:center; justify-content:center; color:white; font-size:24px; font-weight:700;">U</div>
+        </div>
+        <div style="font-size:22px; font-weight:800; color:white; text-shadow:0 2px 8px rgba(0,0,0,0.1);">用户名</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.85); letter-spacing:3px; margin-top:2px;">✦ 同好会成员 ✦</div>
+        <div style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:6px; font-style:italic;">"今日也在寻找好看的视觉小说"</div>
+      </div>
+
+      <!-- 白色内容区 -->
+      <div style="padding:16px;">
+        <!-- 同好会列表 -->
+        <div style="margin-bottom:14px;">
+          <div style="font-size:11px; font-weight:600; color:#b08a95; letter-spacing:2px; margin-bottom:8px;">🏫 所属同好会</div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <!-- 卡片 1 -->
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:12px; background:#fef6f8; border:1px solid #ffd9e4;">
+              <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #ffb6c9, #ff6b97); display:flex; align-items:center; justify-content:center; font-size:18px; color:white;">🎪</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:600; color:#4a3647;">XX大学视觉小说同好会</div>
+                <div style="font-size:10px; color:#b08a95;">2024.03 加入</div>
+              </div>
+              <span style="font-size:10px; padding:3px 10px; border-radius:999px; background:#ff6b97; color:white; font-weight:600;">会长</span>
+            </div>
+            <!-- 卡片 2 -->
+            <div style="display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:12px; background:#fef6f8; border:1px solid #ffd9e4;">
+              <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #a8d8ea, #7ec8e3); display:flex; align-items:center; justify-content:center; font-size:18px; color:white;">🎮</div>
+              <div style="flex:1; min-width:0;">
+                <div style="font-size:13px; font-weight:600; color:#4a3647;">Galgame 同好联盟</div>
+                <div style="font-size:10px; color:#b08a95;">2025.01 加入</div>
+              </div>
+              <span style="font-size:10px; padding:3px 10px; border-radius:999px; background:#ffb6c9; color:white; font-weight:600;">成员</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 统计 - 更简洁 -->
+        <div style="display:flex; gap:8px;">
+          <div style="flex:1; background:#fef6f8; border-radius:10px; padding:8px; text-align:center;">
+            <span style="display:block; font-size:16px; font-weight:700; color:#ff6b97;">2</span>
+            <span style="display:block; font-size:10px; color:#b08a95;">同好会</span>
+          </div>
+          <div style="flex:1; background:#fef6f8; border-radius:10px; padding:8px; text-align:center;">
+            <span style="display:block; font-size:16px; font-weight:700; color:#ff6b97;">1</span>
+            <span style="display:block; font-size:10px; color:#b08a95;">刊物</span>
+          </div>
+          <div style="flex:1; background:#fef6f8; border-radius:10px; padding:8px; text-align:center;">
+            <span style="display:block; font-size:16px; font-weight:700; color:#ff6b97;">3</span>
+            <span style="display:block; font-size:10px; color:#b08a95;">活动</span>
+          </div>
+          <div style="flex:1; background:#fef6f8; border-radius:10px; padding:8px; text-align:center;">
+            <span style="display:block; font-size:16px; font-weight:700; color:#ff6b97;">45</span>
+            <span style="display:block; font-size:10px; color:#b08a95;">天</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>方案 C：双列布局 — 信息卡 + 同好会面板并排</h3>
+  <p class="subtitle">左侧角色档案，右侧同好会详情，适合信息多的情况</p>
+  <div class="mockup" style="max-width: 400px; margin: 0 auto;">
+    <div style="border-radius:20px; overflow:hidden; box-shadow:0 8px 32px rgba(255,107,151,0.2); background:linear-gradient(145deg, #fff5f7, white); padding:20px;">
+      <!-- 头像区 -->
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:16px;">
+        <div style="width:80px; height:80px; border-radius:50%; overflow:hidden; border:3px solid #ffb6c9; box-shadow:0 4px 16px rgba(255,107,151,0.2); flex-shrink:0;">
+          <div style="width:100%; height:100%; background:linear-gradient(135deg, #fcc8d8, #ff9eb5); display:flex; align-items:center; justify-content:center; color:white; font-size:28px; font-weight:700;">U</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:20px; font-weight:800; color:#4a3647;">用户名</div>
+          <div style="font-size:11px; color:#ff6b97; letter-spacing:2px;">同好会成员</div>
+          <div style="font-size:11px; color:#b08a95; margin-top:4px;">"今日也在寻找好看的视觉小说"</div>
+        </div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <!-- 同好会框 -->
+        <div style="border-radius:14px; border:1.5px solid #ffd9e4; background:#fef6f8; overflow:hidden;">
+          <div style="background:linear-gradient(90deg, #ffd9e4, #fce4ec); padding:6px 14px; font-size:11px; font-weight:600; color:#b05a7a; letter-spacing:2px;">
+            🏫 所属同好会
+          </div>
+          <div style="padding:8px;">
+            <div style="display:flex; align-items:center; gap:10px; padding:6px 4px;">
+              <span style="font-size:20px;">🎪</span>
+              <div style="flex:1;"><span style="font-size:12px; font-weight:600; color:#4a3647;">XX大学同好会</span></div>
+              <span style="font-size:10px; padding:2px 10px; border-radius:999px; background:#ff6b97; color:white;">会长</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px; padding:6px 4px; border-top:1px solid #ffd9e4;">
+              <span style="font-size:20px;">🎮</span>
+              <div style="flex:1;"><span style="font-size:12px; font-weight:600; color:#4a3647;">Galgame 联盟</span></div>
+              <span style="font-size:10px; padding:2px 10px; border-radius:999px; background:#ffb6c9; color:white;">成员</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 统计行 -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:#fef6f8; border-radius:10px; padding:10px; text-align:center; border:1px solid #ffd9e4;">
+            <span style="font-size:18px; font-weight:700; color:#ff6b97;">2</span>
+            <span style="font-size:10px; color:#b08a95; display:block;">同好会</span>
+          </div>
+          <div style="background:#fef6f8; border-radius:10px; padding:10px; text-align:center; border:1px solid #ffd9e4;">
+            <span style="font-size:18px; font-weight:700; color:#ff6b97;">1</span>
+            <span style="font-size:10px; color:#b08a95; display:block;">刊物</span>
+          </div>
+          <div style="background:#fef6f8; border-radius:10px; padding:10px; text-align:center; border:1px solid #ffd9e4;">
+            <span style="font-size:18px; font-weight:700; color:#ff6b97;">3</span>
+            <span style="font-size:10px; color:#b08a95; display:block;">活动</span>
+          </div>
+          <div style="background:#fef6f8; border-radius:10px; padding:10px; text-align:center; border:1px solid #ffd9e4;">
+            <span style="font-size:18px; font-weight:700; color:#ff6b97;">45</span>
+            <span style="font-size:10px; color:#b08a95; display:block;">天</span>
+          </div>
+        </div>
+
+        <!-- 底部 -->
+        <div style="font-size:11px; color:#b08a95; display:flex; justify-content:space-between; padding-top:4px; border-top:1px dashed #ffd9e4;">
+          <span>🌸 加入于 2024.03.15</span>
+          <span>💫 3天前活跃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>几个新加的元素的说明</h3>
+  <div style="background:#fef6f8; padding:14px; border-radius:12px;">
+    <table style="width:100%; font-size:12px; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #ffd9e4;">
+        <td style="padding:6px 8px; font-weight:600; color:#4a3647;">🏫 同好会框</td>
+        <td style="padding:6px 8px; color:#b08a95;">专属区域展示所有加入的同好会，显示角色、加入时间</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ffd9e4;">
+        <td style="padding:6px 8px; font-weight:600; color:#4a3647;">💬 个性签名</td>
+        <td style="padding:6px 8px; color:#b08a95;">短文本，类似 Galgame 角色的口头禅/座右铭</td>
+      </tr>
+      <tr style="border-bottom:1px solid #ffd9e4;">
+        <td style="padding:6px 8px; font-weight:600; color:#4a3647;">🎀 成就徽章</td>
+        <td style="padding:6px 8px; color:#b08a95;">小圆章，首次投稿/首次报名活动等解锁</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 8px; font-weight:600; color:#4a3647;">📊 统计</td>
+        <td style="padding:6px 8px; color:#b08a95;">简洁数字卡片，去掉了进度条</td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<div class="section">
+  <h3>说说你的想法</h3>
+  <p class="subtitle">哪个布局感觉对？哪些新元素想要，哪些不想要？</p>
+</div>
