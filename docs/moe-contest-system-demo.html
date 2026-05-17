@@ -1,0 +1,1316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VNFest 自助萌战系统 Demo</title>
+  <style>
+    :root {
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --panel-soft: #f1f4f8;
+      --ink: #18202f;
+      --muted: #667085;
+      --line: #dce2ea;
+      --brand: #e34f5f;
+      --brand-dark: #b83947;
+      --cyan: #0f9ca8;
+      --green: #2d9a62;
+      --amber: #c68119;
+      --violet: #6f5bd6;
+      --shadow: 0 18px 50px rgba(31, 44, 71, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "Noto Sans SC", Arial, sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: #111827;
+      color: #f8fafc;
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 4px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .brand-mark {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #ffffff;
+      color: var(--brand);
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 15px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      line-height: 1.3;
+    }
+
+    .brand-subtitle {
+      margin-top: 2px;
+      color: #b9c2d2;
+      font-size: 12px;
+    }
+
+    .nav-group {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav-label {
+      padding: 0 8px;
+      color: #8994a8;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #d8dee9;
+      background: transparent;
+      border: 0;
+      text-align: left;
+      cursor: default;
+    }
+
+    .nav-item.active {
+      background: #263244;
+      color: #ffffff;
+    }
+
+    .main {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+
+    .topbar {
+      height: 72px;
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+
+    .topbar p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      height: 38px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--ink);
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: default;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      border-color: var(--brand);
+      background: var(--brand);
+      color: #ffffff;
+      box-shadow: 0 10px 24px rgba(227, 79, 95, 0.22);
+    }
+
+    .content {
+      padding: 24px 28px 42px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 104px;
+      box-shadow: 0 6px 22px rgba(31, 44, 71, 0.06);
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .metric-note {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .panel-header span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .contest-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .contest-item {
+      border: 1px solid var(--line);
+      background: #ffffff;
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .contest-name {
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .contest-meta {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .tag {
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: #3d4658;
+      border-radius: 999px;
+      padding: 4px 9px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .tag.live {
+      background: #fff0f2;
+      border-color: #f6b9c1;
+      color: var(--brand-dark);
+    }
+
+    .tag.ready {
+      background: #ecfbf8;
+      border-color: #b9eee5;
+      color: #087c73;
+    }
+
+    .tag.closed {
+      background: #f3f1ff;
+      border-color: #d7d0ff;
+      color: var(--violet);
+    }
+
+    .stage-builder {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stage-row {
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #ffffff;
+    }
+
+    .stage-index {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #111827;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .stage-title {
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .stage-config {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.7;
+    }
+
+    .mini-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      cursor: default;
+    }
+
+    .wizard {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .field input,
+    .field select {
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #ffffff;
+      padding: 0 12px;
+      min-width: 0;
+    }
+
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .segment {
+      height: 38px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+      color: var(--muted);
+    }
+
+    .segment:last-child {
+      border-right: 0;
+    }
+
+    .segment.active {
+      background: #111827;
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    .candidate-search {
+      display: grid;
+      gap: 12px;
+    }
+
+    .search-box {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .search-box input {
+      height: 42px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      padding: 0 12px;
+    }
+
+    .candidate-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .candidate {
+      display: grid;
+      grid-template-columns: 52px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #f6d4d8, #d9eff2);
+      display: grid;
+      place-items: center;
+      color: #812f3b;
+      font-weight: 900;
+    }
+
+    .candidate-name {
+      font-weight: 800;
+    }
+
+    .candidate-info {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .vote-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .vote-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .vote-card.selected {
+      border-color: var(--brand);
+      background: #fff7f8;
+    }
+
+    .vote-footer {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .ranking {
+      display: grid;
+      gap: 10px;
+    }
+
+    .rank-row {
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .rank-no {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--panel-soft);
+      font-weight: 900;
+    }
+
+    .bar {
+      height: 9px;
+      border-radius: 999px;
+      background: var(--panel-soft);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      background: var(--cyan);
+      border-radius: inherit;
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .timeline-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+    }
+
+    .timeline-step strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .timeline-step span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .bracket-shell {
+      display: grid;
+      gap: 16px;
+    }
+
+    .bracket-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+
+    .rounds {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    .round {
+      display: grid;
+      gap: 10px;
+    }
+
+    .round-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .match-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+      min-height: 134px;
+    }
+
+    .match-card.featured {
+      border-color: #f2a8b1;
+      box-shadow: 0 12px 26px rgba(227, 79, 95, 0.12);
+    }
+
+    .match-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .match-state {
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #fff0f2;
+      color: var(--brand-dark);
+      font-weight: 800;
+    }
+
+    .match-player {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-radius: 8px;
+      background: #f8fafc;
+      color: #344054;
+    }
+
+    .match-player.winner {
+      background: #ecfbf8;
+      color: #087c73;
+      font-weight: 900;
+    }
+
+    .seed {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .score {
+      font-weight: 900;
+      color: var(--ink);
+    }
+
+    .match-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .advance-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 0.45fr);
+      gap: 14px;
+    }
+
+    .advance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .advance-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 12px;
+    }
+
+    .advance-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .advance-item span,
+    .rule-list li {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .rule-list {
+      margin: 0;
+      padding-left: 18px;
+    }
+
+    @media (max-width: 1100px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .stats-row,
+      .grid,
+      .timeline,
+      .rounds,
+      .advance-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .topbar {
+        height: auto;
+        padding: 16px;
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .content {
+        padding: 16px;
+      }
+
+      .top-actions,
+      .field-grid,
+      .vote-board,
+      .advance-grid {
+        width: 100%;
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .contest-item,
+      .stage-row,
+      .candidate {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">VNF</div>
+        <div>
+          <div class="brand-title">自助萌战系统</div>
+          <div class="brand-subtitle">同好会年度活动工具</div>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">入口</div>
+        <div class="nav-item active">◇ 萌战广场</div>
+        <div class="nav-item">□ 我的同好会</div>
+        <div class="nav-item">○ 我的提名</div>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-label">负责人工作台</div>
+        <div class="nav-item">＋ 创建萌战</div>
+        <div class="nav-item">◎ 阶段配置</div>
+        <div class="nav-item">◇ 1v1 对阵表</div>
+        <div class="nav-item">✓ 提名审核</div>
+        <div class="nav-item">≡ 数据与导出</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>萌战广场与负责人工作台</h1>
+          <p>一个同好会可自助创建、配置、运营自己的年度萌战活动。</p>
+        </div>
+        <div class="top-actions">
+          <button class="btn">筛选活动</button>
+          <button class="btn primary">创建萌战</button>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="stats-row">
+          <div class="metric">
+            <div class="metric-label">进行中活动</div>
+            <div class="metric-value">12</div>
+            <div class="metric-note">含 4 个提名阶段</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">今日投票</div>
+            <div class="metric-value">2,841</div>
+            <div class="metric-note">基础防刷记录开启</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">待审核提名</div>
+            <div class="metric-value">63</div>
+            <div class="metric-note">来自 Bangumi 与手动提交</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">即将结算</div>
+            <div class="metric-value">5</div>
+            <div class="metric-note">阶段结束后自动锁票</div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>全站萌战广场</h2>
+                <span>用户从这里发现正在进行和即将开始的同好会萌战。</span>
+              </div>
+              <span class="tag live">公开入口</span>
+            </div>
+            <div class="panel-body">
+              <div class="contest-list">
+                <div class="contest-item">
+                  <div>
+                    <div class="contest-name">成都 Galgame 同好会 2026 年度角色萌战</div>
+                    <div class="contest-meta">
+                      <span class="tag live">投票中</span>
+                      <span>分组赛 第 2 轮</span>
+                      <span>每人每日 3 票</span>
+                      <span>排名公开，票数隐藏</span>
+                    </div>
+                  </div>
+                  <button class="btn primary">去投票</button>
+                </div>
+                <div class="contest-item">
+                  <div>
+                    <div class="contest-name">重庆视觉小说社 2026 春季萌战</div>
+                    <div class="contest-meta">
+                      <span class="tag ready">提名中</span>
+                      <span>Bangumi 搜作品选角色</span>
+                      <span>仅本会成员可提名</span>
+                    </div>
+                  </div>
+                  <button class="btn">提交提名</button>
+                </div>
+                <div class="contest-item">
+                  <div>
+                    <div class="contest-name">日本分区 Galgame 名台词赏</div>
+                    <div class="contest-meta">
+                      <span class="tag closed">已结束</span>
+                      <span>自由候选项</span>
+                      <span>结果公开</span>
+                    </div>
+                  </div>
+                  <button class="btn">查看结果</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>创建向导</h2>
+                <span>负责人优先看到简单选项，高级规则逐步展开。</span>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="wizard">
+                <div class="field">
+                  <label>活动名称</label>
+                  <input value="2026 年度角色萌战">
+                </div>
+                <div class="field-grid">
+                  <div class="field">
+                    <label>候选类型</label>
+                    <select>
+                      <option>角色为主，可自定义字段</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label>投票资格</label>
+                    <select>
+                      <option>负责人可配置</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>结果展示</label>
+                  <div class="segmented">
+                    <button class="segment">实时票数</button>
+                    <button class="segment active">仅排名</button>
+                    <button class="segment">结束公开</button>
+                  </div>
+                </div>
+                <button class="btn primary">保存草稿并进入阶段配置</button>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>积木式阶段配置</h2>
+              <span>负责人可以添加阶段，管理员协助配置和审核。</span>
+            </div>
+            <button class="btn">添加阶段</button>
+          </div>
+          <div class="panel-body">
+            <div class="stage-builder">
+              <div class="stage-row">
+                <div class="stage-index">1</div>
+                <div>
+                  <div class="stage-title">提名阶段</div>
+                  <div class="stage-config">成员提交候选 · Bangumi 搜作品/搜角色 · 负责人审核后进入正式名单</div>
+                </div>
+                <div class="mini-btns">
+                  <button class="icon-btn">↑</button>
+                  <button class="icon-btn">↓</button>
+                  <button class="icon-btn">⚙</button>
+                </div>
+              </div>
+              <div class="stage-row">
+                <div class="stage-index">2</div>
+                <div>
+                  <div class="stage-title">海选阶段</div>
+                  <div class="stage-config">公开投票 · 每人每日 3 票 · 前 32 名晋级 · 仅公开排名</div>
+                </div>
+                <div class="mini-btns">
+                  <button class="icon-btn">↑</button>
+                  <button class="icon-btn">↓</button>
+                  <button class="icon-btn">⚙</button>
+                </div>
+              </div>
+              <div class="stage-row">
+                <div class="stage-index">3</div>
+                <div>
+                  <div class="stage-title">淘汰赛</div>
+                  <div class="stage-config">1v1 对战 · 单场 1 票 · 胜者晋级 · 阶段结束公开票数</div>
+                </div>
+                <div class="mini-btns">
+                  <button class="icon-btn">↑</button>
+                  <button class="icon-btn">↓</button>
+                  <button class="icon-btn">⚙</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>1v1 正赛对阵表</h2>
+              <span>正式萌战阶段使用专门的对战模型，胜者自动进入下一轮，也允许负责人手动修正。</span>
+            </div>
+            <div class="top-actions">
+              <button class="btn">抽签预览</button>
+              <button class="btn primary">生成对阵</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="bracket-shell">
+              <div class="bracket-toolbar">
+                <div class="contest-meta">
+                  <span class="tag live">正赛进行中</span>
+                  <span>32 强单败淘汰</span>
+                  <span>按海选排名蛇形分组</span>
+                  <span>每场 1 票，不可改票</span>
+                </div>
+                <div class="top-actions">
+                  <button class="btn">锁定本轮</button>
+                  <button class="btn">导出赛果</button>
+                </div>
+              </div>
+
+              <div class="rounds">
+                <div class="round">
+                  <div class="round-title"><span>32 强</span><span>16 场</span></div>
+                  <div class="match-card featured">
+                    <div class="match-head">
+                      <span>A1 场 · 今日 20:00 结束</span>
+                      <span class="match-state">投票中</span>
+                    </div>
+                    <div class="match-player winner">
+                      <span class="seed">01</span>
+                      <span>鸣濑白羽</span>
+                      <span class="score">62%</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">32</span>
+                      <span>空门苍</span>
+                      <span class="score">38%</span>
+                    </div>
+                    <div class="match-actions">
+                      <span>公开方式：仅显示百分比</span>
+                      <button class="btn">查看</button>
+                    </div>
+                  </div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>A2 场</span>
+                      <span class="match-state">待开始</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">16</span>
+                      <span>久岛鸥</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">17</span>
+                      <span>紬文德斯</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="round">
+                  <div class="round-title"><span>16 强</span><span>8 场</span></div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>B1 场 · 自动承接胜者</span>
+                      <span class="match-state">待晋级</span>
+                    </div>
+                    <div class="match-player winner">
+                      <span class="seed">A1</span>
+                      <span>鸣濑白羽</span>
+                      <span class="score">预晋级</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">A2</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>B2 场</span>
+                      <span class="match-state">未生成</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">A3</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">A4</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="round">
+                  <div class="round-title"><span>8 强 / 4 强</span><span>6 场</span></div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>C1 场</span>
+                      <span class="match-state">未开始</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">B1</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">B2</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>D1 半决赛</span>
+                      <span class="match-state">未开始</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">C1</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">C2</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="round">
+                  <div class="round-title"><span>决赛</span><span>冠军战</span></div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>Final · 冠军战</span>
+                      <span class="match-state">未开始</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">D1</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">D2</span>
+                      <span>待定</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                  <div class="match-card">
+                    <div class="match-head">
+                      <span>Third · 季军战</span>
+                      <span class="match-state">可选</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">L-D1</span>
+                      <span>半决赛败者</span>
+                      <span class="score">-</span>
+                    </div>
+                    <div class="match-player">
+                      <span class="seed">L-D2</span>
+                      <span>半决赛败者</span>
+                      <span class="score">-</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="advance-panel">
+                <div class="advance-grid">
+                  <div class="advance-item">
+                    <strong>生成方式</strong>
+                    <span>按预选排名、随机抽签、负责人手动排位，三种方式都保留。</span>
+                  </div>
+                  <div class="advance-item">
+                    <strong>晋级规则</strong>
+                    <span>胜者自动进入下一轮；同票时可加赛、按种子位、或负责人裁定。</span>
+                  </div>
+                  <div class="advance-item">
+                    <strong>场次权限</strong>
+                    <span>负责人可锁场、重开、手动修正胜者；管理员可处理候选资料。</span>
+                  </div>
+                </div>
+                <div class="advance-item">
+                  <strong>1v1 阶段配置项</strong>
+                  <ul class="rule-list">
+                    <li>每场单票或每日刷新单票。</li>
+                    <li>可选择是否实时显示百分比、票数或完全隐藏。</li>
+                    <li>支持 64/32/16/8 强自动生成完整 bracket。</li>
+                    <li>支持季军战、复活赛入口、同票加赛。</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="grid">
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>Bangumi 提名与审核</h2>
+                <span>主流程为搜作品选角色，同时支持直接搜索角色。</span>
+              </div>
+              <span class="tag ready">提名阶段</span>
+            </div>
+            <div class="panel-body">
+              <div class="candidate-search">
+                <div class="segmented">
+                  <button class="segment active">搜作品选角色</button>
+                  <button class="segment">直接搜角色</button>
+                  <button class="segment">手动候选</button>
+                </div>
+                <div class="search-box">
+                  <input value="Summer Pockets">
+                  <button class="btn primary">搜索</button>
+                </div>
+                <div class="candidate-list">
+                  <div class="candidate">
+                    <div class="avatar">羽</div>
+                    <div>
+                      <div class="candidate-name">鸣濑白羽</div>
+                      <div class="candidate-info">Summer Pockets · Bangumi character_id: 72936 · 已有 8 人提名</div>
+                    </div>
+                    <button class="btn">通过</button>
+                  </div>
+                  <div class="candidate">
+                    <div class="avatar">苍</div>
+                    <div>
+                      <div class="candidate-name">空门苍</div>
+                      <div class="candidate-info">Summer Pockets · 可补充别名、头像和简介</div>
+                    </div>
+                    <button class="btn">编辑</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-header">
+              <div>
+                <h2>投票与榜单</h2>
+                <span>投票页保持简单，规则信息贴近操作区。</span>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="vote-board">
+                <div class="vote-card selected">
+                  <div class="avatar">白</div>
+                  <div>
+                    <div class="candidate-name">鸣濑白羽</div>
+                    <div class="candidate-info">已选择 · 今日剩余 2 票</div>
+                  </div>
+                </div>
+                <div class="vote-card">
+                  <div class="avatar">鸥</div>
+                  <div>
+                    <div class="candidate-name">久岛鸥</div>
+                    <div class="candidate-info">分组 B · 可投票</div>
+                  </div>
+                </div>
+              </div>
+              <div class="vote-footer">
+                <span>公开设置：仅显示排名，不显示票数</span>
+                <button class="btn primary">提交投票</button>
+              </div>
+              <hr style="border:0;border-top:1px solid var(--line);margin:18px 0;">
+              <div class="ranking">
+                <div class="rank-row">
+                  <div class="rank-no">1</div>
+                  <div>
+                    <strong>鸣濑白羽</strong>
+                    <div class="bar"><span style="width: 92%;"></span></div>
+                  </div>
+                  <span class="tag">领先</span>
+                </div>
+                <div class="rank-row">
+                  <div class="rank-no">2</div>
+                  <div>
+                    <strong>久岛鸥</strong>
+                    <div class="bar"><span style="width: 76%;"></span></div>
+                  </div>
+                  <span class="tag">晋级区</span>
+                </div>
+                <div class="rank-row">
+                  <div class="rank-no">3</div>
+                  <div>
+                    <strong>空门苍</strong>
+                    <div class="bar"><span style="width: 61%;"></span></div>
+                  </div>
+                  <span class="tag">晋级区</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel">
+          <div class="panel-header">
+            <div>
+              <h2>活动状态流</h2>
+              <span>每个阶段都能被负责人手动调整，也支持到点自动锁定。</span>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="timeline">
+              <div class="timeline-step">
+                <strong>草稿</strong>
+                <span>负责人创建规则，管理员可协作完善候选字段与阶段。</span>
+              </div>
+              <div class="timeline-step">
+                <strong>提名中</strong>
+                <span>用户提交候选，Bangumi 自动补全资料，负责人审核。</span>
+              </div>
+              <div class="timeline-step">
+                <strong>投票中</strong>
+                <span>按阶段规则限制票数、资格、公开方式，记录基础风控信息。</span>
+              </div>
+              <div class="timeline-step">
+                <strong>结算与归档</strong>
+                <span>阶段结束锁票，生成榜单、晋级名单和活动历史页。</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
