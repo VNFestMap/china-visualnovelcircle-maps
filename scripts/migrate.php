@@ -5,6 +5,7 @@
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/moe.php';
 
 echo "开始创建数据库表... (驱动: " . (defined('DB_DRIVER') ? DB_DRIVER : 'sqlite') . ")\n";
 
@@ -578,5 +579,8 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_applications ADD COLUMN resubmitted INTEGER NOT NULL DEFAULT 0");
     echo "[OK] galonly_applications.resubmitted 列已添加\n";
 }
+
+moeEnsureSchema($db);
+echo "[OK] moe contest tables ready\n";
 
 echo "\n所有数据库表创建完成！\n";

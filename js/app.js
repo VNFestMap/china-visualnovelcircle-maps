@@ -7062,6 +7062,8 @@ async function init() {
     State.listSort = 'default';
     updateSortButtonView();
     renderCurrentDetail();
+    window.__vnfestMapReady = true;
+    window.dispatchEvent(new CustomEvent('vnfest:map-ready'));
 }
     // 其他初始化...
     initAdminEvents();

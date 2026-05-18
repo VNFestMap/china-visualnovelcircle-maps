@@ -15,6 +15,10 @@ assert.doesNotMatch(authApi, /['"]qq_openid['"]\s*=>/, 'QQ OpenID must not be se
 assert.doesNotMatch(authApi, /['"]discord_id['"]\s*=>/, 'Discord ID must not be serialized to frontend responses');
 assert.match(authApi, /['"]qq_bound['"]\s*=>/, 'frontend should receive only QQ bind state');
 assert.match(authApi, /['"]discord_bound['"]\s*=>/, 'frontend should receive only Discord bind state');
+assert.match(authApi, /case\s+['"]send_password_reset_code['"]\s*:/, 'auth API should support sending password reset codes');
+assert.match(authApi, /case\s+['"]reset_password['"]\s*:/, 'auth API should support resetting passwords');
+assert.match(authApi, /password_hash\s*=\s*\?/, 'password reset should update only the password hash through a prepared statement');
+assert.match(authApi, /UPDATE\s+sessions\s+SET\s+is_valid\s*=\s*0\s+WHERE\s+user_id\s*=\s*\?/i, 'password reset should invalidate existing sessions');
 
 assert.match(appJs, /qq_bound/, 'frontend should read QQ bind state without raw OpenID');
 assert.match(appJs, /discord_bound/, 'frontend should read Discord bind state without raw Discord ID');

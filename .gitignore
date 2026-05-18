@@ -1,10 +1,10 @@
-# --- 系统文件 ---
+# System files
 .DS_Store
 Thumbs.db
 Desktop.ini
 ehthumbs.db
 
-# --- 编辑器 / IDE ---
+# Editors / IDEs
 .vscode/
 .idea/
 *.swp
@@ -12,76 +12,71 @@ ehthumbs.db
 *~
 *.sublime-*
 
-# --- Node / 前端依赖 ---
+# Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# --- PHP ---
 vendor/
 composer.lock
 composer.phar
 
-# --- 日志 ---
+# Logs and local server output
 *.log
 logs/
+php-server*.log
+.php-server*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# --- 缓存 / 临时 ---
+# Temporary files and caches
 tmp/
 temp/
 cache/
 *.cache
 .phpunit.result.cache
+data/cache/
 
-# --- 备份 ---
+# Backups
 *.bak
 *.backup
 *.old
 
-# --- Python 临时 ---
+# Python/editor runtime files
 *.pyc
 *.pyo
 __pycache__/
 .python-version
 
-# --- 原始数据（不上传） ---
-*.csv
-*.xlsx
-*.xls
-副本-*.csv
-副本-*.xlsx
-原始数据/
-
-# --- 本地脚本 ---
+# Local conversion / scraping helper scripts
 convert_*.py
 update_*.py
 excel_*.py
 deepseek_*.py
 scrape_*.py
 
-# --- 敏感配置文件 ---
+# Local configuration and secrets
 config.php
 .env
 .env.local
 .env.*.local
-
-# 允许模板文件
-!config.example.php
-!.env.example
-
-# --- 密钥 / 证书 ---
 *.key
 *.pem
 *.cert
 .secrets/
+.user.ini
 
-# --- 数据库文件（包含生产数据） ---
+# Keep templates
+!config.example.php
+!.env.example
+
+# Databases and live runtime data
 data/*.sql
 data/*.db
 data/*.sqlite
+data/*.json
+!data/**/.gitkeep
+!data/**/.htaccess
 
-# --- 用户上传文件 ---
+# User uploads and generated media
 data/avatars/*
 !data/avatars/.gitkeep
 data/club_avatars/*
@@ -89,43 +84,37 @@ data/club_avatars/*
 data/publication_images/*
 !data/publication_images/.gitkeep
 data/event_images/*
-
-# --- 提交数据（含用户个人信息） ---
-data/submissions*.json
-data/qq_members.json
-
-# --- 核心同好会数据（含联系方式） ---
-data/clubs.json
-data/clubs_japan.json
-
-# --- 运行时验证码 ---
-data/register_email_codes.json
-
-# --- 用户反馈数据 ---
-data/feedback.json
-
-# --- Wiki 用户上传图片 ---
+data/manuscripts/*
+!data/manuscripts/.htaccess
+uploads/**
+!uploads/
+!uploads/galonly/
+!uploads/galonly/.htaccess
 wiki/uploads/*
 !wiki/uploads/.gitkeep
 
-# --- 服务器配置 ---
-.user.ini
+# Local wallpaper drop folder.
+# Put local wallpapers here; only the folder placeholder is versioned.
+image/background/*
+!image/background/.gitkeep
 
-# --- Claude Code 缓存 ---
-.claude/
+# Raw spreadsheet/source data
+*.csv
+*.xlsx
+*.xls
+原始数据/
+副本-*.csv
+副本-*.xlsx
 
-# --- Superpowers AI 生成文件 ---
-.superpowers/
-
-# --- Capacitor / Android APK 构建 ---
+# Generated app bundles and build outputs
 www/
 android/
 capacitor.config.json
 *.apk
+dist/
 
-# --- AI 辅助设计文档（内部） ---
+# Internal AI/design workspace
+.claude/
+.superpowers/
 docs/superpowers/
 docs/frontend-design-demo.html
-
-# --- Electron 打包输出 ---
-dist/

@@ -8,6 +8,22 @@
     <meta name="keywords" content="全国Galgame同好会地图,视觉小说,Galgame,同好会,高校社团,地图导航,同好社群" />
     <meta name="author" content="全国Galgame同好会地图" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
+    <script>
+    (function() {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('guest') === '1') return;
+        fetch('./api/auth.php?action=me', { credentials: 'same-origin' })
+            .then(function(resp) { return resp.ok ? resp.json() : null; })
+            .then(function(data) {
+                if (!data || !data.logged_in) {
+                    window.location.replace('login.html');
+                }
+            })
+            .catch(function() {
+                window.location.replace('login.html');
+            });
+    })();
+    </script>
     <!-- Cropper.js -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" />
     <meta name="theme-color" content="#9b59b6" />
@@ -100,6 +116,7 @@
         <button id="topLoginBtn" class="top-login-btn">登录 / 注册</button>
         <button id="topAccountBtn" class="top-account-btn" style="display:none;">账号</button>
         <a id="topAdminBtn" class="top-admin-btn" href="admin/club_manager.html" style="display:none;">同好会管理</a>
+        <a class="top-admin-btn" href="moe/index.html">萌战活动</a>
         <div class="display-switch-container">
           <div class="mode-switch" id="modeSwitch" role="tablist" aria-label="视图模式">
             <button class="mode-tab active" data-mode="map" role="tab" aria-selected="true" title="地图模式">
@@ -161,7 +178,7 @@
             基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a>
           </p>
           <p class="card-body gpl-text" style="margin-top: 4px; font-size: 11px; text-align: center;">
-            <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
+            <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./moe/index.html">萌战活动</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
           </p>
         </div>
       </div>
@@ -221,7 +238,7 @@
                     基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a>
                 </p>
                 <p class="card-body gpl-text" style="margin-top: 4px; font-size: 11px; text-align: center;">
-                    <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
+                    <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./moe/index.html">萌战活动</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
                 </p>
             </div>
         </section>
@@ -350,7 +367,7 @@
                       <a class="submit-btn" href="https://github.com/kokubunshu/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">📦 开源仓库</a>
                     </div>
                     <p class="list-intro-gpl">基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a></p>
-                    <p class="list-intro-gpl"><a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a></p>
+                    <p class="list-intro-gpl"><a href="./wiki/index.html">VNFest WIKI</a> · <a href="./moe/index.html">萌战活动</a> · <a href="./feedback.html">Bug 反馈与功能建议</a></p>
                   </div>
                 </div>
 
@@ -1323,5 +1340,6 @@
       <div class="announcement-banner-body" id="announcementBannerBody"></div>
     </div>
 
+    <script defer src="js/page-background.js?v=20260519-map-after-render" data-picker="compact" data-anchor="introCard" data-after-map></script>
 </body>
 </html>

@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f5f3f0" media="(prefers-color-scheme: light)">
+<title>VNFest · 登录</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── Theme Variables ── */
+:root {
+  --login-wallpaper: url("./images/fd912ee18f271bb0cb042bda8ca85d8c.jpeg");
+  --bg: #090909;
+  --surface: #141313;
+  --surface2: #1f1d1c;
+  --surface3: #292521;
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.18);
+  --text: #f7f1ee;
+  --muted: #b9aaa4;
+  --soft: #7c716d;
+  --primary: #e74c3c;
+  --primary-dim: #bd382b;
+  --primary-soft: rgba(231,76,60,0.14);
+  --accent: #d99a3a;
+  --accent-cool: #5fb7d7;
+  --success: #4fb985;
+  --glass-bg: rgba(18,17,16,0.84);
+  --glass-border: rgba(255,255,255,0.13);
+  --input-bg: rgba(255,255,255,0.055);
+  --shadow-card: 0 28px 80px rgba(0,0,0,0.42), 0 10px 28px rgba(231,76,60,0.10);
+  --radius-card: 8px;
+  --radius-control: 7px;
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  --bg: #f4f1ec;
+  --surface: #ffffff;
+  --surface2: #f7f4ef;
+  --surface3: #eee8df;
+  --border: rgba(69,42,32,0.12);
+  --border-strong: rgba(69,42,32,0.20);
+  --text: #211b18;
+  --muted: #705f57;
+  --soft: #9b8d87;
+  --primary: #e74c3c;
+  --primary-dim: #c23d30;
+  --primary-soft: rgba(231,76,60,0.10);
+  --accent: #b77925;
+  --accent-cool: #287c9a;
+  --success: #258a5c;
+  --glass-bg: rgba(255,255,255,0.88);
+  --glass-border: rgba(69,42,32,0.12);
+  --input-bg: rgba(69,42,32,0.045);
+  --shadow-card: 0 28px 70px rgba(75,48,35,0.12), 0 8px 22px rgba(231,76,60,0.08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #090909; --surface: #141313; --surface2: #1f1d1c; --surface3: #292521;
+    --border: rgba(255,255,255,0.10); --border-strong: rgba(255,255,255,0.18);
+    --text: #f7f1ee; --muted: #b9aaa4; --soft: #7c716d;
+    --primary: #e74c3c; --primary-dim: #bd382b; --primary-soft: rgba(231,76,60,0.14);
+    --accent: #d99a3a; --accent-cool: #5fb7d7; --success: #4fb985;
+    --glass-bg: rgba(18,17,16,0.84); --glass-border: rgba(255,255,255,0.13);
+    --input-bg: rgba(255,255,255,0.06);
+    --shadow-card: 0 28px 80px rgba(0,0,0,0.42), 0 10px 28px rgba(231,76,60,0.10);
+    color-scheme: dark;
+  }
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  min-height: 100vh; min-height: 100dvh;
+  background:
+    linear-gradient(90deg, rgba(9,9,9,0.90), rgba(9,9,9,0.66) 48%, rgba(9,9,9,0.92)),
+    linear-gradient(115deg, color-mix(in srgb, var(--primary) 18%, transparent), transparent 34%),
+    linear-gradient(245deg, color-mix(in srgb, var(--accent-cool) 14%, transparent), transparent 38%),
+    var(--login-wallpaper) center / cover fixed,
+    var(--bg);
+  color: var(--text);
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+  opacity: 0; transition: opacity 0.35s ease;
+}
+:root[data-theme='light'] body {
+  background:
+    linear-gradient(90deg, rgba(244,241,236,0.86), rgba(244,241,236,0.58) 48%, rgba(244,241,236,0.90)),
+    linear-gradient(115deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 34%),
+    linear-gradient(245deg, color-mix(in srgb, var(--accent-cool) 10%, transparent), transparent 38%),
+    var(--login-wallpaper) center / cover fixed,
+    var(--bg);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(90deg, transparent, #000 16%, #000 84%, transparent);
+}
+:root[data-theme='light'] body::before {
+  background-image:
+    linear-gradient(rgba(92,58,44,0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(92,58,44,0.055) 1px, transparent 1px);
+}
+body.ready { opacity: 1; }
+a { color: inherit; text-decoration: none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--primary) 68%, var(--surface3));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* ── Particle Canvas ── */
+#particleCanvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Layout ── */
+.login-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100vw - 48px));
+  min-height: calc(100dvh - 48px);
+  margin: 24px auto;
+  display: grid;
+  grid-template-columns: minmax(420px, 1.08fr) minmax(360px, 430px);
+  align-items: center;
+  gap: 28px;
+  animation: cardEnter 0.6s var(--ease-spring) both;
+}
+@keyframes cardEnter {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+}
+
+/* ── Branding ── */
+.brand-panel {
+  min-height: 640px;
+  padding: clamp(24px, 4vw, 48px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--surface) 76%, transparent), color-mix(in srgb, var(--surface2) 58%, transparent)),
+    linear-gradient(180deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 42%);
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: var(--shadow-card);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: clamp(26px, 4vw, 52px);
+  overflow: hidden;
+  position: relative;
+}
+.brand-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(120deg, rgba(255,255,255,0.12), transparent 30%, transparent 70%, rgba(255,255,255,0.06));
+  opacity: 0.5;
+}
+.brand-mark {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.brand-symbol {
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0;
+  box-shadow: 0 12px 28px rgba(231,76,60,0.28);
+}
+.brand-mark strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+.brand-mark small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.brand-copy {
+  align-self: center;
+  max-width: 620px;
+  position: relative;
+  z-index: 1;
+}
+.eyebrow {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.brand-copy h1 {
+  max-width: 560px;
+  font-size: clamp(34px, 4.4vw, 64px);
+  line-height: 1.05;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+.brand-copy p:last-child {
+  max-width: 520px;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.8;
+  text-wrap: pretty;
+}
+.preview-window {
+  position: relative;
+  z-index: 1;
+  min-height: 174px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--surface2) 96%, transparent), transparent),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(255,255,255,0.05) 32px),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgba(255,255,255,0.05) 32px);
+  overflow: hidden;
+}
+.route-line {
+  position: absolute;
+  left: 12%;
+  right: 14%;
+  top: 52%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--primary), var(--accent), var(--accent-cool));
+  opacity: 0.7;
+}
+.map-node {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 0 6px var(--primary-soft);
+}
+.map-node.one { left: 12%; top: 49%; }
+.map-node.two { left: 44%; top: 31%; border-color: var(--accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 18%, transparent); }
+.map-node.three { right: 14%; top: 49%; border-color: var(--accent-cool); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent-cool) 18%, transparent); }
+.preview-card {
+  position: absolute;
+  width: min(210px, 36%);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  background: color-mix(in srgb, var(--glass-bg) 90%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.18);
+}
+.preview-card.top { left: 7%; top: 18px; }
+.preview-card.bottom { right: 7%; bottom: 18px; }
+.preview-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.preview-card strong {
+  display: block;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.35;
+}
+.preview-card i {
+  display: block;
+  width: 68%;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 35%, var(--surface3));
+}
+.brand-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  position: relative;
+  z-index: 1;
+}
+.brand-footer a {
+  color: var(--text);
+  font-weight: 700;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 64%, transparent);
+}
+.brand-footer a:hover { color: var(--primary); }
+
+/* ── Auth Panel ── */
+.auth-panel {
+  width: 100%;
+  align-self: center;
+}
+.auth-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+.auth-tools {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.wallpaper-select {
+  max-width: 150px;
+  min-height: 28px;
+  padding: 4px 28px 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--surface2);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  outline: none;
+}
+.wallpaper-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(231,76,60,0.14);
+}
+.wallpaper-select[hidden] { display: none; }
+
+/* ── Glass Card ── */
+.gate-card {
+  width: 100%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 30px;
+  transition: box-shadow 0.3s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-6px); }
+  30% { transform: translateX(5px); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(3px); }
+  75% { transform: translateX(-2px); }
+  90% { transform: translateX(1px); }
+}
+
+/* ── Forms ── */
+.form-panel { transition: opacity 0.3s ease, transform 0.3s var(--ease-spring); }
+.form-panel.inactive { display: none; }
+.form-title {
+  margin-bottom: 22px;
+}
+.form-title h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-wrap: pretty;
+}
+.form-title p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block; font-size: 12px; color: var(--muted); margin-bottom: 7px; font-weight: 700;
+}
+.form-input {
+  width: 100%; min-height: 44px;
+  padding: 11px 13px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  color: var(--text);
+  font: inherit; font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(231,76,60,0.15);
+  background: color-mix(in srgb, var(--input-bg) 72%, var(--surface));
+}
+.form-input::placeholder { color: var(--soft); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 44px; padding: 10px 20px;
+  border: 1px solid var(--border); border-radius: var(--radius-control);
+  background: var(--surface2); color: var(--text);
+  font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; user-select: none;
+  transition: transform 0.16s var(--ease-spring), box-shadow 0.16s ease, border-color 0.16s ease, opacity 0.16s ease;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.btn:active { transform: translateY(1px) scale(0.99); }
+.btn:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; }
+
+.btn.primary {
+  width: 100%;
+  margin-top: 2px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 94%, #fff), var(--primary-dim));
+  border-color: color-mix(in srgb, var(--primary) 84%, #fff);
+  color: #fff; font-size: 15px; letter-spacing: 2px;
+  box-shadow: 0 12px 26px rgba(231,76,60,0.22);
+}
+.btn.primary:hover {
+  background: linear-gradient(180deg, var(--primary), var(--primary-dim));
+  border-color: var(--primary);
+}
+
+/* Send code row */
+.code-row { display: flex; gap: 8px; }
+.code-row .form-input { flex: 1; min-width: 0; }
+#sendCodeBtn { flex: 0 0 auto; white-space: nowrap; font-size: 12px; min-height: 44px; padding-inline: 14px; }
+
+/* Social login */
+.social-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0 14px; color: var(--soft); font-size: 12px;
+}
+.social-divider::before, .social-divider::after {
+  content: ""; flex: 1; height: 1px; background: var(--border);
+}
+.social-row { display: flex; gap: 10px; }
+.social-row .btn { flex: 1; font-size: 13px; }
+.btn.qq { border-color: rgba(18,183,245,0.4); color: #12b7f5; background: color-mix(in srgb, #12b7f5 7%, var(--surface2)); }
+.btn.qq:hover { background: rgba(18,183,245,0.08); border-color: #12b7f5; }
+:root[data-theme='light'] .btn.qq:hover { background: rgba(18,183,245,0.06); }
+.btn.discord { border-color: rgba(88,101,242,0.4); color: #7f8aff; background: color-mix(in srgb, #5865f2 7%, var(--surface2)); }
+.btn.discord:hover { background: rgba(88,101,242,0.08); border-color: #5865f2; }
+:root[data-theme='light'] .btn.discord:hover { background: rgba(88,101,242,0.06); }
+
+/* Messages */
+.msg {
+  margin-top: 12px; padding: 10px 12px; border-radius: var(--radius-control);
+  font-size: 13px; font-weight: 600; text-align: center;
+  transition: opacity 0.3s ease;
+}
+.msg.error {
+  background: rgba(231,76,60,0.12); color: var(--primary);
+  border: 1px solid rgba(231,76,60,0.2);
+}
+.msg.success {
+  background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success);
+  border: 1px solid color-mix(in srgb, var(--success) 28%, transparent);
+}
+
+/* Form switch link */
+.form-switch {
+  text-align: center; margin-top: 18px; font-size: 13px; color: var(--muted);
+}
+.form-switch a { color: var(--primary); font-weight: 600; cursor: pointer; }
+.form-switch a:hover { text-decoration: underline; }
+.form-link-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
+  font-size: 12px;
+}
+.form-link-row a {
+  color: var(--muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+.form-link-row a:hover { color: var(--primary); }
+
+/* ── Theme Toggle ── */
+.theme-pill {
+  flex: 0 0 auto;
+  width: 52px; height: 28px;
+  border-radius: 40px; border: 1px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer; position: relative;
+  transition: background 0.3s var(--ease-spring);
+}
+.theme-pill::after {
+  content: "";
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  transition: transform 0.3s var(--ease-spring);
+}
+:root[data-theme='light'] .theme-pill::after { transform: translateX(24px); }
+
+/* ── Responsive ── */
+@media (max-width: 960px) {
+  .login-shell {
+    width: min(620px, calc(100vw - 28px));
+    min-height: calc(100dvh - 28px);
+    margin: 14px auto;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .auth-panel { order: -1; }
+  .brand-panel {
+    min-height: auto;
+    padding: 22px;
+    gap: 22px;
+  }
+  .brand-copy h1 { font-size: clamp(28px, 9vw, 42px); }
+  .preview-window { min-height: 132px; }
+}
+@media (max-width: 560px) {
+  body {
+    background:
+      linear-gradient(180deg, rgba(9,9,9,0.82), rgba(9,9,9,0.94)),
+      linear-gradient(130deg, color-mix(in srgb, var(--primary) 12%, transparent), transparent 40%),
+      var(--login-wallpaper) center top / cover scroll,
+      var(--bg);
+  }
+  :root[data-theme='light'] body {
+    background:
+      linear-gradient(180deg, rgba(244,241,236,0.80), rgba(244,241,236,0.94)),
+      linear-gradient(130deg, color-mix(in srgb, var(--primary) 10%, transparent), transparent 40%),
+      var(--login-wallpaper) center top / cover scroll,
+      var(--bg);
+  }
+  .login-shell {
+    width: calc(100vw - 20px);
+    margin: 10px auto;
+  }
+  .gate-card { padding: 22px 16px; }
+  .auth-top { margin-bottom: 10px; }
+  .auth-tools { flex: 1; }
+  .wallpaper-select { flex: 1; max-width: none; }
+  .brand-panel { padding: 18px; }
+  .brand-symbol { width: 40px; height: 40px; }
+  .brand-copy p:last-child { font-size: 14px; line-height: 1.7; }
+  .preview-card { width: 44%; padding: 10px; }
+  .social-row { flex-direction: column; }
+  .code-row { flex-direction: column; }
+  #sendCodeBtn,
+  #sendResetCodeBtn { width: 100%; }
+}
+@media (max-height: 700px) {
+  .login-shell { align-items: start; }
+  .brand-panel { min-height: 560px; }
+  .gate-card { padding: 22px 20px; }
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<canvas id="particleCanvas" aria-hidden="true"></canvas>
+
+<div class="login-shell">
+  <section class="brand-panel" aria-label="VNFest 入口">
+    <a class="brand-mark" href="index.html?guest=1" aria-label="返回 VNFest 地图">
+      <span class="brand-symbol">VN</span>
+      <span>
+        <strong>VNFest</strong>
+        <small>视觉小说高校学园祭</small>
+      </span>
+    </a>
+
+    <div class="brand-copy">
+      <p class="eyebrow">Campus visual novel atlas</p>
+      <h1>回到你的同好会。</h1>
+      <p>管理活动、关注社团动态，也可以继续参与萌战与投稿流程。</p>
+    </div>
+
+    <div>
+      <div class="preview-window" aria-hidden="true">
+        <div class="route-line"></div>
+        <span class="map-node one"></span>
+        <span class="map-node two"></span>
+        <span class="map-node three"></span>
+        <div class="preview-card top">
+          <span>CLUB MAP</span>
+          <strong>高校同好会地图</strong>
+          <i></i>
+        </div>
+        <div class="preview-card bottom">
+          <span>EVENT FLOW</span>
+          <strong>活动、投稿与萌战</strong>
+          <i></i>
+        </div>
+      </div>
+      <div class="brand-footer">
+        <span>VNFest account center</span>
+        <a href="index.html?guest=1">先看看地图</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="auth-panel" aria-label="账号登录">
+    <div class="auth-top">
+      <span>账号入口</span>
+      <div class="auth-tools">
+        <select class="wallpaper-select" id="wallpaperSelect" title="选择登录页壁纸" aria-label="选择登录页壁纸" hidden>
+          <option value="__random__">随机壁纸</option>
+        </select>
+        <button class="theme-pill" id="themeToggle" title="切换主题" aria-label="切换主题"></button>
+      </div>
+    </div>
+
+    <div class="gate-card" id="gateCard">
+      <!-- Login Form -->
+      <div class="form-panel" id="loginForm">
+        <div class="form-title">
+          <h2>欢迎回来</h2>
+          <p>登录后继续管理社团资料、活动投稿与个人账号。</p>
+        </div>
+        <div class="form-group">
+          <label for="loginUsername">用户名 / 邮箱</label>
+          <input class="form-input" type="text" id="loginUsername" placeholder="用户名或邮箱" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">密码</label>
+          <input class="form-input" type="password" id="loginPassword" placeholder="输入密码" autocomplete="current-password">
+        </div>
+        <div class="form-link-row">
+          <a id="goForgot">忘记密码？</a>
+        </div>
+        <button class="btn primary" id="loginBtn">登 录</button>
+        <div class="msg" id="loginMsg" style="display:none"></div>
+
+        <div class="social-divider" id="socialDivider"><span>其他登录方式</span></div>
+        <div class="social-row" id="socialRow">
+          <button class="btn qq" id="qqLoginBtn">QQ 登录</button>
+          <button class="btn discord" id="discordLoginBtn">Discord 登录</button>
+        </div>
+        <div class="form-switch">
+          还没有账号？<a id="goRegister">注册</a>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div class="form-panel inactive" id="registerForm">
+        <div class="form-title">
+          <h2>创建账号</h2>
+          <p>使用邮箱验证码完成注册，之后可参与活动与社团管理。</p>
+        </div>
+        <div class="form-group">
+          <label for="regUsername">用户名</label>
+          <input class="form-input" type="text" id="regUsername" placeholder="2-20位字符" autocomplete="username" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label for="regPassword">密码</label>
+          <input class="form-input" type="password" id="regPassword" placeholder="至少6位" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="regEmail">邮箱</label>
+          <div class="code-row">
+            <input class="form-input" type="email" id="regEmail" placeholder="用于接收验证码" autocomplete="email">
+            <button class="btn" id="sendCodeBtn">发送验证码</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="regCode">验证码</label>
+          <input class="form-input" type="text" id="regCode" placeholder="6位验证码" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        </div>
+        <button class="btn primary" id="registerBtn">注 册</button>
+        <div class="msg" id="regMsg" style="display:none"></div>
+        <div class="form-switch">
+          已有账号？<a id="goLogin">返回登录</a>
+        </div>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <div class="form-panel inactive" id="forgotForm">
+        <div class="form-title">
+          <h2>找回密码</h2>
+          <p>输入已绑定的邮箱，使用验证码设置新的登录密码。</p>
+        </div>
+        <div class="form-group">
+          <label for="forgotEmail">邮箱</label>
+          <div class="code-row">
+            <input class="form-input" type="email" id="forgotEmail" placeholder="已绑定的邮箱" autocomplete="email">
+            <button class="btn" id="sendResetCodeBtn">发送验证码</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="forgotCode">验证码</label>
+          <input class="form-input" type="text" id="forgotCode" placeholder="6位验证码" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        </div>
+        <div class="form-group">
+          <label for="forgotPassword">新密码</label>
+          <input class="form-input" type="password" id="forgotPassword" placeholder="至少6位" autocomplete="new-password">
+        </div>
+        <button class="btn primary" id="resetPasswordBtn">重置密码</button>
+        <div class="msg" id="forgotMsg" style="display:none"></div>
+        <div class="form-switch">
+          想起来了？<a id="forgotGoLogin">返回登录</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function() {
+
+/* ── Theme ── */
+var themeToggle = document.getElementById('themeToggle');
+var wallpaperSelect = document.getElementById('wallpaperSelect');
+
+function getCurrentTheme() {
+  var attr = document.documentElement.getAttribute('data-theme');
+  if (attr === 'light' || attr === 'dark') return attr;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  try { localStorage.setItem('themePreference', theme); } catch (e) {}
+}
+
+(function initTheme() {
+  var saved;
+  try { saved = localStorage.getItem('themePreference'); } catch (e) {}
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.setAttribute('data-theme', saved);
+  }
+})();
+
+themeToggle.addEventListener('click', function() {
+  applyTheme(getCurrentTheme() === 'dark' ? 'light' : 'dark');
+});
+
+/* ── Wallpaper ── */
+function cssWallpaperUrl(url) {
+  return 'url("' + String(url || '').replace(/\\/g, '/').replace(/"/g, '\\"') + '")';
+}
+
+function applyWallpaper(url) {
+  if (!url) return;
+  document.documentElement.style.setProperty('--login-wallpaper', cssWallpaperUrl(url));
+}
+
+function pickRandomWallpaper(images) {
+  if (!images || !images.length) return null;
+  return images[Math.floor(Math.random() * images.length)];
+}
+
+function setWallpaperPreference(value) {
+  try {
+    if (value && value !== '__random__') {
+      localStorage.setItem('vnfestWallpaperPreference', value);
+    } else {
+      localStorage.removeItem('vnfestWallpaperPreference');
+    }
+  } catch (e) {}
+}
+
+async function initWallpapers() {
+  if (!wallpaperSelect) return;
+  var images = [{ name: '默认壁纸', file: 'fd912ee18f271bb0cb042bda8ca85d8c.jpeg', url: 'images/fd912ee18f271bb0cb042bda8ca85d8c.jpeg' }];
+  try {
+    var resp = await fetch('api/backgrounds.php', { credentials: 'same-origin' });
+    var data = await resp.json();
+    if (data && Array.isArray(data.images) && data.images.length) {
+      images = data.images;
+    }
+
+    wallpaperSelect.hidden = false;
+    images.forEach(function(item) {
+      var option = document.createElement('option');
+      option.value = item.url;
+      option.textContent = item.name || item.file || item.url;
+      wallpaperSelect.appendChild(option);
+    });
+
+    var saved = '';
+    try { saved = localStorage.getItem('vnfestWallpaperPreference') || ''; } catch (e) {}
+    var selected = images.find(function(item) { return item.url === saved || new URL(item.url, window.location.href).toString() === saved; });
+    if (selected) {
+      wallpaperSelect.value = selected.url;
+      applyWallpaper(selected.url);
+    } else {
+      wallpaperSelect.value = '__random__';
+      var random = pickRandomWallpaper(images);
+      if (random) applyWallpaper(random.url);
+    }
+
+    wallpaperSelect.addEventListener('change', function() {
+      var value = wallpaperSelect.value;
+      if (value === '__random__') {
+        setWallpaperPreference(value);
+        var random = pickRandomWallpaper(images);
+        if (random) applyWallpaper(random.url);
+        return;
+      }
+      setWallpaperPreference(value);
+      applyWallpaper(value);
+    });
+  } catch (e) {}
+}
+
+/* ── Auth Check (Gate) ── */
+async function checkAuth() {
+  try {
+    var resp = await fetch('api/auth.php?action=me', { credentials: 'same-origin' });
+    var data = await resp.json();
+    if (data.logged_in) {
+      window.location.replace('index.html');
+      return true;
+    }
+  } catch (e) { /* network error, show login */ }
+  return false;
+}
+
+/* ── OAuth Config ── */
+async function checkOAuthConfig() {
+  try {
+    var resp = await fetch('api/auth.php?action=oauth_config', { credentials: 'same-origin' });
+    var data = await resp.json();
+    var showQQ = data.qq_configured;
+    var showDiscord = data.discord_configured;
+    document.getElementById('qqLoginBtn').style.display = showQQ ? '' : 'none';
+    document.getElementById('discordLoginBtn').style.display = showDiscord ? '' : 'none';
+    var anySocial = showQQ || showDiscord;
+    document.getElementById('socialDivider').style.display = anySocial ? '' : 'none';
+    document.getElementById('socialRow').style.display = anySocial ? '' : 'none';
+  } catch (e) {}
+}
+
+/* ── Particle Canvas ── */
+var canvas, ctx, particles = [], animId, canvasW, canvasH;
+
+function initParticles() {
+  canvas = document.getElementById('particleCanvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+
+  var count = 70;
+  var colors = ['#e74c3c', '#ff6b5c', '#c0392b', '#ff9e96', '#e74c3c'];
+  for (var i = 0; i < count; i++) {
+    particles.push({
+      x: Math.random() * canvasW,
+      y: Math.random() * canvasH,
+      vx: (Math.random() - 0.5) * 0.4,
+      vy: (Math.random() - 1) * 0.5,
+      size: Math.random() * 2.5 + 1,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      opacity: Math.random() * 0.2 + 0.05,
+      wobble: Math.random() * Math.PI * 2
+    });
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  document.addEventListener('visibilitychange', onVisibility);
+  tick();
+}
+
+function resizeCanvas() {
+  canvasW = window.innerWidth;
+  canvasH = window.innerHeight;
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+}
+
+function onVisibility() {
+  if (document.hidden) {
+    if (animId) { cancelAnimationFrame(animId); animId = null; }
+  } else {
+    if (!animId) tick();
+  }
+}
+
+function tick() {
+  animId = requestAnimationFrame(tick);
+  ctx.clearRect(0, 0, canvasW, canvasH);
+
+  for (var i = 0; i < particles.length; i++) {
+    var p = particles[i];
+    p.wobble += 0.008;
+    p.x += p.vx + Math.sin(p.wobble) * 0.15;
+    p.y += p.vy;
+
+    if (p.x < -10) p.x = canvasW + 10;
+    if (p.x > canvasW + 10) p.x = -10;
+    if (p.y < -10) p.y = canvasH + 10;
+    if (p.y > canvasH + 10) p.y = -10;
+
+    ctx.globalAlpha = p.opacity;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Subtle connections between nearby particles
+  ctx.globalAlpha = 0.04;
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 0.5;
+  for (var i = 0; i < particles.length; i++) {
+    for (var j = i + 1; j < particles.length; j++) {
+      var dx = particles[i].x - particles[j].x;
+      var dy = particles[i].y - particles[j].y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 120) {
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.stroke();
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ── Form Switching ── */
+var loginForm = document.getElementById('loginForm');
+var registerForm = document.getElementById('registerForm');
+var forgotForm = document.getElementById('forgotForm');
+
+function showLoginForm() {
+  registerForm.classList.add('inactive');
+  forgotForm.classList.add('inactive');
+  loginForm.classList.remove('inactive');
+  hideMsg('loginMsg');
+  hideMsg('regMsg');
+  hideMsg('forgotMsg');
+  clearFormInputs('regUsername', 'regPassword', 'regEmail', 'regCode');
+  clearFormInputs('forgotEmail', 'forgotCode', 'forgotPassword');
+}
+
+function showRegisterForm() {
+  loginForm.classList.add('inactive');
+  forgotForm.classList.add('inactive');
+  registerForm.classList.remove('inactive');
+  hideMsg('loginMsg');
+  hideMsg('regMsg');
+  hideMsg('forgotMsg');
+  clearFormInputs('loginUsername', 'loginPassword');
+  clearFormInputs('forgotEmail', 'forgotCode', 'forgotPassword');
+}
+
+function showForgotForm() {
+  loginForm.classList.add('inactive');
+  registerForm.classList.add('inactive');
+  forgotForm.classList.remove('inactive');
+  hideMsg('loginMsg');
+  hideMsg('regMsg');
+  hideMsg('forgotMsg');
+  var loginUsername = document.getElementById('loginUsername');
+  var forgotEmail = document.getElementById('forgotEmail');
+  if (loginUsername && forgotEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(loginUsername.value.trim())) {
+    forgotEmail.value = loginUsername.value.trim();
+  }
+  clearFormInputs('loginPassword');
+}
+
+document.getElementById('goRegister').addEventListener('click', showRegisterForm);
+document.getElementById('goLogin').addEventListener('click', showLoginForm);
+document.getElementById('goForgot').addEventListener('click', showForgotForm);
+document.getElementById('forgotGoLogin').addEventListener('click', showLoginForm);
+
+function clearFormInputs() {
+  for (var i = 0; i < arguments.length; i++) {
+    var el = document.getElementById(arguments[i]);
+    if (el) el.value = '';
+  }
+}
+
+/* ── Utilities ── */
+function showMsg(id, text, type) {
+  var el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg ' + type;
+  el.style.display = 'block';
+}
+
+function hideMsg(id) {
+  var el = document.getElementById(id);
+  el.style.display = 'none';
+}
+
+function shakeCard() {
+  var card = document.getElementById('gateCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'shake 0.45s ease';
+}
+
+function setLoading(btnId, loading, text) {
+  var btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.textContent = text;
+}
+
+/* ── Login Handler ── */
+document.getElementById('loginBtn').addEventListener('click', handleLogin);
+document.getElementById('loginPassword').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleLogin();
+});
+
+async function handleLogin() {
+  var username = document.getElementById('loginUsername').value.trim();
+  var password = document.getElementById('loginPassword').value;
+
+  if (!username || !password) {
+    showMsg('loginMsg', '请输入用户名和密码', 'error');
+    shakeCard();
+    return;
+  }
+  if (password.length < 6) {
+    showMsg('loginMsg', '密码至少需要6位', 'error');
+    shakeCard();
+    return;
+  }
+
+  setLoading('loginBtn', true, '登录中...');
+  hideMsg('loginMsg');
+
+  try {
+    var resp = await fetch('api/auth.php?action=login_local', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      showMsg('loginMsg', '登录成功，正在跳转...', 'success');
+      setTimeout(function() { window.location.replace('index.html'); }, 600);
+    } else {
+      showMsg('loginMsg', data.message || '用户名或密码错误', 'error');
+      shakeCard();
+    }
+  } catch (e) {
+    showMsg('loginMsg', '网络错误，请检查连接', 'error');
+  } finally {
+    setLoading('loginBtn', false, '登 录');
+  }
+}
+
+/* ── Social Login ── */
+document.getElementById('qqLoginBtn').addEventListener('click', function() {
+  window.location.href = 'api/auth.php?action=qq_auth&mode=login';
+});
+document.getElementById('discordLoginBtn').addEventListener('click', function() {
+  window.location.href = 'api/auth.php?action=discord_auth&mode=login';
+});
+
+/* ── Send Code (with 60s cooldown) ── */
+var codeCooldown = 0;
+var cooldownTimer = null;
+
+document.getElementById('sendCodeBtn').addEventListener('click', async function() {
+  if (codeCooldown > 0) return;
+  var email = document.getElementById('regEmail').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('regMsg', '请输入有效的邮箱地址', 'error');
+    return;
+  }
+
+  setLoading('sendCodeBtn', true, '发送中...');
+  hideMsg('regMsg');
+
+  try {
+    var resp = await fetch('api/auth.php?action=send_register_code', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      showMsg('regMsg', '验证码已发送，请检查邮箱', 'success');
+      startCooldown();
+    } else {
+      showMsg('regMsg', data.message || '发送失败，请稍后重试', 'error');
+    }
+  } catch (e) {
+    showMsg('regMsg', '网络错误，请检查连接', 'error');
+  } finally {
+    setLoading('sendCodeBtn', false, '发送验证码');
+  }
+});
+
+function startCooldown() {
+  codeCooldown = 60;
+  updateCooldownUI();
+  cooldownTimer = setInterval(function() {
+    codeCooldown--;
+    if (codeCooldown <= 0) {
+      clearInterval(cooldownTimer);
+      cooldownTimer = null;
+      setLoading('sendCodeBtn', false, '发送验证码');
+    } else {
+      updateCooldownUI();
+    }
+  }, 1000);
+}
+
+function updateCooldownUI() {
+  var btn = document.getElementById('sendCodeBtn');
+  btn.disabled = true;
+  btn.textContent = codeCooldown + 's 后重发';
+}
+
+/* ── Register Handler ── */
+document.getElementById('registerBtn').addEventListener('click', handleRegister);
+var regInputs = ['regUsername', 'regPassword', 'regEmail', 'regCode'];
+for (var i = 0; i < regInputs.length; i++) {
+  document.getElementById(regInputs[i]).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleRegister();
+  });
+}
+
+async function handleRegister() {
+  var username = document.getElementById('regUsername').value.trim();
+  var password = document.getElementById('regPassword').value;
+  var email = document.getElementById('regEmail').value.trim();
+  var code = document.getElementById('regCode').value.trim();
+
+  if (!username || !password || !email || !code) {
+    showMsg('regMsg', '请填写所有字段', 'error');
+    shakeCard();
+    return;
+  }
+  if (username.length < 2 || username.length > 20) {
+    showMsg('regMsg', '用户名需要2-20位字符', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showMsg('regMsg', '密码至少需要6位', 'error');
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('regMsg', '请输入有效的邮箱地址', 'error');
+    return;
+  }
+  if (!/^\d{6}$/.test(code)) {
+    showMsg('regMsg', '验证码为6位数字', 'error');
+    return;
+  }
+
+  setLoading('registerBtn', true, '注册中...');
+  hideMsg('regMsg');
+
+  try {
+    var resp = await fetch('api/auth.php?action=register_local', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password, email: email, code: code })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      showMsg('regMsg', '注册成功，正在跳转...', 'success');
+      setTimeout(function() { window.location.replace('index.html'); }, 800);
+    } else {
+      showMsg('regMsg', data.message || '注册失败', 'error');
+      shakeCard();
+    }
+  } catch (e) {
+    showMsg('regMsg', '网络错误，请检查连接', 'error');
+  } finally {
+    setLoading('registerBtn', false, '注 册');
+  }
+}
+
+/* ── Password Reset ── */
+var resetCooldown = 0;
+var resetCooldownTimer = null;
+
+document.getElementById('sendResetCodeBtn').addEventListener('click', handleSendResetCode);
+document.getElementById('resetPasswordBtn').addEventListener('click', handleResetPassword);
+var forgotInputs = ['forgotEmail', 'forgotCode', 'forgotPassword'];
+for (var f = 0; f < forgotInputs.length; f++) {
+  document.getElementById(forgotInputs[f]).addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') handleResetPassword();
+  });
+}
+
+async function handleSendResetCode() {
+  if (resetCooldown > 0) return;
+  var email = document.getElementById('forgotEmail').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('forgotMsg', '请输入有效的邮箱地址', 'error');
+    return;
+  }
+
+  setLoading('sendResetCodeBtn', true, '发送中...');
+  hideMsg('forgotMsg');
+
+  try {
+    var resp = await fetch('api/auth.php?action=send_password_reset_code', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      showMsg('forgotMsg', data.message || '如果邮箱已绑定账号，验证码将发送至该邮箱', 'success');
+      startResetCooldown();
+    } else {
+      showMsg('forgotMsg', data.message || '发送失败，请稍后重试', 'error');
+    }
+  } catch (e) {
+    showMsg('forgotMsg', '网络错误，请检查连接', 'error');
+  } finally {
+    if (resetCooldown <= 0) setLoading('sendResetCodeBtn', false, '发送验证码');
+  }
+}
+
+function startResetCooldown() {
+  resetCooldown = 60;
+  updateResetCooldownUI();
+  resetCooldownTimer = setInterval(function() {
+    resetCooldown--;
+    if (resetCooldown <= 0) {
+      clearInterval(resetCooldownTimer);
+      resetCooldownTimer = null;
+      setLoading('sendResetCodeBtn', false, '发送验证码');
+    } else {
+      updateResetCooldownUI();
+    }
+  }, 1000);
+}
+
+function updateResetCooldownUI() {
+  var btn = document.getElementById('sendResetCodeBtn');
+  btn.disabled = true;
+  btn.textContent = resetCooldown + 's 后重发';
+}
+
+async function handleResetPassword() {
+  var email = document.getElementById('forgotEmail').value.trim();
+  var code = document.getElementById('forgotCode').value.trim();
+  var password = document.getElementById('forgotPassword').value;
+
+  if (!email || !code || !password) {
+    showMsg('forgotMsg', '请填写邮箱、验证码和新密码', 'error');
+    shakeCard();
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('forgotMsg', '请输入有效的邮箱地址', 'error');
+    return;
+  }
+  if (!/^\d{6}$/.test(code)) {
+    showMsg('forgotMsg', '验证码为6位数字', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showMsg('forgotMsg', '新密码至少需要6位', 'error');
+    return;
+  }
+
+  setLoading('resetPasswordBtn', true, '重置中...');
+  hideMsg('forgotMsg');
+
+  try {
+    var resp = await fetch('api/auth.php?action=reset_password', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email, code: code, new_password: password })
+    });
+    var data = await resp.json();
+    if (data.success) {
+      showMsg('forgotMsg', data.message || '密码已重置，请使用新密码登录', 'success');
+      clearFormInputs('forgotCode', 'forgotPassword');
+      setTimeout(function() {
+        showLoginForm();
+        document.getElementById('loginUsername').value = email;
+        showMsg('loginMsg', '密码已重置，请使用新密码登录', 'success');
+      }, 900);
+    } else {
+      showMsg('forgotMsg', data.message || '重置失败，请检查验证码', 'error');
+      shakeCard();
+    }
+  } catch (e) {
+    showMsg('forgotMsg', '网络错误，请检查连接', 'error');
+  } finally {
+    setLoading('resetPasswordBtn', false, '重置密码');
+  }
+}
+
+/* ── Init ── */
+async function init() {
+  var isLoggedIn = await checkAuth();
+  if (isLoggedIn) return;
+  initWallpapers();
+  initParticles();
+  checkOAuthConfig();
+  document.body.classList.add('ready');
+}
+
+init();
+
+})();
+</script>
+
+</body>
+</html>

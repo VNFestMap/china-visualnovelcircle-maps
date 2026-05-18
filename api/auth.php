@@ -38,6 +38,24 @@ function writeRegisterCodes(array $rows): bool {
     return file_put_contents($file, json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX) !== false;
 }
 
+function passwordResetCodeFile(): string {
+    return __DIR__ . '/../data/password_reset_codes.json';
+}
+
+function readPasswordResetCodes(): array {
+    $file = passwordResetCodeFile();
+    if (!file_exists($file)) return [];
+    $rows = json_decode(file_get_contents($file), true);
+    return is_array($rows) ? $rows : [];
+}
+
+function writePasswordResetCodes(array $rows): bool {
+    $file = passwordResetCodeFile();
+    $dir = dirname($file);
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    return file_put_contents($file, json_encode($rows, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX) !== false;
+}
+
 function normalizeEmail(string $email): string {
     return strtolower(trim($email));
 }
@@ -218,6 +236,128 @@ switch ($action) {
             'success' => true,
             'message' => '验证码已发送至 ' . maskEmail($email),
         ]);
+        exit();
+
+    case 'send_password_reset_code':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        checkRateLimit('send_password_reset_code', 3, 1);
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = normalizeEmail($input['email'] ?? '');
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => '邮箱格式不正确']);
+            exit();
+        }
+
+        $genericMessage = '如果该邮箱已绑定账号，验证码将发送至 ' . maskEmail($email);
+        $db = getDB();
+        $stmt = $db->prepare("SELECT id, username FROM users WHERE email = ? AND status = 'active' LIMIT 1");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if (!$user) {
+            logAction('user.send_password_reset_code', 'user', null, ['email' => $email, 'mail_sent' => false, 'found' => false]);
+            echo json_encode(['success' => true, 'message' => $genericMessage]);
+            exit();
+        }
+
+        $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $codes = array_values(array_filter(readPasswordResetCodes(), function ($row) use ($email) {
+            return ($row['email'] ?? '') !== $email || !empty($row['used']) || (int)($row['expires_at'] ?? 0) <= time();
+        }));
+        $codes[] = [
+            'email' => $email,
+            'user_id' => (int)$user['id'],
+            'code' => $code,
+            'used' => false,
+            'expires_at' => time() + 300,
+            'created_at' => time(),
+        ];
+        writePasswordResetCodes($codes);
+
+        $subject = ($subjectPrefix ?? '') . '密码找回验证码';
+        $message = "您的密码找回验证码是：{$code}\n\n";
+        $message .= "验证码 5 分钟内有效。若不是您本人操作，请忽略此邮件并尽快检查账号安全。\n";
+        $mailSent = sendMail($email, $subject, $message);
+
+        logAction('user.send_password_reset_code', 'user', (int)$user['id'], ['email' => $email, 'mail_sent' => $mailSent, 'found' => true]);
+        if (!$mailSent) {
+            echo json_encode(['success' => false, 'message' => '验证码发送失败，请稍后再试']);
+            exit();
+        }
+
+        echo json_encode(['success' => true, 'message' => $genericMessage]);
+        exit();
+
+    case 'reset_password':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        checkRateLimit('reset_password', 5, 1);
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $email = normalizeEmail($input['email'] ?? '');
+        $code = trim($input['code'] ?? '');
+        $newPassword = $input['new_password'] ?? '';
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => '邮箱格式不正确']);
+            exit();
+        }
+        if (!preg_match('/^\d{6}$/', $code)) {
+            echo json_encode(['success' => false, 'message' => '验证码为 6 位数字']);
+            exit();
+        }
+        if (strlen($newPassword) < 6 || strlen($newPassword) > 128) {
+            echo json_encode(['success' => false, 'message' => '新密码需为 6-128 位']);
+            exit();
+        }
+
+        $db = getDB();
+        $stmt = $db->prepare("SELECT id FROM users WHERE email = ? AND status = 'active' LIMIT 1");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+        if (!$user) {
+            echo json_encode(['success' => false, 'message' => '验证码无效或已过期']);
+            exit();
+        }
+
+        $codes = readPasswordResetCodes();
+        $matchedIndex = null;
+        $now = time();
+        foreach ($codes as $i => $row) {
+            if (
+                (int)($row['user_id'] ?? 0) === (int)$user['id'] &&
+                ($row['email'] ?? '') === $email &&
+                ($row['code'] ?? '') === $code &&
+                empty($row['used']) &&
+                (int)($row['expires_at'] ?? 0) > $now
+            ) {
+                $matchedIndex = $i;
+                break;
+            }
+        }
+        if ($matchedIndex === null) {
+            echo json_encode(['success' => false, 'message' => '验证码无效或已过期']);
+            exit();
+        }
+
+        $newHash = password_hash($newPassword, PASSWORD_BCRYPT, ['cost' => 12]);
+        $db->prepare("UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
+            ->execute([$newHash, $user['id']]);
+        $db->prepare("UPDATE sessions SET is_valid = 0 WHERE user_id = ?")->execute([$user['id']]);
+
+        $codes[$matchedIndex]['used'] = true;
+        $codes[$matchedIndex]['used_at'] = time();
+        writePasswordResetCodes($codes);
+
+        logAction('user.reset_password', 'user', (int)$user['id'], ['email' => $email]);
+        echo json_encode(['success' => true, 'message' => '密码已重置，请使用新密码登录']);
         exit();
 
     case 'login_local':

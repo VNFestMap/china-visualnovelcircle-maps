@@ -1,3 +1,6 @@
+# 默认入口页：访问站点根目录时优先打开登录页
+DirectoryIndex login.html index.html
+
 # 保护 includes 目录（禁止直接访问）
 RewriteRule ^includes/ - [F,L]
 

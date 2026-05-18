@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>萌战实时赛程 - VNFest</title>
+<link rel="stylesheet" href="../css/styles.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --br-bg: #f6f8fc;
+  --br-board: #ffffff;
+  --br-text: #182033;
+  --br-muted: #64748b;
+  --br-line: #d8e0ed;
+  --br-blue: #2f7edb;
+  --br-blue-soft: #eaf3ff;
+  --br-orange: #ff6b21;
+  --br-orange-soft: #fff0e8;
+  --br-gold: #f6c85f;
+  --br-champion: linear-gradient(180deg, #fffdf5 0%, #fff 100%);
+  --br-btn-bg: #fff;
+  --br-primary-bg: #152238;
+  --br-primary-fg: #fff;
+  --br-ripple: rgba(47,126,219,.22);
+  --br-shadow: 0 18px 56px rgba(30,41,59,.10);
+  --br-hover: 0 10px 24px rgba(30,41,59,.12);
+}
+:root[data-theme='dark'] {
+  --br-bg: #0b1020;
+  --br-board: #121827;
+  --br-text: #eef2ff;
+  --br-muted: #9aa7bd;
+  --br-line: rgba(148,163,184,.18);
+  --br-blue: #60a5fa;
+  --br-blue-soft: rgba(96,165,250,.09);
+  --br-orange: #fb923c;
+  --br-orange-soft: rgba(251,146,60,.09);
+  --br-gold: #fbbf24;
+  --br-champion: linear-gradient(180deg, rgba(251,191,36,.08) 0%, transparent 100%);
+  --br-btn-bg: #182033;
+  --br-primary-bg: #2dd4bf;
+  --br-primary-fg: #041312;
+  --br-ripple: rgba(45,212,191,.28);
+  --br-shadow: 0 18px 60px rgba(0,0,0,.32);
+  --br-hover: 0 12px 30px rgba(0,0,0,.24);
+}
+body {
+  min-height: 100vh;
+  background: var(--br-bg);
+  color: var(--br-text);
+  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+button, a { font: inherit; }
+a { color: inherit; text-decoration: none; }
+.page {
+  width: 100%;
+  margin: 0;
+  padding: 12px 12px 28px;
+}
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--br-line); border-radius: 10px;
+  background: var(--br-board); box-shadow: var(--br-shadow);
+}
+.brand { min-width: 0; }
+.brand h1 {
+  font-size: 22px;
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+.brand p { color: var(--br-muted); font-size: 13px; margin-top: 3px; }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+.btn {
+  min-height: 36px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--br-line); border-radius: 8px;
+  background: var(--br-btn-bg); color: var(--br-text);
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease, opacity .16s ease;
+  font-weight: 600; font-size: 13px;
+  white-space: nowrap;
+}
+.btn.primary {
+  background: var(--br-primary-bg); border-color: var(--br-primary-bg);
+  color: var(--br-primary-fg); font-weight: 700;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: var(--br-hover); }
+.btn.is-pressing { transform: translateY(1px) scale(.99); }
+.btn.is-loading { pointer-events: none; opacity: .7; }
+.click-ripple {
+  position: absolute; width: 12px; height: 12px; border-radius: 999px;
+  background: var(--br-ripple); pointer-events: none;
+  transform: translate(-50%,-50%) scale(0);
+  animation: clickRipple .52s ease-out;
+}
+.theme-btn {
+  min-height: 36px; width: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--br-line); border-radius: 8px;
+  background: var(--br-btn-bg); color: var(--br-text);
+  cursor: pointer; font-size: 16px; line-height: 1;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}
+.theme-btn:hover { transform: translateY(-1px); box-shadow: var(--br-hover); }
+.status-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 14px 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--br-line);
+  border-radius: 14px;
+  background: var(--br-board);
+  box-shadow: var(--br-shadow);
+  color: var(--br-muted); font-size: 13px;
+}
+.status-copy {
+  flex-basis: 100%;
+  color: var(--br-muted);
+  font-size: 13px;
+}
+.pill {
+  display: inline-flex; align-items: center; min-height: 24px;
+  border-radius: 999px; border: 1px solid var(--br-line);
+  background: var(--br-btn-bg); padding: 3px 10px; font-size: 12px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.pill.error { color: #ef4444; border-color: rgba(239,68,68,.4); }
+
+/* ── Board Shell ── */
+.board-shell {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--br-line); border-radius: 10px;
+  background: var(--br-board); box-shadow: var(--br-shadow);
+  position: relative;
+  padding: 12px;
+  scrollbar-gutter: stable;
+  width: 100%;
+}
+.scroll-rail {
+  height: 16px;
+  margin: 0 0 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--br-line);
+  border-radius: 999px;
+  background: var(--br-board);
+  box-shadow: 0 8px 22px rgba(15,23,42,.08);
+}
+.scroll-rail-inner {
+  height: 1px;
+}
+.scroll-rail::-webkit-scrollbar,
+.board-shell::-webkit-scrollbar {
+  height: 12px;
+}
+.scroll-rail::-webkit-scrollbar-thumb,
+.board-shell::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--br-muted) 36%, transparent);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.scroll-rail::-webkit-scrollbar-track,
+.board-shell::-webkit-scrollbar-track {
+  background: transparent;
+}
+.board-shell::after {
+  content: "← 横向滑动查看完整赛程 →";
+  display: none;
+  position: sticky; left: 50%; bottom: 8px;
+  transform: translateX(-50%);
+  padding: 6px 14px; border-radius: 999px;
+  background: var(--br-primary-bg); color: var(--br-primary-fg);
+  font-size: 11px; font-weight: 700; white-space: nowrap;
+  z-index: 2; pointer-events: none;
+  opacity: 0; transition: opacity .3s ease;
+}
+@media (max-width: 1460px) {
+  .board-shell::after { display: block; }
+}
+.board-shell:hover::after { opacity: 0; }
+
+.bracket-board {
+  --br-scale: 1;
+  --round-min: calc(168px * var(--br-scale));
+  --center-min: calc(220px * var(--br-scale));
+  --col-gap: calc(10px * var(--br-scale));
+  --match-h: calc(88px * var(--br-scale));
+  --avatar: calc(20px * var(--br-scale));
+  --slot-h: calc(31px * var(--br-scale));
+  min-width: 1268px; min-height: 560px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(var(--center-min), .42fr) minmax(0,1fr);
+  gap: var(--col-gap);
+  align-items: stretch;
+  position: relative;
+}
+.bracket-board.final-only {
+  min-width: 760px;
+  width: 100%;
+  min-height: 520px;
+  grid-template-columns: minmax(320px, 620px);
+  justify-content: center;
+}
+.bracket-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+.bracket-lines path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: max(1px, calc(2px * var(--br-scale)));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .32;
+}
+.bracket-lines .line-left { color: var(--br-blue); }
+.bracket-lines .line-right { color: var(--br-orange); }
+.bracket-lines .line-core { color: var(--br-gold); opacity: .42; }
+.empty-state {
+  min-height: 460px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px;
+  color: var(--br-muted); font-size: 16px;
+}
+.empty-state .empty-icon { font-size: 48px; opacity: .5; }
+
+/* ── Skeleton ── */
+.skeleton {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 230px minmax(0,1fr);
+  gap: 24px; padding: 26px 28px; min-height: 690px; align-items: stretch;
+}
+.skeleton-side { display: grid; grid-template-columns: repeat(4, minmax(126px,1fr)); gap: 22px; }
+.skeleton-round { display: grid; gap: 10px; align-content: space-around; }
+.skeleton-box {
+  min-height: 64px; border: 2px solid var(--br-line); border-radius: 8px;
+  background: var(--br-blue-soft);
+  animation: skPulse 1.8s ease-in-out infinite;
+}
+.skeleton-box:nth-child(odd) { animation-delay: 0s; }
+.skeleton-box:nth-child(even) { animation-delay: .3s; }
+.skeleton-side.right .skeleton-box { background: var(--br-orange-soft); }
+.skeleton-center { display: grid; align-content: center; gap: 16px; }
+.skeleton-champion {
+  min-height: 230px; border: 2px solid var(--br-line); border-radius: 10px;
+  animation: skPulse 1.8s ease-in-out infinite; animation-delay: .6s;
+}
+.skeleton-final {
+  min-height: 64px; border: 2px solid var(--br-line); border-radius: 8px;
+  animation: skPulse 1.8s ease-in-out infinite; animation-delay: .8s;
+}
+@keyframes skPulse {
+  0%, 100% { opacity: .25; }
+  50% { opacity: .55; }
+}
+
+/* ── Bracket Side ── */
+.bracket-side {
+  display: grid;
+  grid-template-columns: repeat(var(--round-count, 3), minmax(var(--round-min), 1fr));
+  gap: 10px;
+  align-items: stretch;
+  min-width: 0;
+}
+.bracket-side.left { color: #2563eb; }
+:root[data-theme='dark'] .bracket-side.left { color: #60a5fa; }
+.bracket-side.right { color: #ea580c; }
+:root[data-theme='dark'] .bracket-side.right { color: #fb923c; }
+.bracket-panel {
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+.round-column {
+  display: grid;
+  grid-template-rows: auto minmax(0,1fr);
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+.round-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: calc(8px * var(--br-scale));
+  min-height: 0;
+}
+.round {
+  display: grid;
+  gap: calc(8px * var(--br-scale));
+  align-content: center;
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+}
+.round-title {
+  color: var(--br-muted); font-size: clamp(10px, calc(12px * var(--br-scale)), 12px); font-weight: 900;
+  text-align: center; white-space: nowrap; letter-spacing: 0;
+  margin-bottom: 4px;
+}
+
+/* ── Match Box ── */
+.match-box {
+  min-height: var(--match-h);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 42%, var(--br-line));
+  border-top: max(2px, calc(3px * var(--br-scale))) solid currentColor;
+  border-radius: calc(12px * var(--br-scale));
+  background: var(--br-board);
+  position: relative;
+  display: grid; gap: calc(6px * var(--br-scale)); padding: calc(6px * var(--br-scale));
+  animation: listIn .24s ease both;
+  transition: transform .16s ease, box-shadow .16s ease;
+  box-shadow: 0 18px 40px rgba(15,23,42,.08);
+}
+.match-box:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+:root[data-theme='dark'] .match-box:hover { box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+.bracket-side.left .match-box { background: var(--br-blue-soft); }
+.bracket-side.right .match-box { background: var(--br-orange-soft); }
+
+/* Bracket tree connectors */
+.match-box::after {
+  display: none;
+  content: "";
+}
+
+/* Vertical connector — only on the LOWER match of each pair, reaches UP to the match above */
+.round .match-box:nth-child(even)::before {
+  display: none;
+  content: "";
+}
+
+.slot {
+  min-width: 0;
+  min-height: var(--slot-h);
+  display: grid;
+  grid-template-columns: var(--avatar) minmax(0,1fr) auto;
+  align-items: center;
+  gap: calc(6px * var(--br-scale));
+  border-radius: calc(9px * var(--br-scale));
+  background: color-mix(in srgb, var(--br-btn-bg) 78%, transparent);
+  padding: calc(4px * var(--br-scale)) calc(5px * var(--br-scale));
+  color: var(--br-text); font-size: clamp(9px, calc(10.5px * var(--br-scale)), 11px); line-height: 1.32;
+}
+.slot.win {
+  background: color-mix(in srgb, currentColor 14%, var(--br-btn-bg));
+}
+.slot-avatar {
+  width: var(--avatar);
+  height: var(--avatar);
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--br-line);
+  color: var(--br-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+.slot-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.slot-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+.slot.win .slot-name { color: #059669; }
+:root[data-theme='dark'] .slot.win .slot-name { color: #34d399; }
+.slot-mark {
+  flex: 0 0 auto; font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 999px;
+  color: var(--br-muted);
+}
+.slot.win .slot-mark {
+  background: rgba(5,150,105,.12); color: #059669;
+}
+:root[data-theme='dark'] .slot.win .slot-mark {
+  background: rgba(52,211,153,.15); color: #34d399;
+}
+.slot-mark:empty {
+  display: none;
+}
+.match-meta {
+  color: var(--br-muted); font-size: clamp(8px, calc(8.5px * var(--br-scale)), 9px); text-align: center;
+  border-top: 1px dashed rgba(100,116,139,.22); padding-top: 2px;
+  letter-spacing: .3px;
+}
+
+/* ── Final Center ── */
+.final-center { display: grid; align-content: center; gap: 12px; }
+.final-center.bracket-core {
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+.center-panel {
+  display: grid;
+  gap: calc(14px * var(--br-scale));
+  align-content: center;
+}
+.board-heading {
+  text-align: center;
+  color: var(--br-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+.finalist-list {
+  display: grid;
+  gap: 10px;
+}
+.core-match-stack {
+  display: grid;
+  gap: calc(12px * var(--br-scale));
+}
+.core-label {
+  color: var(--br-gold);
+  text-align: center;
+  font-size: clamp(11px, calc(12px * var(--br-scale)), 13px);
+  font-weight: 900;
+}
+.finalist-card {
+  min-height: 58px;
+  border: 1px solid var(--br-line);
+  border-radius: 12px;
+  background: var(--br-btn-bg);
+  display: grid;
+  align-content: center;
+  gap: 3px;
+  padding: 10px 12px;
+  text-align: center;
+}
+.finalist-card strong {
+  color: var(--br-text);
+  font-size: 14px;
+}
+.finalist-card span {
+  color: var(--br-muted);
+  font-size: 11px;
+}
+.champion-card {
+  min-height: 190px;
+  border: 1px solid color-mix(in srgb, var(--br-gold) 70%, var(--br-line));
+  border-top: 4px solid var(--br-gold);
+  border-radius: 14px;
+  background: var(--br-champion);
+  display: grid; justify-items: center; align-content: center; gap: 8px;
+  padding: 16px 14px; text-align: center;
+  box-shadow: 0 0 40px rgba(246,200,95,.2), 0 12px 36px rgba(246,200,95,.16);
+  position: relative; overflow: hidden;
+}
+.champion-card::before {
+  content: ""; position: absolute;
+  inset: -1px; border-radius: 12px; padding: 3px;
+  background: linear-gradient(135deg, var(--br-gold), transparent 40%, transparent 60%, var(--br-gold));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: championGlow 3s ease-in-out infinite;
+}
+@keyframes championGlow {
+  0%, 100% { opacity: .3; }
+  50% { opacity: .8; }
+}
+.champion-avatar {
+  width: 90px; height: 90px; border-radius: 999px;
+  background: var(--br-line);
+  display: grid; place-items: center; font-size: 36px;
+  color: var(--br-muted); overflow: hidden;
+  border: 3px solid var(--br-gold);
+  box-shadow: 0 0 24px rgba(246,200,95,.3);
+}
+.champion-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.champion-card > span {
+  font-size: 12px; color: var(--br-muted); font-weight: 600;
+}
+.champion-card > strong {
+  font-size: 20px; font-weight: 900; letter-spacing: .5px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.final-match { width: min(280px, 100%); margin: 0 auto; color: var(--br-gold); }
+
+/* ── Footer ── */
+.page-footer {
+  text-align: center; margin-top: 16px;
+  color: var(--br-muted); font-size: 11px;
+}
+
+/* ── Animations ── */
+@keyframes clickRipple {
+  to { opacity: 0; transform: translate(-50%,-50%) scale(20); }
+}
+@keyframes listIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+  .click-ripple { display: none; }
+}
+@media (max-width: 900px) {
+  .page { padding: 8px; }
+  .topbar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+  .brand h1 { font-size: 18px; }
+  .brand p { font-size: 12px; }
+  .actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .actions .btn {
+    flex: 1 1 auto;
+    min-width: 96px;
+  }
+  .status-strip {
+    margin: 10px 0 8px;
+    padding: 10px;
+    gap: 6px;
+  }
+  .status-copy {
+    font-size: 12px;
+  }
+  .pill {
+    min-height: 22px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+  .scroll-rail {
+    height: 14px;
+    margin-bottom: 6px;
+  }
+  .board-shell {
+    padding: 8px;
+    border-radius: 8px;
+    max-width: 100vw;
+  }
+  .bracket-board.final-only {
+    min-width: 520px;
+    min-height: 420px;
+  }
+  .champion-card {
+    min-height: 160px;
+  }
+  .champion-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 26px;
+  }
+}
+</style>
+</head>
+<body>
+<div class="page" data-feature="Moe Contest Bracket Board">
+  <header class="topbar">
+    <div class="brand">
+      <h1 id="pageTitle">萌战实时赛程</h1>
+      <p id="pageSub">32强 1v1 对阵淘汰赛</p>
+    </div>
+    <div class="actions">
+      <button class="theme-btn" type="button" onclick="toggleTheme()" title="切换主题" aria-label="切换主题">色</button>
+      <a class="btn" id="backLink" href="./index.html">← 返回萌战</a>
+      <button class="btn primary" type="button" onclick="loadBracketData()">刷新赛程</button>
+    </div>
+  </header>
+
+  <div class="status-strip" id="statusStrip">
+    <span class="pill">等待加载</span>
+  </div>
+
+  <div class="scroll-rail" id="topScrollRail" aria-label="赛程顶部横向滚动条">
+    <div class="scroll-rail-inner" id="topScrollSpacer"></div>
+  </div>
+
+  <main class="board-shell" id="boardScroller">
+    <div id="bracketBoard" class="skeleton">
+      <div class="skeleton-side">
+        <div class="skeleton-round"><div class="skeleton-box"></div><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div></div>
+      </div>
+      <div class="skeleton-center"><div class="skeleton-champion"></div><div class="skeleton-final"></div></div>
+      <div class="skeleton-side right">
+        <div class="skeleton-round"><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div><div class="skeleton-box"></div></div>
+        <div class="skeleton-round"><div class="skeleton-box"></div><div class="skeleton-box"></div></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="page-footer">VNFest 萌战 · 数据每 30 秒自动刷新</div>
+</div>
+
+<script>
+(function(){
+var params = new URLSearchParams(window.location.search);
+var contestId = Number(params.get('contest_id') || 0);
+var bracketData = null;
+var pollTimer = null;
+var syncingScroll = false;
+
+var STATUS_LABELS = { pending:'待开始', open:'投票中', locked:'已锁定', settled:'已结算' };
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, function (ch) {
+    return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+  });
+}
+
+function parseJsonObject(value) {
+  if (!value) return {};
+  if (typeof value === 'object') return value;
+  try { var p = JSON.parse(value); return p && typeof p === 'object' ? p : {}; } catch (e) { return {}; }
+}
+
+async function apiGet(file, query) {
+  var url = new URL('../api/' + file, window.location.href);
+  Object.keys(query || {}).forEach(function (key) { url.searchParams.set(key, query[key]); });
+  var res = await fetch(url.toString(), { credentials: 'include' });
+  return res.json();
+}
+
+function installInteractionFeedback() {
+  document.addEventListener('pointerdown', function (event) {
+    var target = event.target.closest('.btn, .theme-btn');
+    if (!target || target.disabled) return;
+    target.classList.add('is-pressing');
+    var rect = target.getBoundingClientRect();
+    var ripple = document.createElement('span');
+    ripple.className = 'click-ripple';
+    ripple.style.left = (event.clientX - rect.left) + 'px';
+    ripple.style.top = (event.clientY - rect.top) + 'px';
+    target.appendChild(ripple);
+    setTimeout(function () { ripple.remove(); }, 560);
+  });
+  document.addEventListener('pointerup', clearPressing);
+  document.addEventListener('pointercancel', clearPressing);
+}
+
+function clearPressing() {
+  document.querySelectorAll('.is-pressing').forEach(function (node) { node.classList.remove('is-pressing'); });
+}
+
+function installScrollSync() {
+  var rail = document.getElementById('topScrollRail');
+  var scroller = document.getElementById('boardScroller');
+  if (!rail || !scroller) return;
+  rail.addEventListener('scroll', function () {
+    if (syncingScroll) return;
+    syncingScroll = true;
+    scroller.scrollLeft = rail.scrollLeft;
+    syncingScroll = false;
+  });
+  scroller.addEventListener('scroll', function () {
+    if (syncingScroll) return;
+    syncingScroll = true;
+    rail.scrollLeft = scroller.scrollLeft;
+    syncingScroll = false;
+  });
+  scroller.addEventListener('wheel', function (event) {
+    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+    window.scrollBy({ top: event.deltaY, left: 0, behavior: 'auto' });
+    event.preventDefault();
+  }, { passive: false });
+}
+
+function updateScrollRail() {
+  var rail = document.getElementById('topScrollRail');
+  var spacer = document.getElementById('topScrollSpacer');
+  var scroller = document.getElementById('boardScroller');
+  var board = document.getElementById('bracketBoard');
+  if (!rail || !spacer || !scroller || !board) return;
+  spacer.style.width = Math.max(board.scrollWidth, scroller.scrollWidth) + 'px';
+  rail.scrollLeft = scroller.scrollLeft;
+}
+
+function setLoading(isLoading) {
+  var button = document.querySelector('.btn.primary');
+  if (button) button.classList.toggle('is-loading', isLoading);
+}
+
+async function loadBracketData() {
+  if (!contestId) {
+    document.getElementById('bracketBoard').className = 'empty-state';
+    document.getElementById('bracketBoard').innerHTML = '<div class="empty-icon">!</div>缺少 contest_id 参数';
+    return;
+  }
+  setLoading(true);
+  try {
+    var data = await apiGet('moe_matches.php', { action: 'contest_bracket', contest_id: contestId });
+    if (!data.success) throw new Error(data.message || '加载失败');
+    bracketData = data;
+    renderBracketBoard();
+    if (document.getElementById('statusStrip').querySelector('.pill.error')) renderStatusStrip();
+  } catch (e) {
+    document.getElementById('statusStrip').innerHTML = '<span class="pill error">加载失败: ' + escapeHtml(e.message || '未知错误') + '</span>';
+  } finally {
+    setLoading(false);
+  }
+}
+
+function renderStatusStrip() {
+  var contest = (bracketData && bracketData.contest) || {};
+  var stage = bracketData && bracketData.stage;
+  var matches = (bracketData && bracketData.matches) || [];
+  var config = parseJsonObject(stage && stage.config_json);
+  var bracketSize = Number(config.bracket_size || ((stage && stage.stage_type) === 'final' ? 2 : 32));
+  var stageName = stage ? ((stage.stage_type === 'final' ? '决赛' : '正赛') + ' · ' + (stage.title || '1v1 对阵')) : '等待对阵';
+  var help = stage && stage.stage_type === 'final'
+    ? '这是独立决赛阶段，单场 1v1 结算后产生萌王。'
+    : '正赛分左右半区推进，中间展示已经产生的决赛席位。';
+  var html =
+    '<span class="pill">活动 #' + Number(contest.id || contestId) + '</span>' +
+    '<span class="pill">' + escapeHtml(stageName) + '</span>' +
+    '<span class="pill">' + bracketSize + ' 强</span>' +
+    '<span class="pill">对阵 ' + matches.length + ' 场</span>' +
+    '<span class="pill" id="pollStatus">自动刷新 30s</span>' +
+    '<div class="status-copy">' + escapeHtml(help) + '</div>';
+  document.getElementById('statusStrip').innerHTML = html;
+}
+
+function groupMatchesByRound(matches) {
+  return (matches || []).reduce(function (map, match) {
+    var round = Number(match.round_no || 1);
+    if (!map[round]) map[round] = [];
+    map[round].push(match);
+    return map;
+  }, {});
+}
+
+function getDisplayName(match, side) {
+  var prefix = side === 'a' ? 'slot_a' : 'slot_b';
+  return match[prefix + '_name_cn'] || match[prefix + '_name'] || '待定';
+}
+
+function getDisplayAvatar(match, side) {
+  var prefix = side === 'a' ? 'slot_a' : 'slot_b';
+  return match[prefix + '_avatar'] || '';
+}
+
+function renderSlot(match, side) {
+  var id = Number(match[side === 'a' ? 'slot_a_candidate_id' : 'slot_b_candidate_id'] || 0);
+  var winnerId = Number(match.winner_candidate_id || 0);
+  var win = id > 0 && id === winnerId;
+  var name = getDisplayName(match, side);
+  var avatar = getDisplayAvatar(match, side);
+  return '<div class="slot' + (win ? ' win' : '') + '">' +
+    '<span class="slot-avatar">' + (avatar ? '<img src="' + escapeHtml(avatar) + '" alt="">' : '人') + '</span>' +
+    '<span class="slot-name">' + escapeHtml(name) + '</span>' +
+    '<span class="slot-mark">' + (win ? '晋级' : '') + '</span>' +
+    '</div>';
+}
+
+function renderMatchBox(match, index) {
+  var attrs = match
+    ? ' data-round="' + Number(match.round_no || 1) + '" data-match="' + Number(match.match_no || index) + '"'
+    : ' data-placeholder="1"';
+  if (!match) {
+    return '<div class="match-box"' + attrs + '><div class="slot"><span class="slot-avatar">人</span><span class="slot-name">待定</span></div><div class="slot"><span class="slot-avatar">人</span><span class="slot-name">待定</span></div><div class="match-meta">席位 ' + index + '</div></div>';
+  }
+  var status = STATUS_LABELS[match.status] || match.status || '待定';
+  return '<div class="match-box"' + attrs + '>' +
+    renderSlot(match, 'a') +
+    renderSlot(match, 'b') +
+    '<div class="match-meta">R' + Number(match.round_no || 1) + ' · M' + Number(match.match_no || index) + ' · ' + escapeHtml(status) + '</div>' +
+    '</div>';
+}
+
+function expectedSideCount(roundNo, bracketSize) {
+  var roundSize = Math.floor(bracketSize / Math.pow(2, roundNo - 1));
+  return Math.max(1, Math.floor(roundSize / 4));
+}
+
+function getRoundLabel(roundNo, bracketSize, stageType) {
+  if (stageType === 'final') return '决赛';
+  var roundSize = Math.max(2, Math.floor(bracketSize / Math.pow(2, roundNo - 1)));
+  if (roundSize === 4) return '半决赛';
+  if (roundSize === 2) return '决赛';
+  return roundSize + '强';
+}
+
+function getRoundNumbers(maxRound) {
+  var rounds = [];
+  for (var i = 1; i <= maxRound; i++) rounds.push(i);
+  return rounds;
+}
+
+function splitRoundMatches(grouped, roundNo, side, bracketSize) {
+  var matches = (grouped[roundNo] || []).slice();
+  var expected = expectedSideCount(roundNo, bracketSize);
+  var half = Math.max(expected, Math.ceil(matches.length / 2));
+  var rows = side === 'left' ? matches.slice(0, half) : matches.slice(half);
+  while (rows.length < expected) rows.push(null);
+  return rows;
+}
+
+function renderRoundColumn(grouped, roundNo, side, bracketSize, stageType) {
+  var matches = splitRoundMatches(grouped, roundNo, side, bracketSize);
+  var sideClass = side === 'left' ? 'left' : 'right';
+  return '<section class="round-column ' + sideClass + '" data-side="' + side + '" data-round="' + Number(roundNo) + '">' +
+    '<div class="round-title">' + escapeHtml(getRoundLabel(roundNo, bracketSize, stageType)) + '</div>' +
+    '<div class="round-stack">' + matches.map(function (match, index) { return renderMatchBox(match, index + 1); }).join('') + '</div>' +
+    '</section>';
+}
+
+function renderColumns(grouped, side, bracketSize, maxRound, stageType) {
+  var rounds = getRoundNumbers(maxRound);
+  if (side === 'right') rounds.reverse();
+  var inner = rounds.map(function (roundNo) {
+    return renderRoundColumn(grouped, roundNo, side, bracketSize, stageType);
+  }).join('');
+  var panelClass = side === 'left' ? 'bracket-panel bracket-side left' : 'bracket-panel bracket-side right';
+  return '<div class="' + panelClass + '" style="--round-count:' + Number(maxRound) + '">' + inner + '</div>';
+}
+
+function applyBoardLayout(maxRound, isFinalStage, bracketSize) {
+  var board = document.getElementById('bracketBoard');
+  if (!board) return;
+  board.style.gridTemplateColumns = '';
+  board.style.minWidth = '';
+  board.style.minHeight = '';
+  board.style.width = '';
+  if (isFinalStage) return;
+  var roundMin = 168;
+  var sideGap = 10;
+  var centerMin = 220;
+  var boardGap = 10;
+  var sideMin = maxRound * roundMin + Math.max(0, maxRound - 1) * sideGap;
+  var totalWidth = sideMin * 2 + centerMin + boardGap * 2;
+  var shell = board.closest('.board-shell');
+  var available = shell ? shell.clientWidth - 24 : window.innerWidth;
+  var minScale = window.innerWidth < 900 ? .62 : (window.innerHeight < 780 ? .74 : .78);
+  var maxScale = window.innerWidth < 900 ? .84 : 1.06;
+  var scale = Math.max(minScale, Math.min(maxScale, available / totalWidth));
+  var scaledRoundMin = Math.round(roundMin * scale);
+  var scaledSideGap = Math.round(sideGap * scale);
+  var scaledCenterMin = Math.round(centerMin * scale);
+  var scaledBoardGap = Math.round(boardGap * scale);
+  var scaledSideMin = maxRound * scaledRoundMin + Math.max(0, maxRound - 1) * scaledSideGap;
+  var scaledTotalWidth = scaledSideMin * 2 + scaledCenterMin + scaledBoardGap * 2;
+  board.style.setProperty('--br-scale', String(scale));
+  board.style.setProperty('--round-min', scaledRoundMin + 'px');
+  board.style.setProperty('--center-min', scaledCenterMin + 'px');
+  board.style.setProperty('--col-gap', scaledBoardGap + 'px');
+  board.style.gridTemplateColumns = 'minmax(' + scaledSideMin + 'px,1fr) minmax(' + scaledCenterMin + 'px,.42fr) minmax(' + scaledSideMin + 'px,1fr)';
+  board.style.gap = scaledBoardGap + 'px';
+  board.style.minWidth = scaledTotalWidth + 'px';
+  board.style.width = '100%';
+  var heightBase = expectedSideCount(1, bracketSize || 32) * 82 + 92;
+  var minHeight = window.innerHeight < 780 ? 500 : 540;
+  board.style.minHeight = Math.max(minHeight, Math.round(heightBase * scale)) + 'px';
+}
+
+function getRoundWinners(matches, roundNo) {
+  return (matches || []).filter(function (match) {
+    return Number(match.round_no || 0) === Number(roundNo) && Number(match.winner_candidate_id || 0) > 0;
+  }).map(function (match) {
+    return {
+      id: Number(match.winner_candidate_id),
+      name: match.winner_name_cn || match.winner_name || '待定'
+    };
+  });
+}
+
+function renderFinalistCenter(matches, maxRound) {
+  var finalists = getRoundWinners(matches, maxRound);
+  while (finalists.length < 2) finalists.push({ name: '等待产生' });
+  return '<div class="center-panel">' +
+    '<div class="core-match-stack">' +
+    '<div class="core-label">总决赛</div>' +
+    '<div class="match-box">' + finalists.slice(0, 2).map(function (item, index) {
+      return '<div class="slot"><span class="slot-avatar">人</span><span class="slot-name">' + escapeHtml(item.name) + '</span><span class="slot-mark">' + (item.id ? '席位' + (index + 1) : '') + '</span></div>';
+    }).join('') + '<div class="match-meta">独立决赛阶段</div></div>' +
+    '</div>' +
+    '<div class="core-match-stack">' +
+    '<div class="core-label">季军赛</div>' +
+    '<div class="match-box"><div class="slot"><span class="slot-avatar">人</span><span class="slot-name">待定</span></div><div class="slot"><span class="slot-avatar">人</span><span class="slot-name">待定</span></div><div class="match-meta">预留席位</div></div>' +
+    '</div>' +
+    '</div>';
+}
+
+function renderChampion(champion, finalMatch) {
+  var name = champion ? (champion.name_cn || champion.name || '萌王') : '等待决赛';
+  var avatar = champion && champion.avatar_url
+    ? '<div class="champion-avatar"><img src="' + escapeHtml(champion.avatar_url) + '" alt=""></div>'
+    : '<div class="champion-avatar">王</div>';
+  return '<div class="champion-card">' +
+    avatar +
+    '<span>萌王</span>' +
+    '<strong>' + escapeHtml(name) + '</strong>' +
+    '<span>' + (champion ? '冠军已产生' : '赛程进行中') + '</span>' +
+    '</div>' +
+    '<div class="final-match">' + renderMatchBox(finalMatch, 1) + '</div>';
+}
+
+function matchCenter(rect, boardRect, side) {
+  return {
+    x: side === 'right' ? rect.left - boardRect.left : rect.right - boardRect.left,
+    y: rect.top - boardRect.top + rect.height / 2
+  };
+}
+
+function drawConnector(paths, from, to, cls) {
+  var mid = (from.x + to.x) / 2;
+  paths.push('<path class="' + cls + '" d="M ' + from.x.toFixed(1) + ' ' + from.y.toFixed(1) +
+    ' H ' + mid.toFixed(1) +
+    ' V ' + to.y.toFixed(1) +
+    ' H ' + to.x.toFixed(1) + '"/>');
+}
+
+function drawBracketLines() {
+  var board = document.getElementById('bracketBoard');
+  if (!board || board.classList.contains('final-only')) return;
+  var old = board.querySelector('.bracket-lines');
+  if (old) old.remove();
+  var boardRect = board.getBoundingClientRect();
+  var paths = [];
+  ['left', 'right'].forEach(function (side) {
+    var columns = Array.from(board.querySelectorAll('.round-column[data-side="' + side + '"]'));
+    for (var i = 0; i < columns.length - 1; i++) {
+      var current = Array.from(columns[i].querySelectorAll('.match-box'));
+      var next = Array.from(columns[i + 1].querySelectorAll('.match-box'));
+      next.forEach(function (target, targetIndex) {
+        var sourceA = current[targetIndex * 2];
+        var sourceB = current[targetIndex * 2 + 1];
+        [sourceA, sourceB].forEach(function (source) {
+          if (!source) return;
+          var from = matchCenter(source.getBoundingClientRect(), boardRect, side);
+          var to = matchCenter(target.getBoundingClientRect(), boardRect, side === 'left' ? 'right' : 'left');
+          drawConnector(paths, from, to, side === 'left' ? 'line-left' : 'line-right');
+        });
+      });
+    }
+  });
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'bracket-lines');
+  svg.setAttribute('viewBox', '0 0 ' + boardRect.width.toFixed(1) + ' ' + boardRect.height.toFixed(1));
+  svg.innerHTML = paths.join('');
+  board.prepend(svg);
+}
+
+function renderBracketBoard() {
+  var contest = bracketData.contest || {};
+  var stage = bracketData.stage || null;
+  var matches = bracketData.matches || [];
+  var grouped = groupMatchesByRound(matches);
+  var config = parseJsonObject(stage && stage.config_json);
+  var bracketSize = Number(config.bracket_size || ((stage && stage.stage_type) === 'final' ? 2 : 32));
+  var configuredFinalRound = Math.max(1, Math.ceil(Math.log2(bracketSize)));
+  var isFinalStage = (stage && stage.stage_type) === 'final' || bracketSize <= 2;
+  var maxRound = isFinalStage ? 1 : Math.max(1, configuredFinalRound - 1);
+  var finalMatch = null;
+
+  document.getElementById('pageTitle').textContent = contest.title || '萌战实时赛程';
+  document.getElementById('pageSub').textContent = stage ? (stage.title || '32强正赛') : '等待对阵阶段';
+  document.getElementById('backLink').href = './index.html?contest_id=' + Number(contest.id || contestId);
+  renderStatusStrip();
+
+  if (!stage) {
+    document.getElementById('bracketBoard').className = 'empty-state';
+    applyBoardLayout(1, true, 2);
+    document.getElementById('bracketBoard').innerHTML = '<div class="empty-icon">VS</div>还没有 1v1 对阵阶段<br><span style="font-size:13px;">等待管理员创建正赛阶段</span>';
+    requestAnimationFrame(updateScrollRail);
+    return;
+  }
+
+  if (isFinalStage) {
+    finalMatch = (grouped[1] || [null])[0] || null;
+    document.getElementById('bracketBoard').className = 'bracket-board final-only';
+    applyBoardLayout(maxRound, true, bracketSize);
+    document.getElementById('bracketBoard').innerHTML =
+      '<div class="final-center">' + renderChampion(bracketData.champion, finalMatch) + '</div>';
+    requestAnimationFrame(updateScrollRail);
+    return;
+  }
+
+  document.getElementById('bracketBoard').className = 'bracket-board';
+  applyBoardLayout(maxRound, false, bracketSize);
+  document.getElementById('bracketBoard').innerHTML =
+    renderColumns(grouped, 'left', bracketSize, maxRound, stage.stage_type) +
+    '<div class="final-center bracket-core">' + renderFinalistCenter(matches, maxRound) + '</div>' +
+    renderColumns(grouped, 'right', bracketSize, maxRound, stage.stage_type);
+  requestAnimationFrame(function () {
+    updateScrollRail();
+    drawBracketLines();
+  });
+}
+
+function toggleTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme');
+  var next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  try { localStorage.setItem('vnfest-theme', next); } catch (e) {}
+}
+
+function applySavedTheme() {
+  try {
+    var saved = localStorage.getItem('vnfest-theme');
+    if (saved === 'light' || saved === 'dark') document.documentElement.setAttribute('data-theme', saved);
+  } catch (e) {}
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(loadBracketData, 30000);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+function updatePollStatus(paused) {
+  var el = document.getElementById('pollStatus');
+  if (el) el.textContent = paused ? '暂停自动刷新' : '自动刷新 30s';
+}
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) {
+    stopPolling();
+    updatePollStatus(true);
+  } else {
+    loadBracketData();
+    startPolling();
+    updatePollStatus(false);
+  }
+});
+
+window.addEventListener('resize', function () {
+  if (bracketData) renderBracketBoard();
+  else updateScrollRail();
+});
+
+installInteractionFeedback();
+installScrollSync();
+applySavedTheme();
+loadBracketData();
+startPolling();
+})();
+</script>
+<script src="../js/page-background.js" data-picker="compact"></script>
+</body>
+</html>

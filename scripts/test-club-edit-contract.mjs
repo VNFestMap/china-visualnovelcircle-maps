@@ -6,6 +6,7 @@ const appSource = fs.readFileSync(path.join(process.cwd(), 'js/app.js'), 'utf8')
 const managerSource = fs.readFileSync(path.join(process.cwd(), 'admin/club_manager.html'), 'utf8');
 const indexSource = fs.readFileSync(path.join(process.cwd(), 'index.html'), 'utf8');
 const clubsApiSource = fs.readFileSync(path.join(process.cwd(), 'api', 'clubs.php'), 'utf8');
+const pageBackgroundSource = fs.readFileSync(path.join(process.cwd(), 'js', 'page-background.js'), 'utf8');
 
 assert.match(appSource, /function\s+openClubEditFromUrl\s*\(/, 'main page should handle edit_club deep links');
 assert.match(appSource, /URLSearchParams\(window\.location\.search\)/, 'deep link handler should read URL parameters');
@@ -23,6 +24,8 @@ assert.match(appSource, /CHINA_PROVINCE_OPTIONS/, 'club editor should provide pr
 assert.match(appSource, /bindProvincePicker/, 'club editor should bind picker interactions');
 assert.match(appSource, /setProvincePickerSelection/, 'club editor should restore picker selection');
 assert.match(clubsApiSource, /normalizeClubProvinces/, 'clubs API should normalize multi-province input');
+assert.match(indexSource, /data-after-map/, 'main page wallpaper should wait until the map is rendered');
+assert.match(pageBackgroundSource, /vnfest:map-ready/, 'wallpaper loader should listen for the map-ready event');
 const renderClubCardsSource = appSource.match(/function\s+renderClubCards\s*\([\s\S]*?\n}\n\nfunction\s+refilterCards/)?.[0] || '';
 assert.ok(!renderClubCardsSource.includes('japanSet'), 'renderClubCards should not depend on renderListView local state');
 assert.match(appSource, /deleteClub[\s\S]*clubs_japan\.php/, 'delete flow should use Japan API for Japan clubs');

@@ -23,6 +23,11 @@ if (!is_dir($cacheDir)) {
  */
 function bangumiFetch(string $url, string $cacheKey, int $ttl): array
 {
+    return bangumiRequest('GET', $url, $cacheKey, $ttl);
+}
+
+function bangumiRequest(string $method, string $url, string $cacheKey, int $ttl, ?array $body = null): array
+{
     $cacheDir = __DIR__ . '/../data/cache/bangumi';
     $cacheFile = $cacheDir . '/' . $cacheKey . '.json';
 
@@ -31,11 +36,19 @@ function bangumiFetch(string $url, string $cacheKey, int $ttl): array
         return json_decode(file_get_contents($cacheFile), true) ?: [];
     }
 
-    $context = stream_context_create(['http' => [
-        'method' => 'GET',
+    $headers = "User-Agent: VNFest/1.0\r\n";
+    $options = [
+        'method' => $method,
         'timeout' => 10,
-        'header' => "User-Agent: VNFest/1.0\r\n",
-    ]]);
+        'header' => $headers,
+    ];
+    if ($body !== null) {
+        $payload = json_encode($body, JSON_UNESCAPED_UNICODE);
+        $options['header'] .= "Content-Type: application/json\r\n";
+        $options['content'] = $payload;
+    }
+
+    $context = stream_context_create(['http' => $options]);
 
     $response = @file_get_contents($url, false, $context);
     if ($response === false) {
@@ -51,8 +64,25 @@ function bangumiFetch(string $url, string $cacheKey, int $ttl): array
     return $data;
 }
 
+function bangumiImage(array $item): string {
+    $images = $item['images'] ?? [];
+    return $images['medium'] ?? $images['grid'] ?? $images['large'] ?? $images['small'] ?? '';
+}
+
+function normalizeBangumiCharacter(array $item): array {
+    return [
+        'character_id' => (int)($item['id'] ?? 0),
+        'name' => $item['name'] ?? '',
+        'name_cn' => $item['name_cn'] ?? '',
+        'image_url' => bangumiImage($item),
+        'summary' => (function_exists('mb_substr') ? mb_substr($item['summary'] ?? '', 0, 240) : substr($item['summary'] ?? '', 0, 240)),
+        'relation' => $item['relation'] ?? '',
+        'type' => $item['type'] ?? '',
+    ];
+}
+
 // ===== 搜索 =====
-if ($action === 'search') {
+if ($action === 'search' || $action === 'search_subject') {
     $keyword = trim($_GET['keyword'] ?? '');
     $type = (int)($_GET['type'] ?? 4); // 默认 Game
 
@@ -83,6 +113,90 @@ if ($action === 'search') {
     }
 
     echo json_encode(['success' => true, 'data' => $results], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+// ===== 角色搜索（萌战提名使用）=====
+if ($action === 'search_character') {
+    $keyword = trim($_GET['keyword'] ?? '');
+    $limit = max(1, min(50, (int)($_GET['limit'] ?? 20)));
+    $offset = max(0, (int)($_GET['offset'] ?? 0));
+
+    if ($keyword === '') {
+        echo json_encode(['success' => false, 'message' => '请输入角色关键词']);
+        exit();
+    }
+
+    $cacheKey = 'character_search_v0_' . md5(strtolower($keyword) . '_' . $limit . '_' . $offset);
+    $data = bangumiRequest(
+        'POST',
+        'https://api.bgm.tv/v0/search/characters?limit=' . $limit . '&offset=' . $offset,
+        $cacheKey,
+        3600,
+        ['keyword' => $keyword, 'filter' => ['nsfw' => false]]
+    );
+
+    $rows = $data['data'] ?? $data['list'] ?? [];
+    $results = [];
+    foreach ($rows as $item) {
+        if (is_array($item)) {
+            $results[] = normalizeBangumiCharacter($item);
+        }
+    }
+
+    echo json_encode([
+        'success' => true,
+        'total' => (int)($data['total'] ?? count($results)),
+        'data' => $results,
+    ], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+// ===== 获取作品角色列表（萌战提名主流程）=====
+if ($action === 'subject_characters') {
+    $subjectId = (int)($_GET['subject_id'] ?? $_GET['id'] ?? 0);
+    if ($subjectId <= 0) {
+        echo json_encode(['success' => false, 'message' => '无效作品 ID']);
+        exit();
+    }
+
+    $cacheKey = 'subject_characters_' . $subjectId;
+    $data = bangumiFetch(
+        'https://api.bgm.tv/v0/subjects/' . $subjectId . '/characters',
+        $cacheKey,
+        86400
+    );
+
+    $results = [];
+    foreach ($data ?? [] as $item) {
+        if (!is_array($item)) continue;
+        $character = $item['character'] ?? $item;
+        if (!is_array($character)) continue;
+        $normalized = normalizeBangumiCharacter($character);
+        $normalized['relation'] = $item['relation'] ?? ($normalized['relation'] ?? '');
+        $results[] = $normalized;
+    }
+
+    echo json_encode(['success' => true, 'data' => $results], JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
+// ===== 获取角色详情 =====
+if ($action === 'get_character') {
+    $id = (int)($_GET['id'] ?? $_GET['character_id'] ?? 0);
+    if ($id <= 0) {
+        echo json_encode(['success' => false, 'message' => '无效角色 ID']);
+        exit();
+    }
+
+    $cacheKey = 'character_' . $id;
+    $data = bangumiFetch(
+        'https://api.bgm.tv/v0/characters/' . $id,
+        $cacheKey,
+        86400
+    );
+
+    echo json_encode(['success' => true, 'data' => $data], JSON_UNESCAPED_UNICODE);
     exit();
 }
 

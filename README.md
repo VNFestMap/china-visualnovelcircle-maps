@@ -1,256 +1,207 @@
-<div align="center">
-
-```
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
-║      ██╗   ██╗███╗   ██╗███████╗███████╗███████╗████████╗           ║
-║      ██║   ██║████╗  ██║██╔════╝██╔════╝██╔════╝╚══██╔══╝           ║
-║      ██║   ██║██╔██╗ ██║█████╗  █████╗  ███████╗   ██║              ║
-║      ╚██╗ ██╔╝██║╚██╗██║██╔══╝  ██╔══╝  ╚════██║   ██║              ║
-║       ╚████╔╝ ██║ ╚████║██║     ███████╗███████║   ██║              ║
-║        ╚═══╝  ╚═╝  ╚═══╝╚═╝     ╚══════╝╚══════╝   ╚═╝              ║
-║                                                                      ║
-║              Visual Novel Festival · Galgame Circle Map              ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-```
-
 # VNFest Galgame 同好会地图
 
-### 中日高校 Galgame / 视觉小说同好会导航与社群管理平台
+> 中日高校 Galgame / 视觉小说同好会导航、社团资料维护、活动发布、刊物征稿、Wiki 共建与萌战活动平台。
 
-[![Version](https://img.shields.io/badge/version-1.6.4-e74c3c?style=for-the-badge)](package.json)
-[![License](https://img.shields.io/badge/license-GPLv3-355c9b?style=for-the-badge)](LICENSE)
-[![PHP](https://img.shields.io/badge/PHP-8.x-777bb4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
-[![D3.js](https://img.shields.io/badge/D3.js-7.9-f9a03c?style=for-the-badge&logo=d3.js&logoColor=white)](https://d3js.org/)
-[![Vanilla JS](https://img.shields.io/badge/Vanilla_JS-ES6+-f7df1e?style=for-the-badge&logo=javascript&logoColor=111)](https://developer.mozilla.org/)
+<p align="center">
+  <img src="images/VNF.png" alt="VNFest" width="420">
+</p>
 
-**地图导航 · 同好会资料库 · 成员管理 · 活动日历 · 刊物投稿 · 中日双语 Wiki**
+<p align="center">
+  <a href="package.json"><img alt="Version" src="https://img.shields.io/badge/version-1.6.5-e74c3c?style=for-the-badge"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPLv3-355c9b?style=for-the-badge"></a>
+  <a href="https://www.php.net/"><img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=for-the-badge&logo=php&logoColor=white"></a>
+  <a href="https://d3js.org/"><img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=for-the-badge&logo=d3.js&logoColor=white"></a>
+</p>
 
-</div>
+## 项目定位
 
----
+VNFest Galgame 同好会地图不是一个单纯的社团目录，而是给视觉小说同好会使用的轻量运营平台。它把地图导航、同好会资料、成员绑定、活动日历、刊物征稿、Wiki、反馈和萌战活动串在一起，让用户能找到组织，也让负责人能持续维护自己的同好会信息。
 
-## 目录
-
-- [项目简介](#项目简介)
-- [1.6.4 更新摘要](#164-更新摘要)
-- [功能总览](#功能总览)
-- [系统结构](#系统结构)
-- [项目结构](#项目结构)
-- [运行与检查](#运行与检查)
-- [上传清单](#上传清单)
-- [隐私与安全](#隐私与安全)
-- [License](#license)
-
----
-
-## 项目简介
-
-**VNFest Galgame 同好会地图** 是一个围绕 Galgame / 视觉小说同好会构建的互动地图与社群管理平台。
-
-它以地图为入口，把中国省份、日本都道府县、海外同好会、社团资料、成员审核、Wiki、活动日历和刊物投稿串在一起。普通用户可以快速找到附近或感兴趣的同好会；社团负责人可以维护资料、审核成员、发布活动；超级管理员可以进行全站级别的审核与维护。
-
-项目设计目标不是做一个冷冰冰的目录，而是做一个在线的视觉小说校园祭：
+核心体验：
 
 ```text
-发现社团 → 查看资料 → 申请加入 → 参与活动 → 共建 Wiki → 延续创作
+发现同好会 -> 查看详情 -> 申请绑定/加入 -> 参与活动 -> 投稿刊物/Wiki -> 参与萌战
 ```
 
----
+## 1.6.5 更新重点
 
-## 1.6.4 更新摘要
-
-这一版主要围绕 **资料准确性、Wiki 内容能力、后台管理和隐私安全** 展开。
+相较于 1.6.4，本版本主要完成了三件事：
 
 | 模块 | 更新 |
 | --- | --- |
-| 同好会资料 | 支持一个同好会绑定多个省份，例如四川 / 重庆都能显示同一个组织 |
-| 编辑体验 | 再次编辑同好会时，会从已有内容继续修改，不再出现空白回填 |
-| 成员管理 | 恢复同好会管理页中超级管理员专属的全站成员信息模块 |
-| 列表渲染 | 修复 `japanSet is not defined` 导致列表模式异常的问题 |
-| Wiki 编辑器 | 支持二级标题、三级标题和更多结构化内容模块 |
-| Wiki 双语 | Wiki 页面开始支持中文 / 日文内容切换 |
-| Wiki 保存 | 修复编辑保存后可能把 Wiki 首页 HTML 回退的问题 |
-| 后端隐私 | 登录重新生成 Session ID，验证码不再回传，第三方平台 ID 不直接暴露给前端 |
-| 测试 | 新增后端隐私契约测试，并接入 `npm run check` |
+| 登录入口 | 默认打开网站会进入登录页；登录页重做视觉、文案和壁纸选择，并加入找回密码流程 |
+| 壁纸系统 | 新增 `/image/background` 本地壁纸目录；登录页、投稿页、Wiki、后台等页面可复用随机壁纸；主地图页和列表模式加入壁纸与玻璃面板效果 |
+| 地图主页面 | 修复壁纸早于地图加载的问题，改为地图渲染完成后再加载壁纸 |
+| 列表模式 | 列表模式同步使用壁纸、玻璃面板、半透明卡片和暗色适配 |
+| 萌战系统 | 新增公共萌战页、管理页、候选提名、Bangumi 检索、阶段管理、1v1 赛程、决赛、赛果和删除活动能力 |
+| 萌战赛程 | 标准阶段支持提名、预选、淘汰、决赛；阶段默认值可继续编辑 |
+| 隐私与上传整理 | 本地配置、运行数据、用户上传、缓存、构建产物和私有壁纸加入忽略规则；运行 JSON 数据从 Git 跟踪中移出 |
+| 测试 | `npm run check` 新增萌战后端、管理 UI、公共 UI 契约测试 |
 
----
+完整记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 功能总览
 
-<table>
-<tr>
-<td width="50%">
+### 地图与列表
 
-### 地图与资料库
-
-- 中国省份地图
-- 日本都道府县地图
-- 海外同好会入口
+- 中国省份地图、日本都道府县地图、海外同好会入口
 - 地图模式 / 列表模式切换
-- 省份索引、搜索、筛选和排序
-- 多省份绑定，同一社团可出现在多个地区
+- 省份索引、搜索、类型筛选和排序
+- 多省份绑定，同一组织可显示在多个地区
+- 访客浏览与登录后管理入口
 
-### 同好会管理
+### 同好会资料
 
-- 社团资料编辑
-- 头像、简介、学校、地区、联系方式维护
-- 加入申请与成员审核
+- 同好会名称、地区、学校、类型、联系方式和简介维护
+- 头像上传、裁剪与展示
 - 负责人 / 管理员 / 超级管理员权限层级
-- 超级管理员全站成员信息查看
-
-### 账号系统
-
-- 本地注册与登录
-- 邮箱验证码
-- QQ / Discord 绑定状态
-- 用户头像与个人资料
-- Session 与隐私安全加固
-
-</td>
-<td width="50%">
-
-### Wiki 系统
-
-- 可视化 Wiki 编辑器
-- 中文 / 日文内容切换
-- 标题、段落、图片、信息卡、时间线、外链
-- 静态页面生成
-- 同好会详情页直达 Wiki
+- 成员申请、审核、绑定和成员列表
+- 详细页直达 Wiki、活动、刊物和相关操作
 
 ### 活动与刊物
 
-- 活动日历
-- 活动报名与取消
-- 刊物投稿
-- 刊物进度追踪
-- GalOnly 相关申请与审核
+- 活动日历与列表视图
+- 活动投稿、审核、展示和报名数据
+- 刊物征稿发布、状态追踪和关联同好会
+- GalOnly 活动专题入口和审核页
 
-### 后台与运营
+### Wiki
 
-- 同好会管理后台
-- 活动、刊物、GalOnly 审核
-- 公告与通知
-- 反馈管理
-- 隐私安全契约测试
+- Wiki 首页、写作指南和静态详情页
+- 可视化编辑工具
+- 中文 / 日文内容支持
+- 图片、信息卡、时间线、外链和结构化段落
+- 生成后的 Wiki 页面可直接发布为静态 HTML
 
-</td>
-</tr>
-</table>
+### 萌战
 
----
+- 公共萌战门户：查看活动、提名候选、投票、查看赛程和结果
+- 管理端：创建活动、配置阶段、审核候选、生成对阵、结算比赛
+- 阶段：提名、预选、分组投票、淘汰赛、复活赛、决赛
+- 赛程：支持 1v1 对阵、自动晋级、决赛阶段和公开对阵图
+- 数据：候选、阶段、场次、投票和权限统一走 PHP API
 
-## 系统结构
+### 登录与账号
 
-```text
-                         ┌──────────────────────┐
-                         │      index.html       │
-                         │   主页面 / 地图入口   │
-                         └───────────┬──────────┘
-                                     │
-              ┌──────────────────────┼──────────────────────┐
-              │                      │                      │
-              ▼                      ▼                      ▼
-       ┌─────────────┐        ┌─────────────┐        ┌─────────────┐
-       │  地图与列表  │        │  同好会详情  │        │  Wiki 页面   │
-       │ D3 / Vanilla │        │ 成员 / 申请  │        │ 中日双语内容 │
-       └──────┬──────┘        └──────┬──────┘        └──────┬──────┘
-              │                      │                      │
-              └──────────────────────┼──────────────────────┘
-                                     │
-                                     ▼
-                         ┌──────────────────────┐
-                         │        PHP API        │
-                         │  auth / clubs / wiki  │
-                         └───────────┬──────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-                 JSON 数据        SQLite/MySQL      上传目录
-```
+- 默认登录页入口
+- 本地账号登录 / 注册
+- 邮箱验证码和找回密码
+- QQ / Discord OAuth 入口
+- Session 和第三方账号隐私保护
 
----
+## 技术栈
+
+| 层 | 技术 |
+| --- | --- |
+| 前端 | HTML, CSS, Vanilla JavaScript, D3.js |
+| 后端 | PHP 8.x |
+| 数据 | JSON runtime files, SQLite/MySQL via PDO |
+| 桌面/移动打包 | Electron, Capacitor |
+| 测试 | Node.js contract tests |
 
 ## 项目结构
 
 ```text
 .
-├── admin/                 管理后台页面
-├── api/                   PHP API
-├── css/                   前端样式
-├── data/                  运行数据目录，生产数据不应上传
-├── includes/              PHP 公共模块
-├── js/                    前端脚本
-├── scripts/               构建、生成与契约测试脚本
-├── wiki/                  Wiki 内容、静态页面与样式
-├── uploads/               用户上传目录
-├── images/                站点图片资源
-├── index.html             主入口
-├── config.example.php     配置模板
-├── package.json           Node 脚本与客户端构建配置
-└── README.md
+├─ admin/                 管理后台页面
+├─ api/                   PHP API
+├─ css/                   全站样式
+├─ data/                  本地运行数据目录，生产数据不进入 Git
+├─ Galgame_events/         GalOnly 活动相关页面
+├─ image/background/       本地壁纸投放目录，仅保留 .gitkeep
+├─ images/                站点内置图片资源
+├─ includes/              PHP 公共模块
+├─ js/                    前端脚本
+├─ moe/                   萌战公共页面和赛程页面
+├─ scripts/               测试、迁移和生成脚本
+├─ wiki/                  Wiki 静态页面、资源和内容
+├─ index.html             主地图入口
+├─ login.html             登录入口
+├─ CHANGELOG.md           版本更新记录
+└─ README.md
 ```
 
----
+## 本地运行
 
-## 运行与检查
-
-本项目部署细节依赖实际服务器环境，这里只保留必要命令。
+安装依赖：
 
 ```bash
 npm install
-cp config.example.php config.php
-php -S localhost:8000
 ```
 
-检查项目状态：
+准备配置：
+
+```bash
+cp config.example.php config.php
+```
+
+启动 PHP 开发服务器：
+
+```bash
+php -S 127.0.0.1:8000
+```
+
+打开：
+
+```text
+http://127.0.0.1:8000/login.html
+http://127.0.0.1:8000/index.html?guest=1
+```
+
+## 检查命令
 
 ```bash
 npm run check
 ```
 
-生成 Wiki 静态页：
+该命令会检查核心前端契约、Wiki 生成、上传契约、同好会编辑、后端隐私、萌战接口与 UI 契约，以及项目健康状态。
 
-```bash
-npm run wiki:build
+## 壁纸目录
+
+本地壁纸放在：
+
+```text
+image/background/
 ```
 
----
+规则：
 
-## 上传清单
+- 目录内支持 `jpg`、`jpeg`、`png`、`webp`、`gif`、`avif`
+- 登录页和其他接入页面会读取 `api/backgrounds.php`
+- 该目录只提交 `.gitkeep`
+- 你本地放入的壁纸不会被上传到 GitHub
+- 没有本地壁纸时，会使用仓库内置图片作为默认壁纸
 
-### 可以上传
+## GitHub 上传清单
 
-代码、模板、测试脚本和 Wiki 生成内容可以进入仓库：
+可以上传：
 
 ```text
 admin/
 api/
 css/
+Galgame_events/
 includes/
 js/
+moe/
 scripts/
-wiki/index.html
-wiki/index.json
-wiki/wiki.css
-wiki/content/*.json
-wiki/pages/*.html
+wiki/
 images/
+image/background/.gitkeep
 index.html
-feedback.html
+login.html
 submit*.html
+feedback.html
 config.example.php
 .env.example
 .gitignore
 README.md
+CHANGELOG.md
 package.json
 package-lock.json
 ```
 
-### 不要上传
-
-这些内容可能包含密钥、生产数据、用户隐私、上传文件或本地构建产物：
+不要上传：
 
 ```text
 config.php
@@ -260,22 +211,23 @@ node_modules/
 dist/
 www/
 android/
-data/clubs.json
-data/clubs_japan.json
+data/*.json
 data/*.db
-data/register_email_codes.json
-data/feedback.json
-data/submissions*.json
+data/cache/
 data/avatars/*
 data/club_avatars/*
 data/event_images/*
 data/publication_images/*
+data/manuscripts/*
+uploads/**
 wiki/uploads/*
-docs/frontend-design-demo.html
+image/background/*
+php-server*.log
+.php-server*.log
 docs/superpowers/
 ```
 
-发布前建议：
+## 发布前检查
 
 ```bash
 git status --short
@@ -283,26 +235,8 @@ git status --ignored --short
 npm run check
 ```
 
----
-
-## 隐私与安全
-
-- 不提交 `config.php`、`.env`、数据库、验证码文件和用户上传内容。
-- 不向前端返回 `qq_openid`、`discord_id` 或验证码调试字段。
-- 登录时重新生成 Session ID，降低会话固定风险。
-- 旧管理员 Token 只允许通过 `X-Admin-Token` 请求头传递。
-- 超级管理员成员信息模块仅面向 `super_admin` 开放。
-
----
+确认没有本地配置、运行数据、用户上传文件、构建产物或临时截图进入待提交列表后，再提交并推送。
 
 ## License
 
 本项目基于 [GPLv3](LICENSE) 发布。
-
-<div align="center">
-
-**VNFest · Visual Novel Festival**
-
-愿每一个同好会都能被找到。
-
-</div>
