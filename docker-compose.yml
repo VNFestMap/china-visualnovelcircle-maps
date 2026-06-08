@@ -1,6 +1,9 @@
 services:
   # ── 主应用: PHP 8 + Apache ──
   app:
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: ghcr.io/vnfestmap/galgame-community-map:latest
     container_name: vnfest-app
     restart: unless-stopped
