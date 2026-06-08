@@ -4,18 +4,38 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  workflow_dispatch:      # 支持手动触发
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  # ── PR 检查：只构建，不推送 ──
+  check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write     # 推送镜像到 ghcr.io 需要
 
     steps:
-      - name: 检出代码
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: 构建镜像（仅验证能否成功构建）
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── 构建并推送：仅在 push 到 main 或打 tag 时执行 ──
+  build-and-push:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
 
       - name: 设置 Docker 元数据
         id: meta
