@@ -72,8 +72,18 @@ $dataFiles = glob(__DIR__ . '/../data/*.json');
 $checks['data_files_count'] = count($dataFiles);
 
 // 7. Git 版本
-$gitHash = trim((string)@shell_exec('git -C ' . escapeshellarg(__DIR__ . '/..') . ' rev-parse --short HEAD 2>/dev/null') ?: '');
-$gitBranch = trim((string)@shell_exec('git -C ' . escapeshellarg(__DIR__ . '/..') . ' rev-parse --abbrev-ref HEAD 2>/dev/null') ?: '');
+$gitHash = '';
+$gitBranch = '';
+$gitDir = escapeshellarg(__DIR__ . '/..');
+if (function_exists('shell_exec')) {
+    $gitHash = trim((string)@shell_exec("git -C {$gitDir} rev-parse --short HEAD 2>/dev/null") ?: '');
+    $gitBranch = trim((string)@shell_exec("git -C {$gitDir} rev-parse --abbrev-ref HEAD 2>/dev/null") ?: '');
+} elseif (function_exists('exec')) {
+    @exec("git -C {$gitDir} rev-parse --short HEAD 2>/dev/null", $out, $code);
+    $gitHash = ($code === 0 && !empty($out)) ? trim($out[0]) : '';
+    @exec("git -C {$gitDir} rev-parse --abbrev-ref HEAD 2>/dev/null", $out2, $code2);
+    $gitBranch = ($code2 === 0 && !empty($out2)) ? trim($out2[0]) : '';
+}
 $checks['git_commit'] = $gitHash ?: 'unknown';
 $checks['git_branch'] = $gitBranch ?: 'unknown';
 
