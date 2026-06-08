@@ -242,19 +242,12 @@ switch ($action) {
         $unresolved = [];
         $flowPool = voteFlowPoolForStage($db, (int)$stage['id']);
         if ($flowPool) {
-            $stmt = $db->prepare("SELECT * FROM vote_flow_matches WHERE pool_id = ? AND status = 'open' ORDER BY round_no ASC, match_no ASC");
-            $stmt->execute([(int)$flowPool['id']]);
-            foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $match) {
-                $decision = voteMatchWinnerFromVotes($match, voteMatchVoteCounts($db, $match));
-                if (empty($decision['winner'])) {
-                    $unresolved[] = array_merge(['match_id' => (int)$match['id']], $decision);
-                    continue;
-                }
-                voteFlowSettleMatch($db, $match, (int)$decision['winner']);
-                $settled[] = array_merge(['match_id' => (int)$match['id'], 'winner_entry_id' => (int)$decision['winner']], $decision);
-            }
+            $flowResult = voteFlowSettleOpenMatchesByVotes($db, $flowPool);
+            $settled = $flowResult['settled'];
+            $unresolved = $flowResult['unresolved'];
             voteRespond([
                 'success' => true,
+                'status' => $unresolved ? 'reviewing' : (voteFlowPoolById($db, (int)$flowPool['id'])['status'] ?? 'open'),
                 'settled_count' => count($settled),
                 'unresolved_count' => count($unresolved),
                 'settled' => $settled,

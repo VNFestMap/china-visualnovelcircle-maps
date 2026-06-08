@@ -648,6 +648,116 @@ body::before {
   color: var(--accent-pink);
 }
 
+/* ── Event Management ── */
+.event-mgr {
+  margin-bottom: 16px;
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-card);
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+}
+.event-mgr-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: var(--transition);
+}
+.event-mgr-header:hover { background: rgba(255,255,255,0.04); }
+.event-mgr-title {
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.event-mgr-title .arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+  font-size: 12px;
+}
+.event-mgr-title .arrow.open { transform: rotate(90deg); }
+.event-mgr-body {
+  padding: 0 20px 16px;
+  display: none;
+}
+.event-mgr-body.open { display: block; }
+.event-mgr-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.event-mgr-row:hover { background: rgba(255,255,255,0.04); }
+.event-mgr-row + .event-mgr-row { border-top: 1px solid rgba(255,255,255,0.04); }
+.event-mgr-info { min-width: 0; flex: 1; }
+.event-mgr-name { font-size: 14px; font-weight: 600; }
+.event-mgr-date { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.event-mgr-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.event-mgr-status.open {
+  background: rgba(76,175,80,0.15);
+  color: #4caf50;
+}
+.event-mgr-status.closed {
+  background: rgba(244,67,54,0.15);
+  color: #f44336;
+}
+.event-mgr-toggle {
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.event-mgr-toggle:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
+.event-mgr-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.event-mgr-toggle.close {
+  border-color: rgba(244,67,54,0.3);
+  color: #f44336;
+}
+.event-mgr-toggle.close:hover {
+  background: rgba(244,67,54,0.1);
+}
+.event-mgr-toggle.open-reg {
+  border-color: rgba(76,175,80,0.3);
+  color: #4caf50;
+}
+.event-mgr-toggle.open-reg:hover {
+  background: rgba(76,175,80,0.1);
+}
+.event-mgr-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .container { padding: 12px; }
@@ -696,6 +806,20 @@ body::before {
     <div class="stat-card">
       <div class="num" id="statAuditors" style="color:#9c27b0;">—</div>
       <div class="label">审核员总数</div>
+    </div>
+  </div>
+
+  <!-- Event Management -->
+  <div class="event-mgr" id="eventMgr">
+    <div class="event-mgr-header" onclick="toggleEventMgr()">
+      <div class="event-mgr-title">
+        <span class="arrow" id="eventMgrArrow">&#9654;</span>
+        活动管理
+      </div>
+      <span style="font-size:12px;color:var(--text-secondary);" id="eventMgrCount"></span>
+    </div>
+    <div class="event-mgr-body" id="eventMgrBody">
+      <div id="eventMgrList"></div>
     </div>
   </div>
 
@@ -854,6 +978,9 @@ async function loadEvents() {
       opt.textContent = ev.title || ev.name || ('活动 #' + ev.id);
       sel.appendChild(opt);
     });
+
+    // Refresh event management list
+    renderEventMgr();
   } catch (e) {
     showToast('加载活动列表失败', 'error');
   }
@@ -1203,6 +1330,88 @@ function switchTab(tab) {
   renderCurrentTab();
 }
 
+// ====== Event Management (熔断) ======
+function toggleEventMgr() {
+  var body = document.getElementById('eventMgrBody');
+  var arrow = document.getElementById('eventMgrArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function renderEventMgr() {
+  var list = document.getElementById('eventMgrList');
+  var count = document.getElementById('eventMgrCount');
+
+  if (!allEvents || allEvents.length === 0) {
+    list.innerHTML = '<div class="event-mgr-empty">暂无活动</div>';
+    if (count) count.textContent = '';
+    return;
+  }
+
+  if (count) count.textContent = allEvents.length + ' 个活动';
+
+  list.innerHTML = allEvents.map(function(ev) {
+    var isOpen = ev.registration_open == 1;
+    var name = escapeHtml(ev.name || ev.title || '未命名');
+    var dateStr = ev.date || '';
+    var statusHtml = isOpen
+      ? '<span class="event-mgr-status open">开放申请</span>'
+      : '<span class="event-mgr-status closed">已熔断</span>';
+    var btnHtml = isOpen
+      ? '<button class="event-mgr-toggle close" onclick="toggleRegistration(' + ev.id + ',1)" title="关闭申请入口，用户将看到「摊位申请已达到上限」">熔断</button>'
+      : '<button class="event-mgr-toggle open-reg" onclick="toggleRegistration(' + ev.id + ',0)">重新开放</button>';
+
+    return '<div class="event-mgr-row">' +
+      '<div class="event-mgr-info">' +
+        '<div class="event-mgr-name">' + name + '</div>' +
+        '<div class="event-mgr-date">' + escapeHtml(dateStr) + '</div>' +
+      '</div>' +
+      statusHtml +
+      btnHtml +
+    '</div>';
+  }).join('');
+}
+
+async function toggleRegistration(eventId, currentlyOpen) {
+  var label = currentlyOpen ? '熔断' : '重新开放';
+  var msg = currentlyOpen
+    ? '确定要熔断此活动吗？熔断后用户将看到「摊位申请已达到上限」，无法提交新的申请。\n\n已通过或已提交的申请仍可继续编辑。'
+    : '确定要重新开放此活动的申请入口吗？';
+
+  if (!confirm(msg)) return;
+
+  var btn = document.querySelector('.event-mgr-toggle[onclick*="toggleRegistration(' + eventId + '"]');
+  if (btn) btn.disabled = true;
+
+  try {
+    var r = await fetch('../api/galonly.php?action=update_event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        event_id: eventId,
+        registration_open: currentlyOpen ? 0 : 1
+      })
+    });
+    var data = await r.json();
+
+    if (!data.success) {
+      showToast(data.message || '操作失败', 'error');
+      if (btn) btn.disabled = false;
+      return;
+    }
+
+    showToast(label + '成功', 'success');
+
+    // Reload events to refresh both management list and filter dropdown
+    await loadEvents();
+    renderEventMgr();
+  } catch (e) {
+    showToast('网络错误，操作失败', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
 // ====== Init ======
 async function init() {
   // Auth
@@ -1214,6 +1423,7 @@ async function init() {
 
   // Load events
   await loadEvents();
+  renderEventMgr();
 
   // Load applications
   await loadApplications();

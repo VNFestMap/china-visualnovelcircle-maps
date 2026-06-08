@@ -3,10 +3,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const read = (file) => {
+  const direct = path.join(root, file);
+  if (fs.existsSync(direct)) return fs.readFileSync(direct, 'utf8');
+  return fs.readFileSync(path.join(root, '..', file), 'utf8');
+};
 
 const botApi = read('api/bot.php');
 assert.ok(botApi.includes("case 'membership_applications'"), 'bot API should expose membership_applications action');
+assert.ok(botApi.includes('club_bot_tokens'), 'bot API should create and use club_bot_tokens');
+assert.ok(botApi.includes('function botEnsureClubTokenTable'), 'bot API should self-heal the club bot token table');
+assert.ok(botApi.includes('gmap_club_'), 'bot API should support public club bot tokens');
+assert.ok(botApi.includes("case 'bot_tokens_list'"), 'bot API should expose bot token listing');
+assert.ok(botApi.includes("case 'bot_tokens_create'"), 'bot API should expose bot token creation');
+assert.ok(botApi.includes("case 'bot_tokens_revoke'"), 'bot API should expose bot token revocation');
+assert.ok(botApi.includes('password_hash($token') && botApi.includes('password_verify($actual'), 'bot API should store only token hashes');
+assert.ok(botApi.includes('同好会 Bot token 只能读取本同好会申请'), 'club tokens should be scoped to their own membership applications');
+assert.ok(botApi.includes('同好会 Bot token 无权访问其他同好会'), 'club tokens should reject cross-club access');
+assert.ok(botApi.includes('approve_membership'), 'bot API should support optional approval permission');
+assert.ok(botApi.includes("case 'membership_approve'") && botApi.includes("case 'membership_reject'"), 'bot API should expose approve/reject actions');
 assert.ok(botApi.includes('function botMembershipApplications'), 'bot API should implement membership application listing');
 assert.ok(botApi.includes('botEnsureMembershipApplicationColumns'), 'bot API should self-heal missing membership application columns');
 assert.ok(botApi.includes('since_id'), 'membership application API should support since_id');
@@ -21,7 +36,7 @@ assert.ok(botApi.includes('pending_memberships_external_exchange'), 'admin summa
 assert.ok(botApi.includes('function botMoeKing') && botApi.includes("row['moe_king']"), 'club detail API should include moe king data');
 
 const plugin = read('astrbot_plugin_galgamemap/main.py');
-assert.ok(plugin.includes('v0.2.1'), 'plugin version should be bumped');
+assert.ok(plugin.includes('v0.3.0-public'), 'plugin version should be bumped');
 assert.ok(plugin.includes('sync_enabled'), 'plugin should read sync_enabled config');
 assert.ok(plugin.includes('sync_auto_enable_on_bind'), 'plugin should support auto-enable after binding');
 assert.ok(plugin.includes('sync_interval_seconds'), 'plugin should read sync interval config');
@@ -50,6 +65,11 @@ assert.ok(plugin.includes('同步绑定') && plugin.includes('同步超管') && 
 assert.ok(plugin.includes('JOIN_METHOD_LABELS') && plugin.includes('ROLE_LABELS'), 'plugin should render join method and role labels');
 assert.ok(plugin.includes('萌王') && plugin.includes('moe_king'), 'plugin club detail should render moe king');
 assert.ok(plugin.includes('外交成员（IEM）'), 'plugin should render IEM role label');
+for (const command of ['待审', '通过', '拒绝', '国家', '类型', '分享', '活跃', '萌战']) {
+  assert.ok(plugin.includes(command), `plugin should expose ${command} command`);
+}
+assert.ok(plugin.includes('_own_club_for_token'), 'plugin should support no-key sync binding for public club tokens');
+assert.ok(plugin.includes('membership_approve') && plugin.includes('membership_reject'), 'plugin should call bot approval actions');
 
 const schema = read('astrbot_plugin_galgamemap/_conf_schema.json');
 const parsedSchema = JSON.parse(schema);
@@ -67,13 +87,23 @@ for (const key of [
 }
 
 const metadata = read('astrbot_plugin_galgamemap/metadata.yaml');
-assert.ok(metadata.includes('v0.2.1'), 'metadata should advertise v0.2.1');
-assert.ok(metadata.includes('申请同步') && metadata.includes('IEM') && metadata.includes('萌王') && metadata.includes('中文模糊绑定'), 'metadata should mention the new information surface');
+assert.ok(metadata.includes('v0.3.0-public'), 'metadata should advertise v0.3.0-public');
+assert.ok(metadata.includes('公开版') && metadata.includes('申请同步') && metadata.includes('IEM') && metadata.includes('萌王'), 'metadata should mention the new information surface');
 
 const readme = read('astrbot_plugin_galgamemap/README.md');
 assert.ok(readme.includes('同步绑定') && readme.includes('同步超管') && readme.includes('unified_msg_origin'), 'README should document sync commands and active message origin');
-assert.ok(readme.includes('/gal地图 同步绑定 北大') && readme.includes('不合法的 session 字符串'), 'README should document fuzzy binding and invalid session recovery');
+assert.ok(readme.includes('/gal地图 同步绑定 北大') && readme.includes('/gal地图 同步绑定') && readme.includes('不合法的 session 字符串'), 'README should document fuzzy binding and invalid session recovery');
 assert.ok(readme.includes('/gal地图 同步检测 北大'), 'README should document single-club sync check');
 assert.ok(readme.includes('membership_applications'), 'README should document the new bot API action');
+assert.ok(readme.includes('负责人公开接入') && readme.includes('Bot 接入') && readme.includes('gmap_club_'), 'README should document public club onboarding');
+assert.ok(readme.includes('/gal地图 待审') && readme.includes('/gal地图 通过') && readme.includes('/gal地图 拒绝'), 'README should document approval commands');
+
+const manager = read('admin/club_manager.html');
+assert.ok(manager.includes('data-tab="bot_tokens"'), 'club manager should expose Bot 接入 tab');
+assert.ok(manager.includes('renderBotTokens') && manager.includes('generateBotToken') && manager.includes('revokeBotToken'), 'club manager should manage bot tokens');
+assert.ok(manager.includes('bot_tokens_create') && manager.includes('bot_tokens_revoke'), 'club manager should call bot token management API');
+
+const migrate = read('scripts/migrate.php');
+assert.ok(migrate.includes('club_bot_tokens'), 'migration should create club_bot_tokens');
 
 console.log('astrbot sync contract tests passed');

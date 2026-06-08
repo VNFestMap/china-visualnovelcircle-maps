@@ -48,4 +48,14 @@ define('DISCORD_REDIRECT_URI', SITE_URL . '/api/discord_callback.php');
 
 define('LEGACY_AUTH_ENABLED', true);
 
+// ===== LLM API 配置（同好会运行画像生成器用，可选） =====
+define('LLM_ENABLED', false);        // 是否启用 LLM 分析
+define('LLM_PROVIDER', 'deepseek');  // deepseek / openai / claude
+define('LLM_API_KEY', '');           // API 密钥
+define('LLM_API_URL', '');           // 自定义 API 地址（空=默认）
+define('LLM_PROXY', '');             // 可选代理，例如 http://127.0.0.1:7890；留空则忽略环境代理并直连
+define('LLM_MODEL', 'deepseek-chat');
+define('LLM_MAX_TOKENS', 2048);
+define('LLM_TEMPERATURE', 0.7);
+
 }

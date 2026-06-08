@@ -76,6 +76,15 @@ function projectHubInput(): array {
     return is_array($data) ? $data : [];
 }
 
+function projectHubEffectiveMethod(array $input): string {
+    $method = strtoupper((string)($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+    if ($method !== 'POST') {
+        return $method;
+    }
+    $override = strtoupper(projectHubCleanString($input['ph_method'] ?? $input['project_hub_method'] ?? $input['_method'] ?? $input['method'] ?? $_GET['ph_method'] ?? $_GET['_method'] ?? '', 10));
+    return in_array($override, ['PUT', 'DELETE'], true) ? $override : $method;
+}
+
 function projectHubNow(): string {
     return date('Y-m-d H:i:s');
 }
@@ -407,12 +416,15 @@ function projectHubFallbackFromEvents(): array {
 function projectHubLoadProjects(bool $includeDeleted = false, bool $withFallback = true): array {
     $data = projectHubJsonRead(projectHubDataPath('projects.json'), ['projects' => [], 'migrated_at' => null]);
     $projects = $data['projects'] ?? [];
+    $projects = array_values(array_filter($projects, fn($project) => empty($project['deleted_at']) || isset($project['legacy_publication_id'])));
     if ($withFallback) {
         $publicationFallback = projectHubFallbackFromPublications();
         $seenProjectIds = [];
         $seenLegacyPublicationIds = [];
         foreach ($projects as $project) {
-            $seenProjectIds[(int)($project['id'] ?? 0)] = true;
+            if (empty($project['deleted_at'])) {
+                $seenProjectIds[(int)($project['id'] ?? 0)] = true;
+            }
             if (isset($project['legacy_publication_id'])) {
                 $seenLegacyPublicationIds[(int)$project['legacy_publication_id']] = true;
             }
@@ -485,7 +497,7 @@ function projectHubNextIntId(array $rows): int {
             $max = $id;
         }
     }
-    return $max + 1;
+    return max($max + 1, 100000);
 }
 
 function projectHubNextItemId(array $rows): string {

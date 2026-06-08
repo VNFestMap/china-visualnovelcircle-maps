@@ -108,6 +108,15 @@ body {
 .status-pending { background: rgba(255,193,7,0.15); color: #ffc107; }
 .status-approved { background: rgba(76,175,80,0.15); color: #4caf50; }
 .status-rejected { background: rgba(244,67,54,0.15); color: #f44336; }
+.status-full {
+  background: rgba(244,67,54,0.12);
+  color: #ff5252;
+  border: 1px solid rgba(244,67,54,0.2);
+  font-size: 11px;
+  padding: 3px 10px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
 
 .btn-apply {
     background: linear-gradient(135deg, #ff6b35, #e74c3c);
@@ -117,6 +126,13 @@ body {
 }
 .btn-apply:hover { opacity: 0.9; }
 .btn-apply:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-apply-full {
+  background: rgba(244,67,54,0.15);
+  color: #f44336;
+  border: 1px solid rgba(244,67,54,0.3);
+  cursor: not-allowed;
+}
+.btn-apply-full:hover { opacity: 1; background: rgba(244,67,54,0.15); }
 .btn-apply-not-logged-in {
     background: rgba(255,255,255,0.1);
     color: rgba(255,255,255,0.5);
@@ -278,9 +294,9 @@ body {
                 '</div>';
         }
 
-        // If registration is not open, show disabled button
+        // If registration is not open (熔断), show full message
         if (!regOpen) {
-            return '<button class="btn-apply" disabled>暂未开始</button>';
+            return '<button class="btn-apply btn-apply-full" disabled>摊位申请已达到上限</button>';
         }
 
         // Not logged in
@@ -296,7 +312,7 @@ body {
         eventListEl.innerHTML = '';
 
         if (!events || events.length === 0) {
-            eventListEl.innerHTML = '<div class="no-events">暂无开放申请的活动</div>';
+            eventListEl.innerHTML = '<div class="no-events">暂无活动</div>';
             return;
         }
 
@@ -305,6 +321,7 @@ body {
             card.className = 'event-card visible';
 
             var name = escapeHtml(event.name || '未命名活动');
+            var fullBadge = (!event.registration_open) ? '<span class="status-badge status-full">已满员</span>' : '';
             var dateDisplay = formatDate(event.date);
             var location = escapeHtml(event.location || '待定');
             var desc = escapeHtml(event.description || '暂无描述');
@@ -325,7 +342,7 @@ body {
             }
 
             card.innerHTML =
-                '<div class="event-name">' + name + '</div>' +
+                '<div class="event-name">' + name + fullBadge + '</div>' +
                 '<div class="event-meta">' +
                     '<span class="event-meta-item"><span class="label">时间:</span> ' + dateDisplay + '</span>' +
                     '<span class="event-meta-item"><span class="label">地点:</span> ' + location + '</span>' +

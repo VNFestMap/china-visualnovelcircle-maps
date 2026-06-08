@@ -5,11 +5,14 @@ const { app, BrowserWindow } = require('electron');
 const baseUrl = process.env.SMOKE_BASE_URL || 'http://127.0.0.1:8097';
 const smokeLanguage = process.env.SMOKE_LANGUAGE || '';
 const smokePerf = process.env.SMOKE_PERF === '1';
-const smokeViewport = process.env.SMOKE_VIEWPORT || 'desktop';
+const args = new Set(process.argv.slice(2));
+const smokeViewport = args.has('--all-viewports') ? 'all' : (process.env.SMOKE_VIEWPORT || 'desktop');
 const smokePerfOutput = process.env.SMOKE_PERF_OUTPUT || '';
-const viewportSize = smokeViewport === 'mobile'
-  ? { width: 390, height: 844 }
-  : { width: 1366, height: 900 };
+const viewportNames = smokeViewport === 'all' ? ['desktop', 'mobile'] : [smokeViewport];
+const viewportSizes = {
+  mobile: { width: 390, height: 844 },
+  desktop: { width: 1366, height: 900 },
+};
 const defaultPages = [
   '/index.html?guest=1',
   '/submit.html',
@@ -18,8 +21,12 @@ const defaultPages = [
   '/star_map.html',
   '/wiki/index.html',
 ];
+const moePages = [
+  '/moe/index.html',
+  '/moe/contest.html?id=999999',
+];
 const pageFilter = (process.env.SMOKE_PAGES || '').split(',').map((item) => item.trim()).filter(Boolean);
-const pages = pageFilter.length ? pageFilter : defaultPages;
+const pages = args.has('--moe') ? moePages : (pageFilter.length ? pageFilter : defaultPages);
 
 app.on('window-all-closed', (event) => {
   event.preventDefault();
@@ -29,7 +36,8 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function inspectPage(pagePath) {
+async function inspectPage(pagePath, viewportName) {
+  const viewportSize = viewportSizes[viewportName] || viewportSizes.desktop;
   const win = new BrowserWindow({
     show: false,
     width: viewportSize.width,
@@ -117,7 +125,7 @@ async function inspectPage(pagePath) {
   win.destroy();
   return {
     pagePath,
-    viewport: smokeViewport,
+    viewport: viewportName,
     wallTimeMs: Date.now() - startedAt,
     loadFailure,
     consoleErrors,
@@ -128,16 +136,18 @@ async function inspectPage(pagePath) {
 app.whenReady().then(async () => {
   const failures = [];
   const results = [];
-  for (const pagePath of pages) {
-    const result = await inspectPage(pagePath);
-    results.push(result);
-    const redirectedToLogin = result.loadFailure && result.loadFailure.includes('ERR_ABORTED') && result.finalUrl.includes('/login.html');
-    const hasFailure = (result.loadFailure && !redirectedToLogin) || result.bodyTextLength < 20 || result.localBrokenImages.length || result.consoleErrors.length;
-    if (hasFailure) failures.push(result);
-    const perfLabel = smokePerf && result.perf
-      ? ` load=${result.perf.loadEventMs}ms wall=${result.wallTimeMs}ms resources=${result.perf.resourceCount}`
-      : '';
-    console.log(`${hasFailure ? 'FAIL' : 'OK'} ${pagePath} ${result.title || ''}${perfLabel}`);
+  for (const viewportName of viewportNames) {
+    for (const pagePath of pages) {
+      const result = await inspectPage(pagePath, viewportName);
+      results.push(result);
+      const redirectedToLogin = result.loadFailure && result.loadFailure.includes('ERR_ABORTED') && result.finalUrl.includes('/login.html');
+      const hasFailure = (result.loadFailure && !redirectedToLogin) || result.bodyTextLength < 20 || result.localBrokenImages.length || result.consoleErrors.length;
+      if (hasFailure) failures.push(result);
+      const perfLabel = smokePerf && result.perf
+        ? ` load=${result.perf.loadEventMs}ms wall=${result.wallTimeMs}ms resources=${result.perf.resourceCount}`
+        : '';
+      console.log(`${hasFailure ? 'FAIL' : 'OK'} ${viewportName} ${pagePath} ${result.title || ''}${perfLabel}`);
+    }
   }
 
   if (smokePerfOutput) {

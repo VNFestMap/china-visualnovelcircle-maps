@@ -1,0 +1,16 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Runtime
+*.log
+php-server*.log
+api/logs/
+
+# Data
+*.xlsx
+*.xls
+
+# IDE
+.vscode/
+.idea/

@@ -12,6 +12,7 @@ const matchesApi = read('api/vote_matches.php');
 const managerJs = read('js/club-project-manager.js');
 const moeJs = read('js/moe-contest.js');
 const twelveJs = read('js/twelve-contest.js');
+const settlementCli = read('scripts/settle-moe-contests.php');
 
 [
   'vote_flow_runs',
@@ -96,7 +97,18 @@ assert.ok(managerJs.includes('live_votes') && managerJs.includes('after_event'),
 assert.ok(managerJs.includes('settle_by_votes'), 'manager should expose vote-count match settlement');
 assert.ok(managerJs.includes('loadMoeMatchesForStages') && managerJs.includes("stage.stage_type === 'final'"), 'manager should load bracket and final match lists for the active workbench stage');
 assert.ok(managerJs.includes('lastSettleIssues') && managerJs.includes('平票/缺槽'), 'manager should surface unresolved match settlement issues');
-assert.ok(managerJs.includes('mfEndsAt') && managerJs.includes('startTimedSettlePolling') && managerJs.includes('setInterval(checkTimedSettle, 45000)'), 'manager should edit ends_at and poll for timed match settlement');
+assert.ok(
+  managerJs.includes('mfEndsAt')
+    && !managerJs.includes('checkTimedSettle')
+    && !managerJs.includes('timedSettleTimer'),
+  'manager should edit ends_at without retaining page-driven settlement polling'
+);
+assert.ok(settlementCli.includes("PHP_SAPI !== 'cli'") && settlementCli.includes('voteFlowSettleOpenMatchesByVotes') && settlementCli.includes('flock'), 'CLI settlement should be exclusive, idempotent, and handle match pools');
+assert.ok(core.includes("'rule_version' => 2") && core.includes("'group_ticket_scope' => 'per_group'"), 'new moe pools should snapshot rule version 2 and per-group tickets');
+assert.ok(core.includes('score_total') && core.includes('rating_count') && core.includes('voteFlowResolvePoolTie'), 'flow results should persist score metrics and support manual tie resolution');
+assert.ok(stagesApi.includes('update_and_rebuild') && stagesApi.includes('POOL_HAS_ACTIVITY'), 'stage API should expose atomic no-data rebuild and reject active pools');
+assert.ok(votesApi.includes('rank_visible') && votesApi.includes('metrics_visible') && votesApi.includes('voteTrimMoeResultRows'), 'results API should enforce rank and metric visibility');
+assert.ok(moeJs.includes('renderScoreVoting') && moeJs.includes('mo-score-input') && moeJs.includes('group_rank'), 'moe page should support grouped score voting and grouped results');
 assert.ok(managerJs.includes('renderMoeAwardsFromResults') && managerJs.includes("club_moe_king.php?action=set"), 'manager should fill final awards from results and sync champion to moe king');
 assert.ok(votesApi.includes('score_avg DESC, votes DESC'), 'results API should order live score stages by average score before vote count');
 assert.ok(moeJs.includes('阶段池尚未生成，请联系负责人') || moeJs.includes('闃舵姹犲皻鏈敓鎴愶紝璇疯仈绯昏礋璐ｄ汉'), 'moe page should explain missing pools');

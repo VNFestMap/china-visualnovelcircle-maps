@@ -621,10 +621,11 @@
       payload.participant_clubs = Object.values(participantMap);
       payload.is_joint = payload.participant_clubs.length > 0;
       payload.status = project?.status || 'collecting';
+      const projectPayload = isEdit ? Object.assign({ ph_method: 'PUT', id: project.id }, payload) : payload;
       const data = await request(API.projects, {
-        method: isEdit ? 'PUT' : 'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(isEdit ? Object.assign({ id: project.id }, payload) : payload)
+        body: JSON.stringify(projectPayload)
       });
       hubProjectsLoadedAt = 0;
       if (!isEdit && data.project?.id) {
@@ -656,8 +657,11 @@
       <div class="hub-form-actions"><button class="md3-btn" type="submit">保存</button><button class="md3-btn secondary" type="button" data-hub-form-close>取消</button></div>`, async (fd) => {
       const payload = Object.fromEntries(fd.entries());
       payload.project_id = projectId;
-      if (item.id) payload.id = item.id;
-      await request(API.items, { method: item.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (item.id) {
+        payload.id = item.id;
+        payload.ph_method = 'PUT';
+      }
+      await request(API.items, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     });
   }
 
@@ -708,14 +712,14 @@
   async function deleteCurrentProject() {
     const project = hubProjects.find((p) => parseInt(p.id) === parseInt(hubSelectedId));
     if (!project || !confirm('确定删除「' + (project.title || '未命名企划') + '」吗？')) return;
-    await request(API.projects, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: project.id }) });
+    await request(API.projects, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ph_method: 'DELETE', id: project.id }) });
     hubProjectsLoadedAt = 0;
     hubSelectedId = null;
     await openHubModal();
   }
 
   async function reviewParticipation(id, status) {
-    await request(API.participations, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id, status: status }) });
+    await request(API.participations, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ph_method: 'PUT', id: id, status: status }) });
     await selectHubProject(hubSelectedId);
   }
 

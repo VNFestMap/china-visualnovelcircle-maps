@@ -24,8 +24,6 @@
     stageEntriesCache: {},
     rebuildFlowInFlight: false,
     lastSettleIssues: [],
-    timedSettleTimer: null,
-    timedSettleInFlight: false,
     moeAwardSyncKey: ''
   };
   var POOL_PAGE_SIZE = 16;
@@ -100,10 +98,18 @@
         state.entries = results[0].success ? (results[0].data || []) : [];
         state.matches = results[1].success ? (results[1].data || []) : [];
         state.flow = results[2].success ? results[2] : null;
+        state.lastSettleIssues = [];
+        if (state.flow && Array.isArray(state.flow.pools)) {
+          state.flow.pools.forEach(function (pool) {
+            var runtime = pool.runtime || {};
+            if (Array.isArray(runtime.match_tie_breaks)) {
+              state.lastSettleIssues = state.lastSettleIssues.concat(runtime.match_tie_breaks);
+            }
+          });
+        }
         return loadMoeMatchesForStages().then(function () {
           renderProjectList();
           renderDetail();
-          startTimedSettlePolling();
         });
       });
     });
@@ -124,56 +130,6 @@
       });
       state.matches = rows;
     }).catch(function () {});
-  }
-
-  function stopTimedSettlePolling() {
-    if (state.timedSettleTimer) {
-      clearInterval(state.timedSettleTimer);
-      state.timedSettleTimer = null;
-    }
-  }
-
-  function startTimedSettlePolling() {
-    stopTimedSettlePolling();
-    if (!state.selected || state.selected.project_type !== 'moe') return;
-    checkTimedSettle();
-    state.timedSettleTimer = setInterval(checkTimedSettle, 45000);
-  }
-
-  function parseStageEnd(stage) {
-    if (!stage || !stage.ends_at) return null;
-    var raw = String(stage.ends_at).replace(' ', 'T');
-    var time = new Date(raw);
-    return isNaN(time.getTime()) ? null : time;
-  }
-
-  function checkTimedSettle() {
-    if (!state.selected || state.selected.project_type !== 'moe' || state.timedSettleInFlight) return;
-    var now = Date.now();
-    var due = state.stages.find(function (stage) {
-      if (stage.stage_type !== 'bracket' && stage.stage_type !== 'final') return false;
-      var end = parseStageEnd(stage);
-      if (!end || end.getTime() > now) return false;
-      var pool = getFlowPoolForStage(stage);
-      if (pool && pool.status === 'settled') return false;
-      return state.matches.some(function (m) {
-        return Number(m.stage_id) === Number(stage.id) && m.status === 'open';
-      });
-    });
-    if (!due) return;
-    state.timedSettleInFlight = true;
-    post('../api/vote_matches.php?action=settle_by_votes', { stage_id: Number(due.id) }).then(function (data) {
-      var issues = data && data.success ? (data.unresolved || []) : [];
-      if (data && data.success) {
-        var msg = '定时结算完成 ' + Number(data.settled_count || 0) + ' 场';
-        if (Number(data.unresolved_count || 0) > 0) msg += ' · 平票/缺槽 ' + Number(data.unresolved_count || 0) + ' 场';
-        toast(msg);
-        state.lastSettleIssues = issues;
-      }
-      if (state.selected) return selectProject(state.selected.id);
-    }).finally(function () {
-      state.timedSettleInFlight = false;
-    });
   }
 
   function reloadProjectWithQualifierPool(projectId, qualifierId, qualifierEntries) {
@@ -203,7 +159,6 @@
       return loadMoeMatchesForStages().then(function () {
         renderProjectList();
         renderDetail();
-        startTimedSettlePolling();
       });
     });
   }
@@ -526,6 +481,38 @@
 
   function runFlowAction(action, poolId, btn) {
     if (!state.selected || !poolId) return;
+    if (action === 'resolve_flow_tie') {
+      var reviewingPool = state.flow && Array.isArray(state.flow.pools)
+        ? state.flow.pools.find(function (pool) { return Number(pool.id) === Number(poolId); })
+        : null;
+      var tieBreaks = reviewingPool && reviewingPool.runtime && reviewingPool.runtime.tie_breaks;
+      if (!Array.isArray(tieBreaks) || !tieBreaks.length) {
+        toast('没有可裁定的晋级线同分');
+        return;
+      }
+      var decisions = [];
+      for (var tieIndex = 0; tieIndex < tieBreaks.length; tieIndex++) {
+        var tie = tieBreaks[tieIndex];
+        var answer = window.prompt(
+          String(tie.group_key || '分组') + ' 需选择 ' + Number(tie.slots || 1) +
+          ' 项。候选 ID：' + (tie.entry_ids || []).join(', ') + '。请输入选中的 ID，多个用逗号分隔：'
+        );
+        if (answer === null) return;
+        var selectedIds = answer.split(',').map(function (value) { return Number(value.trim()); }).filter(Boolean);
+        decisions.push({ group_key: tie.group_key, entry_ids: selectedIds });
+      }
+      if (btn) btn.disabled = true;
+      post('../api/vote_stages.php?action=resolve_flow_tie', {
+        pool_id: Number(poolId),
+        decisions: decisions
+      }).then(function (data) {
+        toast(data.success ? '同分裁定已提交' : (data.message || '裁定失败'));
+        if (state.selected) selectProject(state.selected.id);
+      }).finally(function () {
+        if (btn) btn.disabled = false;
+      });
+      return;
+    }
     if (action === 'generate_matches') {
       var stage = state.stages.find(function (s) {
         var pool = getFlowPoolForStage(s);
@@ -602,6 +589,16 @@
   }
 
   function buildStageSummary(s) {
+    var flowPool = getFlowPoolForStage(s);
+    if (flowPool && flowPool.runtime) s = Object.assign({}, s, flowPool.runtime);
+    if (state.selected && state.selected.project_type === 'moe' && s.vote_mode === 'match_single') {
+      if (s.stage_type === 'final') return '1v1 · 冠军赛 + 季军赛';
+      if (flowPool) {
+        s = Object.assign({}, s, {
+          config_json: JSON.stringify({ bracket_size: Number(flowPool.entry_count || 0) })
+        });
+      }
+    }
     var parts = [];
     var modeLabel = VOTE_MODE_LABELS[s.vote_mode] || s.vote_mode;
     parts.push(modeLabel);
@@ -756,7 +753,9 @@
     if (mode === 'multi_select' || mode === 'score') {
       html += '<div class="form-field" data-field-group="group"><label class="field-label">分组数 <span class="modal-field-hint">分组</span></label>';
       html += '<div class="segmented" id="mfGroupCount">';
-      var groupOptions = s.stage_type === 'qualifier' ? [2, 4] : [1, 2, 4, 8];
+      var groupOptions = state.selected && state.selected.project_type === 'moe' && s.stage_type === 'qualifier'
+        ? [1, 2, 4]
+        : (s.stage_type === 'qualifier' ? [2, 4] : [1, 2, 4, 8]);
       if (groupOptions.indexOf(Number(s.group_count)) === -1) s.group_count = groupOptions[0];
       groupOptions.forEach(function (n) {
         html += '<button class="segmented-btn' + (Number(s.group_count) === n ? ' active' : '') + '" data-value="' + n + '">' + n + '</button>';
@@ -773,7 +772,15 @@
       html += '<div class="form-field" data-field-group="score"><label class="field-label">最高分 <span class="modal-field-hint">评分制</span></label><input class="form-input" id="mfScoreMax" type="number" min="1" value="' + Number(s.score_max || 10) + '"></div></div>';
     }
 
-    if (mode === 'match_single') {
+    if (mode === 'match_single' && state.selected && state.selected.project_type === 'moe') {
+      var qualifier = getStageByType('qualifier');
+      var derivedSize = s.stage_type === 'final' ? 4 : Number((qualifier && qualifier.advance_count) || 0);
+      html += '<div class="form-field" data-field-group="bracket"><label class="field-label">对阵规模</label><div class="modal-field-hint">' +
+        (s.stage_type === 'final' ? '固定生成冠军赛和季军赛' : '由海选晋级数推导：' + derivedSize + ' 强') +
+        '</div></div>';
+    }
+
+    if (mode === 'match_single' && (!state.selected || state.selected.project_type !== 'moe')) {
       var bracketSize = Number(config.bracket_size || s.advance_count || 16);
       html += '<div class="form-field" data-field-group="bracket"><label class="field-label">对阵规模 <span class="modal-field-hint">1v1</span></label>';
       html += '<div class="segmented" id="mfBracketSize">';
@@ -845,7 +852,8 @@
     var groupEl = document.querySelector('#mfGroupCount .segmented-btn.active');
     if (groupEl) groupCount = Number(groupEl.dataset.value);
 
-    var bracketSize = 0;
+    var originalConfig = parseConfig(s.config_json);
+    var bracketSize = Number(originalConfig.bracket_size || 0);
     var bracketEl = document.querySelector('#mfBracketSize .segmented-btn.active');
     if (bracketEl) bracketSize = Number(bracketEl.dataset.value);
 
@@ -864,7 +872,37 @@
       config: { allow_zero_fill: val('mfZeroFill') ? true : false, bracket_size: bracketSize, tie_rule: 'manual' }
     };
 
-    post('../api/vote_stages.php?action=update&id=' + encodeURIComponent(state.editingStageId), body).then(function (data) {
+    if (state.selected && state.selected.project_type === 'moe' && s.stage_type === 'qualifier') {
+      if ([1, 2, 4].indexOf(groupCount) === -1) {
+        toast('萌战海选仅支持 1、2 或 4 组');
+        return;
+      }
+      if (body.advance_count <= 0 || body.advance_count % groupCount !== 0) {
+        toast('晋级数必须大于 0 且能被分组数整除');
+        return;
+      }
+    }
+
+    var flowPool = getFlowPoolForStage(s);
+    var coreChanged =
+      String(s.vote_mode || '') !== String(body.vote_mode || '') ||
+      Number(s.max_select || 1) !== Number(body.max_select || 1) ||
+      Number(s.advance_count || 0) !== Number(body.advance_count || 0) ||
+      Number(s.group_count || 1) !== Number(body.group_count || 1) ||
+      Number(s.score_min || 1) !== Number(body.score_min || 1) ||
+      Number(s.score_max || 10) !== Number(body.score_max || 10) ||
+      Number(s.allow_vote_change || 0) !== Number(body.allow_vote_change || 0) ||
+      !!originalConfig.allow_zero_fill !== !!body.config.allow_zero_fill;
+    var updateAction = 'update';
+    if (flowPool && coreChanged) {
+      if (flowPool.can_rebuild === false) {
+        toast('该阶段已有投票、对阵或结果，只能修改标题、结束时间和结果可见性');
+        return;
+      }
+      updateAction = 'update_and_rebuild';
+    }
+
+    post('../api/vote_stages.php?action=' + updateAction + '&id=' + encodeURIComponent(state.editingStageId), body).then(function (data) {
       toast(data.success ? '阶段配置已保存' : (data.message || '保存失败'));
       closeStageModal();
       if (state.selected) selectProject(state.selected.id);
@@ -1125,6 +1163,9 @@
       }
       if (flowPool.status === 'settled' && stage.stage_type !== 'final') {
         buttons.push(flowActionButton('生成下一阶段池', 'generate_next_pool', flowPool, 'primary'));
+      }
+      if (flowPool.status === 'reviewing' && flowPool.runtime && flowPool.runtime.tie_breaks && flowPool.runtime.tie_breaks.length) {
+        buttons.push(flowActionButton('人工裁定晋级线同分', 'resolve_flow_tie', flowPool, 'success'));
       }
       if ((stage.stage_type === 'bracket' || stage.stage_type === 'final') && flowPool.status !== 'settled') {
         buttons.push(flowActionButton('生成对阵', 'generate_matches', flowPool, 'primary'));
@@ -1572,7 +1613,14 @@
       if (!stage) stage = state.stages.find(function (s) { return s.stage_type === 'bracket'; }) || state.stages.find(function (s) { return s.vote_mode === 'match_single'; });
       if (!stage) { toast('该企划没有 1v1 阶段'); return; }
       var config = parseConfig(stage.config_json);
-      var size = Number(config.bracket_size || stage.advance_count || 16);
+      var stagePool = getFlowPoolForStage(stage);
+      var qualifier = getStageByType('qualifier');
+      var size = Number(
+        (stagePool && stagePool.entry_count) ||
+        (stage.stage_type === 'bracket' && qualifier && qualifier.advance_count) ||
+        config.bracket_size ||
+        4
+      );
       post('../api/vote_matches.php?action=generate', { stage_id: Number(stage.id), size: size }).then(function (data) {
         toast(data.success ? '对阵已生成' : (data.message || '生成失败'));
         if (state.selected) selectProject(state.selected.id);

@@ -16,6 +16,8 @@ const index = read('index.html');
 assert.ok(app.includes('function scheduleIdleTask'), 'app should defer non-critical first-load work');
 assert.ok(app.includes('loadClubDataForPublications().then(loadPublications)'), 'publications should load after first paint');
 assert.ok(app.includes('p.dataset.tooltipBound'), 'map tooltip binding should be idempotent');
+assert.ok(app.includes("document.documentElement.setAttribute('data-theme', effectiveTheme)"), 'system theme should keep a resolved data-theme attribute for consistent dark/light selectors');
+assert.ok(!app.includes("document.documentElement.removeAttribute('data-theme')"), 'system theme must not remove data-theme after the first paint');
 assert.ok(app.includes('State.listProvincesCache'), 'list filters should use the latest province cache');
 assert.ok(app.includes('listRenderToken'), 'club card rendering should guard stale batched work');
 assert.ok(app.includes('function enterMobileListView'), 'mobile list mode should bypass desktop transition state');

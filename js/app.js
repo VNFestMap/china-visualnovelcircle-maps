@@ -2645,11 +2645,8 @@ function updateThemeSwitchUI() {
 
 function applyThemePreference() {
   const effectiveTheme = getPreferredTheme();
-  if (State.themePreference === 'system') {
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme', effectiveTheme);
-  }
+  document.documentElement.setAttribute('data-theme', effectiveTheme);
+  document.documentElement.setAttribute('data-theme-preference', State.themePreference);
   updateThemeMetaColor(effectiveTheme);
   updateThemeSwitchUI();
 }
@@ -5861,6 +5858,30 @@ async function loadEditableClubSnapshot(club) {
   const clubId = parseInt(club?.id, 10);
   if (!clubId) return { ...club, country };
 
+  const mergeSnapshot = (rawClub) => {
+    if (!rawClub) return null;
+    const resolvedCountry = country === 'overseas' ? 'overseas' : (rawClub.country || country);
+    return {
+      ...club,
+      ...rawClub,
+      country: resolvedCountry,
+      originalInfo: rawClub.info ?? club.originalInfo ?? club.info ?? ''
+    };
+  };
+
+  try {
+    const response = country === 'japan'
+      ? await fetch('./data/clubs_japan.json', { cache: 'no-store' })
+      : await fetch('./data/clubs.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const rawClub = (Array.isArray(payload) ? payload : (payload.data || [])).find(item => parseInt(item.id, 10) === clubId);
+    const snapshot = mergeSnapshot(rawClub);
+    if (snapshot) return snapshot;
+  } catch (err) {
+    console.warn('Failed to load raw editable club snapshot, falling back to API data.', err);
+  }
+
   try {
     const response = country === 'japan'
       ? await fetch('./api/clubs_japan.php', { cache: 'no-store' })
@@ -5868,15 +5889,8 @@ async function loadEditableClubSnapshot(club) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const rawClub = (payload.data || []).find(item => parseInt(item.id, 10) === clubId);
-    if (rawClub) {
-      const resolvedCountry = country === 'overseas' ? 'overseas' : (rawClub.country || country);
-      return {
-        ...club,
-        ...rawClub,
-        country: resolvedCountry,
-        originalInfo: rawClub.info ?? club.originalInfo ?? club.info ?? ''
-      };
-    }
+    const snapshot = mergeSnapshot(rawClub);
+    if (snapshot) return snapshot;
   } catch (err) {
     console.warn('Failed to load editable club snapshot, falling back to current club data.', err);
   }

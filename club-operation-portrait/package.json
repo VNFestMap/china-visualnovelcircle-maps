@@ -1,0 +1,11 @@
+{
+  "name": "club-operation-portrait",
+  "version": "1.1.0",
+  "description": "同好会运行画像生成器 — 六维雷达图展示同好会发展状态",
+  "private": true,
+  "scripts": {
+    "dev": "php -S 127.0.0.1:8001",
+    "check": "echo 'No tests yet'"
+  },
+  "author": "VNFest"
+}

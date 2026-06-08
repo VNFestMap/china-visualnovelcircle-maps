@@ -52,6 +52,7 @@ if ($method === 'GET') {
 
 $authUser = requireLogin();
 $input = projectHubInput();
+$method = projectHubEffectiveMethod($input);
 
 if ($method === 'POST') {
     $projectId = (int)($input['project_id'] ?? 0);

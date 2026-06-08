@@ -496,6 +496,9 @@
                         </div>
                         <div class="submission-details">
                             <div class="detail-row">
+                                <span class="detail-label">🏫 学校：</span>${escapeHtml(item.school || '（未单独填写）')}
+                            </div>
+                            <div class="detail-row">
                                 <span class="detail-label">📍 地区：</span>${escapeHtml(item.country === 'japan' ? item.prefecture : item.province)}
                             </div>
                             <div class="detail-row">

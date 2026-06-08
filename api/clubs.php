@@ -76,9 +76,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         // 联系方式可见性: 非成员 + 非公开 + 非管理员 → 隐藏
         $isProtected = !empty($item['protected']);
         if ($isProtected) {
-            // 保护模式：仅成员或 super_admin 可见
-            $isSuperAdmin = $user && ($user['role'] ?? '') === 'super_admin';
-            $item['info_hidden'] = !$isMember && !$isSuperAdmin;
+            // 保护模式：仅成员或 负责人级别及以上 可见
+            $canSeeProtected = $effectiveLevel >= ROLE_HIERARCHY['representative'];
+            $item['info_hidden'] = !$isMember && !$canSeeProtected;
         } else {
             $item['info_hidden'] = !$isMember && !$visibleByDefault && !$canSeeAllInfo;
         }

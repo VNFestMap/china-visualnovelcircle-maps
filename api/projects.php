@@ -32,6 +32,30 @@ if ($method === 'GET') {
 
 $authUser = requireLogin();
 $input = projectHubInput();
+$method = projectHubEffectiveMethod($input);
+
+function projectHubStoredProjectIndex(array $projects, int $id): ?int {
+    foreach ($projects as $i => $project) {
+        if ((int)($project['id'] ?? 0) === $id && (empty($project['deleted_at']) || isset($project['legacy_publication_id']))) {
+            return $i;
+        }
+    }
+    return null;
+}
+
+function projectHubMaterializeProject(array &$projects, int $id): ?int {
+    foreach (projectHubLoadProjects(false, true) as $project) {
+        if ((int)($project['id'] ?? 0) !== $id || !empty($project['deleted_at'])) {
+            continue;
+        }
+        $project['deleted_at'] = null;
+        $project['created_at'] = $project['created_at'] ?? projectHubNow();
+        $project['updated_at'] = projectHubNow();
+        $projects[] = $project;
+        return array_key_last($projects);
+    }
+    return null;
+}
 
 if ($method === 'POST') {
     $title = projectHubCleanString($input['title'] ?? '', 120);
@@ -106,12 +130,9 @@ if ($method === 'PUT') {
     }
     $data = projectHubJsonRead($projectsFile, ['projects' => [], 'migrated_at' => null]);
     $projects = $data['projects'] ?? [];
-    $idx = null;
-    foreach ($projects as $i => $project) {
-        if ((int)($project['id'] ?? 0) === $id) {
-            $idx = $i;
-            break;
-        }
+    $idx = projectHubStoredProjectIndex($projects, $id);
+    if ($idx === null) {
+        $idx = projectHubMaterializeProject($projects, $id);
     }
     if ($idx === null) {
         projectHubRespond(['success' => false, 'message' => '企划不存在'], 404);
@@ -162,12 +183,9 @@ if ($method === 'DELETE') {
     }
     $data = projectHubJsonRead($projectsFile, ['projects' => [], 'migrated_at' => null]);
     $projects = $data['projects'] ?? [];
-    $idx = null;
-    foreach ($projects as $i => $project) {
-        if ((int)($project['id'] ?? 0) === $id) {
-            $idx = $i;
-            break;
-        }
+    $idx = projectHubStoredProjectIndex($projects, $id);
+    if ($idx === null) {
+        $idx = projectHubMaterializeProject($projects, $id);
     }
     if ($idx === null) {
         projectHubRespond(['success' => false, 'message' => '企划不存在'], 404);

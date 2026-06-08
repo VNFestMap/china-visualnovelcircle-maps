@@ -37,7 +37,7 @@ switch ($action) {
         }
 
         $db = getDB();
-        $stmt = $db->query("SELECT * FROM galonly_events WHERE registration_open = 1 ORDER BY date ASC");
+        $stmt = $db->query("SELECT * FROM galonly_events ORDER BY date ASC");
         $events = $stmt->fetchAll();
 
         // 如果用户已登录，查询其在每个活动的申请状态
@@ -797,12 +797,80 @@ switch ($action) {
         }
         exit();
 
+    case 'update_event':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $user = requireLogin();
+        if (!hasAuditPermission($user)) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => '权限不足'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $eventId = (int)($input['event_id'] ?? 0);
+
+        if (!$eventId) {
+            echo json_encode(['success' => false, 'message' => '缺少 event_id'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $db = getDB();
+        $stmt = $db->prepare("SELECT id FROM galonly_events WHERE id = ?");
+        $stmt->execute([$eventId]);
+        if (!$stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => '活动不存在'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $fields = [];
+        $params = [];
+
+        if (isset($input['registration_open'])) {
+            $fields[] = 'registration_open = ?';
+            $params[] = (int)$input['registration_open'] ? 1 : 0;
+        }
+        if (isset($input['name'])) {
+            $fields[] = 'name = ?';
+            $params[] = trim($input['name']);
+        }
+        if (isset($input['location'])) {
+            $fields[] = 'location = ?';
+            $params[] = trim($input['location']);
+        }
+        if (isset($input['date'])) {
+            $fields[] = 'date = ?';
+            $params[] = trim($input['date']);
+        }
+        if (isset($input['description'])) {
+            $fields[] = 'description = ?';
+            $params[] = trim($input['description']);
+        }
+
+        if (empty($fields)) {
+            echo json_encode(['success' => false, 'message' => '没有需要更新的字段'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $params[] = $eventId;
+        $sql = "UPDATE galonly_events SET " . implode(', ', $fields) . " WHERE id = ?";
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+
+        logAction('galonly.update_event', 'galonly_event', $eventId, ['fields' => array_keys($input)]);
+
+        echo json_encode(['success' => true, 'message' => '活动已更新'], JSON_UNESCAPED_UNICODE);
+        exit();
+
     default:
         echo json_encode(['success' => false, 'message' => '未知动作', 'available_actions' => [
             'list_events', 'check_eligibility', 'submit', 'get_application',
             'update_application', 'delete_application', 'upload_image',
             'list_applications', 'vote', 'withdraw_vote',
-            'add_event', 'delete_event',
+            'add_event', 'delete_event', 'update_event',
         ]], JSON_UNESCAPED_UNICODE);
         exit();
 }

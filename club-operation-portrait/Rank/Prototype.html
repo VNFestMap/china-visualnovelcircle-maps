@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rank 酷炫视觉设计</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0d0d1a;
+    font-family: "Helvetica Neue", "Arial Black", "PingFang SC", sans-serif;
+    padding: 40px;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+    align-items: center;
+  }
+
+  .header {
+    text-align: center;
+    color: #fff;
+  }
+
+  .header h1 {
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 8px;
+    color: rgba(255,255,255,0.3);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 2px;
+  }
+
+  .ranks {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ===== Rank Card ===== */
+  .rank-card {
+    position: relative;
+    width: 160px;
+    padding: 32px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+    cursor: default;
+  }
+
+  .rank-card:hover {
+    transform: translateY(-8px) scale(1.02);
+  }
+
+  /* Card border glow */
+  .rank-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--border-color1), var(--border-color2), transparent 60%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* Card background */
+  .rank-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: radial-gradient(ellipse at 50% 0%, var(--glow-bg), transparent 80%),
+                var(--card-bg);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Corner accents */
+  .corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: var(--accent);
+    border-style: solid;
+    opacity: 0.6;
+  }
+  .corner-tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+  .corner-tr { top: 8px; right: 8px; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+  .corner-bl { bottom: 8px; left: 8px; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+  .corner-br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+
+  /* ===== Rank Letter ===== */
+  .rank-letter {
+    font-size: 4.5rem;
+    font-weight: 900;
+    font-family: "Helvetica Neue", "Arial Black", sans-serif;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+    transition: text-shadow 0.3s;
+  }
+
+  .rank-card:hover .rank-letter {
+    transform: scale(1.1);
+  }
+
+  /* ===== Info ===== */
+  .rank-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .rank-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 4px;
+  }
+
+  .rank-score {
+    font-size: 0.7rem;
+    font-weight: 400;
+    opacity: 0.5;
+    letter-spacing: 1px;
+    font-family: "SF Mono", "Menlo", monospace;
+  }
+
+  /* Divider line */
+  .rank-divider {
+    width: 40px;
+    height: 1px;
+    background: var(--accent);
+    opacity: 0.3;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== S Rank ===== */
+  .rank-s {
+    --border-color1: #ffd700;
+    --border-color2: rgba(255, 215, 0, 0.2);
+    --glow-bg: rgba(255, 215, 0, 0.08);
+    --card-bg: rgba(20, 18, 0, 0.6);
+    --accent: #ffd700;
+  }
+
+  .rank-s .rank-letter {
+    color: #ffd700;
+    text-shadow:
+      0 0 20px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 215, 0, 0.5),
+      0 0 80px rgba(255, 215, 0, 0.3),
+      0 0 120px rgba(255, 215, 0, 0.15);
+    animation: sGlow 3s ease-in-out infinite alternate;
+  }
+
+  @keyframes sGlow {
+    0% { text-shadow:
+      0 0 20px rgba(255, 215, 0, 0.8),
+      0 0 40px rgba(255, 215, 0, 0.5),
+      0 0 80px rgba(255, 215, 0, 0.3),
+      0 0 120px rgba(255, 215, 0, 0.15);
+      filter: brightness(1);
+    }
+    100% { text-shadow:
+      0 0 30px rgba(255, 215, 0, 1),
+      0 0 60px rgba(255, 215, 0, 0.6),
+      0 0 100px rgba(255, 215, 0, 0.4),
+      0 0 160px rgba(255, 215, 0, 0.2);
+      filter: brightness(1.15);
+    }
+  }
+
+  /* Rotating ring for S */
+  .s-ring {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .s-ring::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffd700;
+    box-shadow: 0 0 10px #ffd700;
+    animation: ringOrbit 4s linear infinite;
+  }
+
+  .s-ring-2 {
+    width: 120px;
+    height: 120px;
+    border-color: rgba(255, 215, 0, 0.08);
+    animation: ringSpin 8s linear infinite reverse;
+  }
+
+  .s-ring-2::before {
+    width: 4px;
+    height: 4px;
+    background: rgba(255, 215, 0, 0.4);
+    box-shadow: none;
+    animation: ringOrbit 6s linear infinite reverse;
+  }
+
+  @keyframes ringOrbit {
+    from { transform: rotate(0deg) translateX(50px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(50px) rotate(-360deg); }
+  }
+
+  @keyframes ringSpin {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+
+  /* S corner sparkle */
+  .s-sparkle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .s-sparkle::before {
+    content: '✦';
+    font-size: 0.7rem;
+    color: #ffd700;
+  }
+  .s-sp1 { top: -4px; left: 20%; animation: sparkleFloat 2.5s ease-in-out infinite; }
+  .s-sp2 { top: 6px; right: 15%; animation: sparkleFloat 2.8s ease-in-out infinite 0.6s; }
+  .s-sp3 { bottom: 0px; left: 12%; animation: sparkleFloat 3s ease-in-out infinite 1.2s; }
+
+  @keyframes sparkleFloat {
+    0%, 100% { opacity: 0; transform: translateY(0) scale(0.5); }
+    50% { opacity: 1; transform: translateY(-6px) scale(1); }
+  }
+
+  /* ===== A Rank ===== */
+  .rank-a {
+    --border-color1: #2ecc71;
+    --border-color2: rgba(46, 204, 113, 0.15);
+    --glow-bg: rgba(46, 204, 113, 0.06);
+    --card-bg: rgba(0, 20, 10, 0.5);
+    --accent: #2ecc71;
+  }
+
+  .rank-a .rank-letter {
+    color: #2ecc71;
+    text-shadow:
+      0 0 15px rgba(46, 204, 113, 0.7),
+      0 0 30px rgba(46, 204, 113, 0.4),
+      0 0 60px rgba(46, 204, 113, 0.2);
+    animation: aGlow 3s ease-in-out infinite alternate 0.5s;
+  }
+
+  @keyframes aGlow {
+    0% { text-shadow:
+      0 0 15px rgba(46, 204, 113, 0.7),
+      0 0 30px rgba(46, 204, 113, 0.4),
+      0 0 60px rgba(46, 204, 113, 0.2);
+      filter: brightness(1);
+    }
+    100% { text-shadow:
+      0 0 25px rgba(46, 204, 113, 0.9),
+      0 0 50px rgba(46, 204, 113, 0.5),
+      0 0 80px rgba(46, 204, 113, 0.3);
+      filter: brightness(1.1);
+    }
+  }
+
+  /* Scan line for A */
+  .rank-a .scanline {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(46, 204, 113, 0.03) 2px,
+      rgba(46, 204, 113, 0.03) 4px
+    );
+    pointer-events: none;
+    border-radius: 16px;
+  }
+
+  /* ===== B Rank ===== */
+  .rank-b {
+    --border-color1: #3498db;
+    --border-color2: rgba(52, 152, 219, 0.12);
+    --glow-bg: rgba(52, 152, 219, 0.05);
+    --card-bg: rgba(0, 10, 25, 0.45);
+    --accent: #3498db;
+  }
+
+  .rank-b .rank-letter {
+    color: #3498db;
+    text-shadow:
+      0 0 10px rgba(52, 152, 219, 0.5),
+      0 0 25px rgba(52, 152, 219, 0.25);
+    animation: bGlow 4s ease-in-out infinite alternate 1s;
+  }
+
+  @keyframes bGlow {
+    0% { text-shadow:
+      0 0 10px rgba(52, 152, 219, 0.5),
+      0 0 25px rgba(52, 152, 219, 0.25);
+    }
+    100% { text-shadow:
+      0 0 18px rgba(52, 152, 219, 0.7),
+      0 0 35px rgba(52, 152, 219, 0.35);
+    }
+  }
+
+  /* ===== C Rank ===== */
+  .rank-c {
+    --border-color1: #e67e22;
+    --border-color2: rgba(230, 126, 34, 0.1);
+    --glow-bg: rgba(230, 126, 34, 0.04);
+    --card-bg: rgba(20, 10, 0, 0.4);
+    --accent: #e67e22;
+  }
+
+  .rank-c .rank-letter {
+    color: #e67e22;
+    text-shadow: 0 0 8px rgba(230, 126, 34, 0.3);
+  }
+
+  /* ===== D Rank ===== */
+  .rank-d {
+    --border-color1: #95a5a6;
+    --border-color2: rgba(149, 165, 166, 0.08);
+    --glow-bg: transparent;
+    --card-bg: rgba(15, 15, 20, 0.35);
+    --accent: #95a5a6;
+  }
+
+  .rank-d .rank-letter {
+    color: #95a5a6;
+    opacity: 0.7;
+  }
+
+  /* ===== Combined showcase ===== */
+  .showcase-row {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 8px;
+  }
+
+  .badge-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    min-width: 100px;
+  }
+
+  .badge-mini .mini-letter {
+    font-size: 1.8rem;
+    font-weight: 900;
+    font-family: "Arial Black", sans-serif;
+    line-height: 1;
+  }
+
+  .badge-mini .mini-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .badge-mini .mini-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+  }
+
+  .badge-mini .mini-score {
+    font-size: 0.65rem;
+    opacity: 0.4;
+    font-family: monospace;
+  }
+
+  .mini-s .mini-letter { color: #ffd700; text-shadow: 0 0 15px rgba(255,215,0,0.5); }
+  .mini-a .mini-letter { color: #2ecc71; text-shadow: 0 0 10px rgba(46,204,113,0.4); }
+  .mini-b .mini-letter { color: #3498db; text-shadow: 0 0 6px rgba(52,152,219,0.3); }
+  .mini-c .mini-letter { color: #e67e22; }
+  .mini-d .mini-letter { color: #95a5a6; opacity: 0.6; }
+
+  .mini-s .mini-label { color: #ffd700; }
+  .mini-a .mini-label { color: #2ecc71; }
+  .mini-b .mini-label { color: #3498db; }
+  .mini-c .mini-label { color: #e67e22; }
+  .mini-d .mini-label { color: #95a5a6; }
+
+  @media (max-width: 720px) {
+    .ranks { gap: 16px; }
+    .rank-card { width: 130px; padding: 24px 16px 20px; }
+    .rank-letter { font-size: 3.2rem; }
+    .showcase-row { gap: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>◆ Rank 评级系统 ◆</h1>
+    <p>基于六维画像综合评价</p>
+  </div>
+
+  <div class="ranks">
+    <!-- S -->
+    <div class="rank-card rank-s">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <div class="s-ring"></div>
+      <div class="s-ring s-ring-2"></div>
+      <span class="s-sparkle s-sp1"></span>
+      <span class="s-sparkle s-sp2"></span>
+      <span class="s-sparkle s-sp3"></span>
+      <span class="rank-letter">S</span>
+      <div class="rank-divider"></div>
+      <div class="rank-info">
+        <span class="rank-label" style="color:#ffd700">卓越</span>
+        <span class="rank-score">avg ≥ 85</span>
+      </div>
+    </div>
+
+    <!-- A -->
+    <div class="rank-card rank-a">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <div class="scanline"></div>
+      <span class="rank-letter">A</span>
+      <div class="rank-divider"></div>
+      <div class="rank-info">
+        <span class="rank-label" style="color:#2ecc71">优秀</span>
+        <span class="rank-score">avg ≥ 65</span>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="rank-card rank-b">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <span class="rank-letter">B</span>
+      <div class="rank-divider"></div>
+      <div class="rank-info">
+        <span class="rank-label" style="color:#3498db">良好</span>
+        <span class="rank-score">avg ≥ 45</span>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="rank-card rank-c">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <span class="rank-letter">C</span>
+      <div class="rank-divider"></div>
+      <div class="rank-info">
+        <span class="rank-label" style="color:#e67e22">一般</span>
+        <span class="rank-score">avg ≥ 25</span>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="rank-card rank-d">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <span class="rank-letter">D</span>
+      <div class="rank-divider"></div>
+      <div class="rank-info">
+        <span class="rank-label" style="color:#95a5a6">待提升</span>
+        <span class="rank-score">avg &lt; 25</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actual result context -->
+  <div class="header" style="margin-top:24px">
+    <h1>▸ 实际显示效果 ◂</h1>
+    <p>在结果页中根据平均分显示对应的 Rank</p>
+  </div>
+
+  <div class="showcase-row">
+    <div class="badge-mini mini-s">
+      <span class="mini-letter">S</span>
+      <div class="mini-info">
+        <span class="mini-label">卓越</span>
+        <span class="mini-score">橘柚视觉小说同好会</span>
+      </div>
+    </div>
+    <div class="badge-mini mini-a">
+      <span class="mini-letter">A</span>
+      <div class="mini-info">
+        <span class="mini-label">优秀</span>
+        <span class="mini-score">示例大学 · 平均 72分</span>
+      </div>
+    </div>
+    <div class="badge-mini mini-b">
+      <span class="mini-letter">B</span>
+      <div class="mini-info">
+        <span class="mini-label">良好</span>
+        <span class="mini-score">某同好会 · 平均 52分</span>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

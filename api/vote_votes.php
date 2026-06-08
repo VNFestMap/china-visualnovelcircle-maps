@@ -43,6 +43,30 @@ function voteResultsMatchRows(PDO $db, int $stageId, ?int $poolId = null): array
     return $rows;
 }
 
+function voteTrimMoeResultRows(array &$rows, array $visibility): void {
+    foreach ($rows as &$row) {
+        if (empty($visibility['rank_visible'])) {
+            unset($row['rank_no'], $row['group_rank'], $row['advanced'], $row['role'], $row['snapshot_json']);
+        }
+        if (empty($visibility['metrics_visible'])) {
+            unset($row['votes'], $row['score_total'], $row['rating_count'], $row['score_avg']);
+        }
+    }
+    unset($row);
+}
+
+function voteTrimMoeMatchRows(array &$rows, array $visibility): void {
+    foreach ($rows as &$row) {
+        if (empty($visibility['rank_visible'])) {
+            unset($row['winner_entry_id'], $row['winner_title'], $row['winner_title_cn']);
+        }
+        if (empty($visibility['metrics_visible'])) {
+            unset($row['slot_a_votes'], $row['slot_b_votes'], $row['total_votes']);
+        }
+    }
+    unset($row);
+}
+
 switch ($action) {
     case 'eligibility':
         $user = getCurrentUser();
@@ -61,25 +85,44 @@ switch ($action) {
 
         $flowPool = voteFlowPoolForStage($db, (int)$stage['id']);
         if ($flowPool) {
+            $runtime = voteFlowPoolRuntime($flowPool, $stage);
             if (($flowPool['status'] ?? '') !== 'open') voteRespond(['success' => false, 'message' => '当前阶段池未开放投票'], 400);
             $entryIds = $input['entry_ids'] ?? (isset($input['entry_id']) ? [$input['entry_id']] : []);
             if (!is_array($entryIds)) $entryIds = [];
             $entryIds = array_values(array_unique(array_map('intval', $entryIds)));
-            $maxSelect = max(1, (int)($flowPool['max_select'] ?? $stage['max_select'] ?? 1));
+            $maxSelect = max(1, (int)$runtime['max_select']);
             if (($flowPool['vote_mode'] ?? '') === 'match_single') $maxSelect = 1;
+            $groupMaxSelect = $maxSelect;
+            $perGroupLimit = $runtime['rule_version'] >= 2
+                && $runtime['group_ticket_scope'] === 'per_group'
+                && ($flowPool['vote_mode'] ?? '') !== 'match_single';
+            if ($perGroupLimit) $maxSelect = count($entryIds);
             if (!$entryIds || count($entryIds) > $maxSelect) voteRespond(['success' => false, 'message' => '投票数量不符合当前阶段设置'], 400);
 
+            $maxSelect = $groupMaxSelect;
             $placeholders = implode(',', array_fill(0, count($entryIds), '?'));
             $stmt = $db->prepare(
-                "SELECT fpe.entry_id
+                "SELECT fpe.entry_id, fpe.group_key
                  FROM vote_flow_pool_entries fpe
                  JOIN vote_entries e ON e.id = fpe.entry_id
                  WHERE fpe.pool_id = ? AND fpe.status = 'active'
                    AND e.entry_status = 'approved' AND fpe.entry_id IN ($placeholders)"
             );
             $stmt->execute(array_merge([(int)$flowPool['id']], $entryIds));
-            if (count($stmt->fetchAll(PDO::FETCH_COLUMN)) !== count($entryIds)) {
+            $selectedRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            if (count($selectedRows) !== count($entryIds)) {
                 voteRespond(['success' => false, 'message' => '投票条目不属于当前阶段池'], 400);
+            }
+
+            if ($perGroupLimit) {
+                $groupCounts = [];
+                foreach ($selectedRows as $selectedRow) {
+                    $groupKey = trim((string)($selectedRow['group_key'] ?? '')) ?: 'all';
+                    $groupCounts[$groupKey] = ($groupCounts[$groupKey] ?? 0) + 1;
+                    if ($groupCounts[$groupKey] > $maxSelect) {
+                        voteRespond(['success' => false, 'message' => "每组最多选择 {$maxSelect} 项"], 400);
+                    }
+                }
             }
 
             $matchId = (int)($input['match_id'] ?? 0);
@@ -95,7 +138,7 @@ switch ($action) {
 
             $scoreMap = is_array($input['scores'] ?? null) ? $input['scores'] : [];
             $db->beginTransaction();
-            if (!empty($stage['allow_vote_change'])) {
+            if (!empty($runtime['allow_vote_change'])) {
                 $deleteSql = 'DELETE FROM vote_votes WHERE stage_id = ? AND user_id = ?';
                 $deleteParams = [(int)$stage['id'], (int)$user['id']];
                 if ($matchId > 0) {
@@ -122,7 +165,7 @@ switch ($action) {
                 $score = null;
                 if (($flowPool['vote_mode'] ?? '') === 'score') {
                     $score = (int)($scoreMap[$entryId] ?? $input['score_value'] ?? 0);
-                    if ($score < (int)$stage['score_min'] || $score > (int)$stage['score_max']) {
+                    if ($score < (int)$runtime['score_min'] || $score > (int)$runtime['score_max']) {
                         $db->rollBack();
                         voteRespond(['success' => false, 'message' => '评分超出范围'], 400);
                     }
@@ -243,8 +286,10 @@ switch ($action) {
         }
         $stage = voteFetchStage($stageId);
         if (!$stage) voteRespond(['success' => false, 'message' => '阶段不存在'], 404);
+        $project = voteGetProject((int)$stage['project_id']);
         $flowPool = voteFlowPoolForStage($db, $stageId);
         if ($flowPool) {
+            $runtime = voteFlowPoolRuntime($flowPool, $stage);
             $stmt = $db->prepare(
                 "SELECT r.*, e.title, e.title_cn, e.subtitle, e.image_url, e.source_type, e.source_id, e.summary
                  FROM vote_flow_results r JOIN vote_entries e ON e.id = r.entry_id
@@ -255,11 +300,11 @@ switch ($action) {
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
             if (!$rows) {
                 $aggregate = ($flowPool['vote_mode'] ?? '') === 'score'
-                    ? 'COALESCE(SUM(v.vote_value), 0) AS votes, AVG(v.score_value) AS score_avg'
-                    : 'COALESCE(SUM(v.vote_value), 0) AS votes, NULL AS score_avg';
-                $order = ($flowPool['vote_mode'] ?? '') === 'score'
-                    ? 'score_avg DESC, votes DESC, fpe.seed_no ASC'
-                    : 'votes DESC, score_avg DESC, fpe.seed_no ASC';
+                    ? ($runtime['rule_version'] >= 2
+                        ? 'COALESCE(SUM(v.score_value), 0) AS votes, COALESCE(SUM(v.score_value), 0) AS score_total, COUNT(v.id) AS rating_count, AVG(v.score_value) AS score_avg'
+                        : 'COALESCE(SUM(v.vote_value), 0) AS votes, COALESCE(SUM(v.score_value), 0) AS score_total, COUNT(v.id) AS rating_count, AVG(v.score_value) AS score_avg')
+                    : 'COALESCE(SUM(v.vote_value), 0) AS votes, 0 AS score_total, COUNT(v.id) AS rating_count, NULL AS score_avg';
+                $order = 'fpe.group_key ASC, fpe.seed_no ASC';
                 $stmt = $db->prepare(
                     "SELECT e.id AS entry_id, e.title, e.title_cn, e.subtitle, e.image_url, e.source_type, e.source_id, e.summary, fpe.group_key, fpe.seed_no, $aggregate
                      FROM vote_flow_pool_entries fpe
@@ -271,21 +316,44 @@ switch ($action) {
                 );
                 $stmt->execute([$stageId, (int)$flowPool['id']]);
                 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $rows = voteFlowRankRowsForPoolDetailed($flowPool, $rows)['rows'];
             }
             foreach ($rows as &$row) {
                 $snapshot = voteDecode($row['snapshot_json'] ?? '{}');
                 if (!isset($row['group_key']) && isset($snapshot['group_key'])) $row['group_key'] = $snapshot['group_key'];
                 if (isset($snapshot['group_rank'])) $row['group_rank'] = (int)$snapshot['group_rank'];
+                if (isset($row['_rank_no'])) $row['rank_no'] = (int)$row['_rank_no'];
+                if (isset($row['_group_rank'])) $row['group_rank'] = (int)$row['_group_rank'];
+                unset($row['_rank_no'], $row['_group_rank'], $row['_group_advance_count'], $row['_advanced']);
                 if (isset($snapshot['role'])) $row['role'] = $snapshot['role'];
                 $row['image_url'] = proxyImageUrl($row['image_url'] ?? '');
+            }
+            unset($row);
+            $visibility = voteResultVisibilityFlags(
+                $project ?: [],
+                (string)($flowPool['status'] ?? ''),
+                (string)$runtime['result_visibility']
+            );
+            $matchResults = voteResultsMatchRows($db, $stageId, (int)$flowPool['id']);
+            if (($project['project_type'] ?? '') === 'moe') {
+                if (empty($visibility['rank_visible'])) {
+                    $rows = [];
+                    $matchResults = [];
+                } else {
+                    voteTrimMoeResultRows($rows, $visibility);
+                    voteTrimMoeMatchRows($matchResults, $visibility);
+                }
             }
             voteRespond([
                 'success' => true,
                 'data' => $rows,
-                'match_results' => voteResultsMatchRows($db, $stageId, (int)$flowPool['id']),
+                'match_results' => $matchResults,
                 'stage_status' => $flowPool['status'] ?? '',
                 'pool_id' => (int)$flowPool['id'],
-                'result_visibility' => $stage['result_visibility'] ?? 'live_rank_only',
+                'runtime' => $runtime,
+                'result_visibility' => $runtime['result_visibility'],
+                'rank_visible' => $visibility['rank_visible'],
+                'metrics_visible' => $visibility['metrics_visible'],
             ]);
         }
         $stmt = $db->prepare(
@@ -320,12 +388,30 @@ switch ($action) {
             if (isset($snapshot['role'])) $row['role'] = $snapshot['role'];
             $row['image_url'] = proxyImageUrl($row['image_url'] ?? '');
         }
+        unset($row);
+        $visibility = voteResultVisibilityFlags(
+            $project ?: [],
+            (string)($stage['status'] ?? ''),
+            (string)($stage['result_visibility'] ?? 'live_rank_only')
+        );
+        $matchResults = voteResultsMatchRows($db, $stageId, null);
+        if (($project['project_type'] ?? '') === 'moe') {
+            if (empty($visibility['rank_visible'])) {
+                $rows = [];
+                $matchResults = [];
+            } else {
+                voteTrimMoeResultRows($rows, $visibility);
+                voteTrimMoeMatchRows($matchResults, $visibility);
+            }
+        }
         voteRespond([
             'success' => true,
             'data' => $rows,
-            'match_results' => voteResultsMatchRows($db, $stageId, null),
+            'match_results' => $matchResults,
             'stage_status' => $stage['status'] ?? '',
             'result_visibility' => $stage['result_visibility'] ?? 'live_rank_only',
+            'rank_visible' => $visibility['rank_visible'],
+            'metrics_visible' => $visibility['metrics_visible'],
         ]);
 
     default:

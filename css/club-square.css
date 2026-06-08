@@ -19,6 +19,11 @@
   --cs-twelve-enter-bg: rgba(90, 140, 200, 0.1);
   --cs-twelve-enter-text: #5880b8;
   --cs-twelve-enter-border: rgba(110, 150, 200, 0.2);
+  --cs-radar-stroke: #4f9a8d;
+  --cs-radar-stat: #3d8a7e;
+  --cs-radar-enter-bg: rgba(70, 160, 140, 0.1);
+  --cs-radar-enter-text: #3d8a7e;
+  --cs-radar-enter-border: rgba(70, 160, 140, 0.22);
   --cs-ongoing-bg: #ffffff;
   --cs-ongoing-hover: rgba(100, 80, 150, 0.03);
   --cs-ongoing-border: rgba(160, 140, 200, 0.1);
@@ -51,6 +56,11 @@
   --cs-twelve-enter-bg: rgba(90, 140, 200, 0.2);
   --cs-twelve-enter-text: #b8cce8;
   --cs-twelve-enter-border: rgba(110, 150, 200, 0.25);
+  --cs-radar-stroke: #9be7d7;
+  --cs-radar-stat: #9be7d7;
+  --cs-radar-enter-bg: rgba(90, 220, 190, 0.2);
+  --cs-radar-enter-text: #9be7d7;
+  --cs-radar-enter-border: rgba(120, 240, 210, 0.32);
   --cs-ongoing-bg: rgba(22, 18, 38, 0.7);
   --cs-ongoing-hover: rgba(140, 120, 200, 0.06);
   --cs-ongoing-border: rgba(160, 140, 200, 0.1);
@@ -131,7 +141,7 @@ body {
 /* ===== 两大入口卡片 ===== */
 .gateway {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
   padding: 8px 0 20px;
 }
@@ -152,6 +162,10 @@ body {
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1);
 }
 
+[data-theme="dark"] .gateway-card:hover {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(180, 160, 230, 0.08);
+}
+
 /* 图标区域 */
 .gateway-icon {
   height: 100px;
@@ -169,6 +183,15 @@ body {
   color: var(--cs-twelve-stroke);
 }
 
+.gateway-card.radar .gateway-icon {
+  background: linear-gradient(135deg, rgba(70, 160, 140, 0.15), rgba(50, 120, 120, 0.06));
+  color: var(--cs-radar-stroke);
+}
+
+[data-theme="dark"] .gateway-card.radar .gateway-icon {
+  background: linear-gradient(135deg, rgba(90, 220, 190, 0.18), rgba(30, 110, 100, 0.1));
+}
+
 /* 内容区 */
 .gateway-body {
   padding: 18px 20px 12px;
@@ -183,6 +206,7 @@ body {
 
 .gateway-card.moe .gateway-body h2 { color: var(--cs-moe-enter-text); }
 .gateway-card.twelve .gateway-body h2 { color: var(--cs-twelve-enter-text); }
+.gateway-card.radar .gateway-body h2 { color: var(--cs-radar-enter-text); }
 
 .gateway-desc {
   margin: 0;
@@ -199,6 +223,7 @@ body {
 
 .gateway-card.moe .gateway-stats { color: var(--cs-moe-stat); }
 .gateway-card.twelve .gateway-stats { color: var(--cs-twelve-stat); }
+.gateway-card.radar .gateway-stats { color: var(--cs-radar-stat); }
 
 /* 进入按钮 */
 .gateway-enter {
@@ -224,6 +249,12 @@ body {
   background: var(--cs-twelve-enter-bg);
   color: var(--cs-twelve-enter-text);
   border: 1px solid var(--cs-twelve-enter-border);
+}
+
+.gateway-card.radar .gateway-enter {
+  background: var(--cs-radar-enter-bg);
+  color: var(--cs-radar-enter-text);
+  border: 1px solid var(--cs-radar-enter-border);
 }
 
 .gateway-enter::after {

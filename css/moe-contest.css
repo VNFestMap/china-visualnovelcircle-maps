@@ -437,3 +437,24 @@ body.mo-select-mode .mo-char-item:not(.mo-char-item--mine) { opacity: 0.28; poin
   .mo-match-card-body { padding: 20px 24px; }
   .mo-select-bar { padding: 16px 40px; }
 }
+.mo-score-input {
+  width: calc(100% - 16px);
+  margin: 8px;
+  padding: 7px 8px;
+  border: 1px solid var(--mo-border);
+  border-radius: 8px;
+  background: var(--mo-card);
+  color: var(--mo-text);
+  text-align: center;
+  font: inherit;
+}
+
+.mo-score-input:focus {
+  outline: 2px solid rgba(124, 58, 237, 0.25);
+  border-color: var(--mo-purple);
+}
+
+.mo-result-group-title {
+  margin: 14px 12px 6px;
+  font-weight: 700;
+}

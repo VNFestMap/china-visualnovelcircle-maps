@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>维度 Rank 设计 Demo</title>
+  <style>
+    :root,
+    [data-theme="dark"] {
+      --md-surface: #0a0a0a;
+      --md-surface-container: #141414;
+      --md-surface-container-high: #1f1f1f;
+      --md-surface-variant: #242424;
+      --md-primary: #e74c3c;
+      --md-primary-hover: #ff5f4a;
+      --md-on-surface: #f0f0f0;
+      --md-on-surface-variant: #b0b0b0;
+      --md-outline: #3a3a3a;
+      --md-outline-light: #2a2a2a;
+      --red-5: #ff6b5c;
+      --bg-gradient-start: #0f0a0a;
+      --bg-gradient-mid: #141010;
+      --bg-gradient-end: #0a0a0f;
+      --card-bg: rgba(20, 20, 20, 0.85);
+      --card-border: rgba(231, 76, 60, 0.12);
+      --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+      --demo-card-bg:
+        radial-gradient(circle at 34% 42%, rgba(255, 150, 119, 0.13), transparent 36%),
+        linear-gradient(145deg, rgba(22, 18, 17, 0.97), rgba(4, 4, 6, 0.98));
+      --demo-card-border: rgba(255, 134, 104, 0.16);
+      --demo-card-shadow: 0 18px 58px rgba(0, 0, 0, 0.38);
+      --demo-card-header-bg: linear-gradient(135deg, rgba(255, 126, 94, 0.12), transparent 62%);
+      --demo-label-color: #f6f2ee;
+      --demo-label-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+      --demo-track-bg: rgba(255, 255, 255, 0.11);
+      --demo-bar-fill: linear-gradient(90deg, #ff5f57, #ff9f7d);
+      --demo-score-color: #fff0ea;
+      --demo-level-color: #d7cec7;
+    }
+
+    [data-theme="light"] {
+      --md-surface: #ffffff;
+      --md-surface-container: #f8f8f8;
+      --md-surface-container-high: #f0f0f0;
+      --md-surface-variant: #eeeeee;
+      --md-primary: #e74c3c;
+      --md-primary-hover: #d63c2c;
+      --md-on-surface: #1a1a1a;
+      --md-on-surface-variant: #5a5a5a;
+      --md-outline: #cccccc;
+      --md-outline-light: #e0e0e0;
+      --red-5: #c0392b;
+      --bg-gradient-start: #fef8f7;
+      --bg-gradient-mid: #faf5f5;
+      --bg-gradient-end: #f5f5fa;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --card-border: rgba(231, 76, 60, 0.1);
+      --demo-card-bg:
+        radial-gradient(circle at 34% 42%, rgba(255, 154, 118, 0.16), transparent 38%),
+        linear-gradient(145deg, rgba(255, 252, 248, 0.98), rgba(247, 239, 233, 0.97));
+      --demo-card-border: rgba(194, 96, 70, 0.2);
+      --demo-card-shadow: 0 18px 48px rgba(132, 86, 64, 0.16);
+      --demo-card-header-bg: linear-gradient(135deg, rgba(255, 146, 106, 0.18), rgba(255, 255, 255, 0.12) 68%);
+      --demo-label-color: #3a302b;
+      --demo-label-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+      --demo-track-bg: rgba(94, 70, 58, 0.13);
+      --demo-bar-fill: linear-gradient(90deg, #df4d42, #f08a64);
+      --demo-score-color: #3a302b;
+      --demo-level-color: #6c5d55;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(160deg, var(--bg-gradient-start) 0%, var(--bg-gradient-mid) 40%, var(--bg-gradient-end) 100%);
+      color: var(--md-on-surface);
+      line-height: 1.6;
+    }
+
+    .demo-header {
+      border-bottom: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .demo-header-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .demo-title {
+      font-size: 1rem;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .demo-subtitle {
+      font-size: 0.78rem;
+      color: var(--md-on-surface-variant);
+    }
+
+    .theme-toggle {
+      min-height: 36px;
+      padding: 8px 14px;
+      border: 1px solid rgba(231, 76, 60, 0.32);
+      border-radius: 10px;
+      background: var(--md-surface-container-high);
+      color: var(--md-on-surface);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .demo-shell {
+      width: min(1120px, calc(100% - 32px));
+      margin: 28px auto 44px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .review-note {
+      display: grid;
+      gap: 6px;
+      padding: 14px 16px;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      background: rgba(231, 76, 60, 0.08);
+      color: var(--md-on-surface-variant);
+      font-size: 0.84rem;
+    }
+
+    .review-note strong {
+      color: var(--md-on-surface);
+      font-size: 0.92rem;
+    }
+
+    .result-card {
+      overflow: hidden;
+      border: 1px solid var(--demo-card-border);
+      border-radius: 16px;
+      background: var(--demo-card-bg);
+      box-shadow: var(--demo-card-shadow);
+    }
+
+    .result-card-header {
+      padding: 22px 24px 18px;
+      border-bottom: 1px solid var(--demo-card-border);
+      background: var(--demo-card-header-bg);
+    }
+
+    .result-name {
+      margin-bottom: 4px;
+      color: var(--md-on-surface);
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .result-school,
+    .result-intro {
+      color: var(--md-on-surface-variant);
+      font-size: 0.85rem;
+    }
+
+    .result-card-body {
+      padding: 22px 24px 24px;
+    }
+
+    .preview-grid {
+      display: grid;
+      grid-template-columns: minmax(300px, 0.95fr) minmax(320px, 1.05fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .preview-panel {
+      min-width: 0;
+    }
+
+    .section-title {
+      margin-bottom: 12px;
+      color: var(--md-on-surface);
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .radar-wrapper {
+      width: min(100%, 430px);
+      margin: 0 auto;
+      aspect-ratio: 1;
+    }
+
+    .radar-wrapper canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .score-bars {
+      display: grid;
+      gap: 9px;
+    }
+
+    .score-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .score-bar-label {
+      width: 120px;
+      flex-shrink: 0;
+      color: var(--demo-label-color);
+      font-family: Georgia, "Times New Roman", "SimSun", "Songti SC", serif;
+      font-size: 0.88rem;
+      font-weight: 800;
+      line-height: 1.28;
+      text-align: right;
+      overflow-wrap: anywhere;
+      text-shadow: var(--demo-label-shadow);
+    }
+
+    .score-bar-track {
+      flex: 1;
+      min-width: 64px;
+      height: 8px;
+      overflow: hidden;
+      border-radius: 4px;
+      background: var(--demo-track-bg);
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      min-width: 4px;
+      border-radius: 4px;
+      background: var(--demo-bar-fill);
+    }
+
+    .score-bar-value {
+      width: 32px;
+      flex-shrink: 0;
+      color: var(--demo-score-color);
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .score-bar-rank {
+      width: 36px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, "Times New Roman", "SimSun", "Songti SC", serif;
+      font-size: 1.28rem;
+      font-weight: 900;
+      line-height: 0.9;
+      letter-spacing: 0;
+      color: var(--rank-color);
+      -webkit-text-stroke: var(--rank-stroke-width, 0.9px) var(--rank-stroke);
+      text-transform: uppercase;
+      text-shadow: var(--rank-shadow);
+    }
+
+    .score-bar-level {
+      width: 64px;
+      flex-shrink: 0;
+      color: var(--demo-level-color);
+      font-size: 0.75rem;
+      line-height: 1.25;
+    }
+
+    .rank-s {
+      --rank-color: #ff7c78;
+      --rank-stroke: #5b1516;
+      --rank-stroke-width: 1px;
+      --rank-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.35),
+        0 0 2px rgba(0, 0, 0, 0.95),
+        0 0 9px rgba(255, 96, 90, 0.74);
+    }
+
+    .rank-a {
+      --rank-color: #ffa13f;
+      --rank-stroke: #5a2d00;
+      --rank-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.3),
+        0 0 2px rgba(0, 0, 0, 0.9),
+        0 0 8px rgba(255, 145, 45, 0.58);
+    }
+
+    .rank-b {
+      --rank-color: #ffd84f;
+      --rank-stroke: #624600;
+      --rank-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.22),
+        0 0 2px rgba(0, 0, 0, 0.88),
+        0 0 7px rgba(255, 214, 73, 0.48);
+    }
+
+    .rank-c {
+      --rank-color: #e8e5dc;
+      --rank-stroke: #383632;
+      --rank-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.18),
+        0 0 2px rgba(0, 0, 0, 0.82);
+    }
+
+    .rank-d {
+      --rank-color: #57baff;
+      --rank-stroke: #092d4b;
+      --rank-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.18),
+        0 0 2px rgba(0, 0, 0, 0.9),
+        0 0 7px rgba(62, 173, 255, 0.48);
+    }
+
+    [data-theme="light"] .rank-s {
+      --rank-color: #dc4f4c;
+      --rank-stroke: #fff0f0;
+      --rank-shadow: 0 1px 0 rgba(91, 21, 22, 0.22), 0 0 7px rgba(255, 96, 90, 0.34);
+    }
+
+    [data-theme="light"] .rank-a {
+      --rank-color: #c26b00;
+      --rank-stroke: #fff0df;
+      --rank-shadow: 0 1px 0 rgba(90, 45, 0, 0.18), 0 0 6px rgba(255, 145, 45, 0.28);
+    }
+
+    [data-theme="light"] .rank-b {
+      --rank-color: #aa7b00;
+      --rank-stroke: #fff6cc;
+      --rank-shadow: 0 1px 0 rgba(98, 70, 0, 0.16), 0 0 5px rgba(255, 214, 73, 0.24);
+    }
+
+    [data-theme="light"] .rank-c {
+      --rank-color: #69665f;
+      --rank-stroke: #f7f4ee;
+      --rank-shadow: 0 1px 0 rgba(56, 54, 50, 0.14);
+    }
+
+    [data-theme="light"] .rank-d {
+      --rank-color: #1c7fc5;
+      --rank-stroke: #e7f5ff;
+      --rank-shadow: 0 1px 0 rgba(9, 45, 75, 0.18), 0 0 6px rgba(62, 173, 255, 0.24);
+    }
+
+    .threshold-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--card-border);
+    }
+
+    .threshold-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 9px;
+      border: 1px solid var(--md-outline-light);
+      border-radius: 999px;
+      background: var(--md-surface-container);
+      color: var(--md-on-surface-variant);
+      font-size: 0.74rem;
+      white-space: nowrap;
+    }
+
+    .threshold-pill .score-bar-rank {
+      width: 24px;
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 820px) {
+      .demo-header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .preview-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .result-card-body,
+      .result-card-header {
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .demo-shell {
+        width: min(100% - 20px, 1120px);
+        margin-top: 18px;
+      }
+
+      .score-bar-row {
+        gap: 8px;
+      }
+
+      .score-bar-label {
+        width: 82px;
+        font-size: 0.74rem;
+      }
+
+      .score-bar-track {
+        min-width: 42px;
+      }
+
+      .score-bar-value {
+        width: 28px;
+        font-size: 0.8rem;
+      }
+
+      .score-bar-rank {
+        width: 32px;
+        font-size: 1.28rem;
+      }
+
+      .score-bar-level {
+        width: 42px;
+        font-size: 0.72rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="demo-header">
+    <div class="demo-header-inner">
+      <div>
+        <h1 class="demo-title">维度 Rank 设计 Demo</h1>
+        <p class="demo-subtitle">预览“维度文字 → Rank → 分数”和“分数 → Rank → 中文等级”的紧凑展示方案</p>
+      </div>
+      <button class="theme-toggle" id="themeToggle" type="button">切换亮色</button>
+    </div>
+  </header>
+
+  <main class="demo-shell">
+    <section class="review-note" aria-label="评审说明">
+      <strong>评审目标</strong>
+      <span>Rank 字母作为扫描辅助，不替代数值，也不抢占综合评级卡的视觉权重。本 demo 只展示前端设计方向，尚未更改生产页面。</span>
+    </section>
+
+    <section class="result-card">
+      <div class="result-card-header">
+        <h2 class="result-name">示例视觉小说同好会</h2>
+        <span class="result-school">VNFest 大学 · 上海</span>
+        <p class="result-intro">示例数据用于覆盖 S/A/B/C/D 全部边界，方便评审色彩、间距和移动端可读性。</p>
+      </div>
+      <div class="result-card-body">
+        <div class="preview-grid">
+          <div class="preview-panel">
+            <h3 class="section-title">雷达图标签预览</h3>
+            <div class="radar-wrapper">
+              <canvas id="radarChart" width="380" height="380" aria-label="维度雷达图 Rank 预览"></canvas>
+            </div>
+          </div>
+
+          <div class="preview-panel">
+            <h3 class="section-title">维度评分条预览</h3>
+            <div class="score-bars" id="scoreBars"></div>
+          </div>
+        </div>
+
+        <div class="threshold-strip" id="thresholdStrip" aria-label="Rank 阈值"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DIM_LABELS = {
+      organization_stability: '组织稳定度',
+      activity_execution: '活动执行力',
+      member_scale_participation: '成员规模与参与度',
+      content_accumulation: '内容沉淀力',
+      external_connection: '外部连接力',
+      continuity: '传承持续力'
+    };
+
+    const DIM_KEYS = Object.keys(DIM_LABELS);
+    const SAMPLE_SCORES = {
+      organization_stability: 91,
+      activity_execution: 68,
+      member_scale_participation: 52,
+      content_accumulation: 33,
+      external_connection: 24,
+      continuity: 85
+    };
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function getLevel(score) {
+      if (score >= 85) return '成熟稳定';
+      if (score >= 65) return '良好';
+      if (score >= 45) return '发展中';
+      if (score >= 25) return '待补足';
+      return '待补全';
+    }
+
+    function getRank(score) {
+      if (score >= 85) return { rank: 'S', label: '卓越', threshold: '≥ 85' };
+      if (score >= 65) return { rank: 'A', label: '优秀', threshold: '≥ 65' };
+      if (score >= 45) return { rank: 'B', label: '良好', threshold: '≥ 45' };
+      if (score >= 25) return { rank: 'C', label: '一般', threshold: '≥ 25' };
+      return { rank: 'D', label: '待提升', threshold: '< 25' };
+    }
+
+    function getRankClass(score) {
+      return 'rank-' + getRank(score).rank.toLowerCase();
+    }
+
+    function getTheme() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    }
+
+    function getRankPaint(rank) {
+      const isLight = getTheme() === 'light';
+      const colors = {
+        S: isLight
+          ? { fill: '#dc4f4c', stroke: '#fff0f0', shadow: 'rgba(255, 96, 90, 0.34)', blur: 7, lineWidth: 3.2, size: 26, weight: 900 }
+          : { fill: '#ff7c78', stroke: '#5b1516', shadow: 'rgba(255, 96, 90, 0.72)', blur: 10, lineWidth: 3.4, size: 26, weight: 900 },
+        A: isLight
+          ? { fill: '#c26b00', stroke: '#fff0df', shadow: 'rgba(255, 145, 45, 0.28)', blur: 6, lineWidth: 3, size: 24, weight: 900 }
+          : { fill: '#ffa13f', stroke: '#5a2d00', shadow: 'rgba(255, 145, 45, 0.58)', blur: 8, lineWidth: 3.2, size: 24, weight: 900 },
+        B: isLight
+          ? { fill: '#aa7b00', stroke: '#fff6cc', shadow: 'rgba(255, 214, 73, 0.24)', blur: 5, lineWidth: 2.8, size: 23, weight: 880 }
+          : { fill: '#ffd84f', stroke: '#624600', shadow: 'rgba(255, 214, 73, 0.48)', blur: 7, lineWidth: 3, size: 23, weight: 880 },
+        C: isLight
+          ? { fill: '#69665f', stroke: '#f7f4ee', shadow: 'rgba(56, 54, 50, 0.14)', blur: 2, lineWidth: 2.6, size: 22, weight: 820 }
+          : { fill: '#e8e5dc', stroke: '#383632', shadow: 'rgba(255, 255, 255, 0.18)', blur: 3, lineWidth: 2.8, size: 22, weight: 820 },
+        D: isLight
+          ? { fill: '#1c7fc5', stroke: '#e7f5ff', shadow: 'rgba(62, 173, 255, 0.24)', blur: 5, lineWidth: 2.8, size: 23, weight: 860 }
+          : { fill: '#57baff', stroke: '#092d4b', shadow: 'rgba(62, 173, 255, 0.48)', blur: 7, lineWidth: 3, size: 23, weight: 860 }
+      };
+      return colors[rank] || colors.D;
+    }
+
+    function drawRankLetter(ctx, rank, x, y) {
+      const paint = getRankPaint(rank);
+      ctx.save();
+      ctx.font = `${paint.weight} ${paint.size}px Georgia, "Times New Roman", "SimSun", "Songti SC", serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round';
+      ctx.miterLimit = 2;
+      ctx.shadowColor = paint.shadow;
+      ctx.shadowBlur = paint.blur;
+      ctx.strokeStyle = paint.stroke;
+      ctx.lineWidth = paint.lineWidth;
+      ctx.strokeText(rank, x, y);
+      ctx.fillStyle = paint.fill;
+      ctx.fillText(rank, x, y);
+      ctx.restore();
+    }
+
+    function splitDimensionLabel(text) {
+      if (text.length <= 5) return [text];
+      if (text === '成员规模与参与度') return ['成员规模', '与参与度'];
+      return [text.slice(0, 5), text.slice(5)];
+    }
+
+    function drawDimensionLabel(ctx, text, x, y, isLight) {
+      const lines = splitDimensionLabel(text);
+      ctx.save();
+      ctx.font = '800 16px Georgia, "Times New Roman", "SimSun", "Songti SC", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = isLight ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 0, 0, 0.76)';
+      ctx.shadowBlur = isLight ? 0 : 3;
+      ctx.shadowOffsetY = isLight ? 1 : 0;
+      ctx.fillStyle = isLight ? '#3b302b' : '#f5f1ec';
+      const lineHeight = 18;
+      const startY = y - ((lines.length - 1) * lineHeight) / 2;
+      lines.forEach((line, index) => {
+        const lineY = startY + index * lineHeight;
+        ctx.fillText(line, x, lineY);
+      });
+      ctx.restore();
+      return lines.length;
+    }
+
+    function drawRadarChart() {
+      const canvas = document.getElementById('radarChart');
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const size = Math.min(rect.width || 320, 430);
+      const dpr = window.devicePixelRatio || 1;
+      const ctx = canvas.getContext('2d');
+
+      canvas.width = size * dpr;
+      canvas.height = size * dpr;
+      canvas.style.width = size + 'px';
+      canvas.style.height = size + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, size, size);
+
+      const isLight = getTheme() === 'light';
+      const cx = size / 2;
+      const cy = size / 2;
+      const radius = Math.min(cx, cy) - 104;
+      const n = DIM_KEYS.length;
+      const angleStep = Math.PI * 2 / n;
+
+      for (let level = 1; level <= 5; level++) {
+        const r = radius / 5 * level;
+        ctx.beginPath();
+        for (let i = 0; i <= n; i++) {
+          const angle = -Math.PI / 2 + i * angleStep;
+          const x = cx + r * Math.cos(angle);
+          const y = cy + r * Math.sin(angle);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = isLight ? 'rgba(96, 72, 60, 0.18)' : 'rgba(255, 232, 220, 0.15)';
+        ctx.lineWidth = level === 5 ? 1.4 : 1;
+        ctx.stroke();
+      }
+
+      DIM_KEYS.forEach((key, i) => {
+        const angle = -Math.PI / 2 + i * angleStep;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = isLight ? 'rgba(96, 72, 60, 0.15)' : 'rgba(255, 232, 220, 0.13)';
+        ctx.stroke();
+      });
+
+      const points = [];
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const key = DIM_KEYS[i % n];
+        const value = clamp(SAMPLE_SCORES[key] / 100, 0, 1);
+        const angle = -Math.PI / 2 + i * angleStep;
+        const r = radius * value;
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        points.push({ x, y });
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      grad.addColorStop(0, isLight ? 'rgba(150, 124, 108, 0.26)' : 'rgba(116, 100, 91, 0.56)');
+      grad.addColorStop(1, isLight ? 'rgba(239, 132, 96, 0.14)' : 'rgba(231, 126, 96, 0.26)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = isLight ? '#df7358' : '#ff9b7f';
+      ctx.lineWidth = 2.2;
+      ctx.stroke();
+
+      points.slice(0, n).forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5.5, 0, Math.PI * 2);
+        ctx.fillStyle = isLight ? '#e9785d' : '#ffa083';
+        ctx.fill();
+        ctx.strokeStyle = isLight ? '#fff8f3' : '#3a1d18';
+        ctx.lineWidth = 1.8;
+        ctx.stroke();
+      });
+
+      DIM_KEYS.forEach((key, i) => {
+        const score = SAMPLE_SCORES[key];
+        const rank = getRank(score).rank;
+        const angle = -Math.PI / 2 + i * angleStep;
+        const lr = radius + 50;
+        const lx = cx + lr * Math.cos(angle);
+        const ly = cy + lr * Math.sin(angle);
+
+        const labelLines = drawDimensionLabel(ctx, DIM_LABELS[key], lx, ly - 16, isLight);
+        const labelExtraOffset = (labelLines - 1) * 10;
+
+        drawRankLetter(ctx, rank, lx, ly + 6 + labelExtraOffset);
+
+        ctx.fillStyle = isLight ? '#a44b38' : '#ffad95';
+        ctx.font = '800 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(score), lx, ly + 28 + labelExtraOffset);
+      });
+    }
+
+    function renderScoreBars() {
+      const container = document.getElementById('scoreBars');
+      container.innerHTML = '';
+      DIM_KEYS.forEach(key => {
+        const value = SAMPLE_SCORES[key];
+        const rank = getRank(value).rank;
+        const row = document.createElement('div');
+        row.className = 'score-bar-row';
+        row.innerHTML = `
+          <span class="score-bar-label">${DIM_LABELS[key]}</span>
+          <div class="score-bar-track">
+            <div class="score-bar-fill" style="width:${value}%"></div>
+          </div>
+          <span class="score-bar-value">${value}</span>
+          <span class="score-bar-rank ${getRankClass(value)}">${rank}</span>
+          <span class="score-bar-level">${getLevel(value)}</span>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderThresholds() {
+      const thresholds = [
+        { score: 85, text: 'S ≥ 85' },
+        { score: 65, text: 'A ≥ 65' },
+        { score: 45, text: 'B ≥ 45' },
+        { score: 25, text: 'C ≥ 25' },
+        { score: 24, text: 'D < 25' }
+      ];
+      const strip = document.getElementById('thresholdStrip');
+      strip.innerHTML = thresholds.map(item => {
+        const rank = getRank(item.score).rank;
+        return `<span class="threshold-pill"><span class="score-bar-rank ${getRankClass(item.score)}">${rank}</span>${item.text}</span>`;
+      }).join('');
+    }
+
+    function render() {
+      renderScoreBars();
+      renderThresholds();
+      drawRadarChart();
+    }
+
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      const next = getTheme() === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      document.getElementById('themeToggle').textContent = next === 'dark' ? '切换亮色' : '切换暗色';
+      drawRadarChart();
+    });
+
+    window.addEventListener('resize', drawRadarChart);
+    render();
+  </script>
+</body>
+</html>

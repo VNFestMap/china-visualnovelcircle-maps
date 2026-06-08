@@ -168,6 +168,26 @@ if ($isMysql) {
     echo "[OK] club_verification_codes 表已创建\n";
 
     $db->exec("
+        CREATE TABLE IF NOT EXISTS club_bot_tokens (
+            id           INT AUTO_INCREMENT PRIMARY KEY,
+            club_id      INT NOT NULL,
+            country      VARCHAR(20) DEFAULT 'china',
+            name         VARCHAR(120) DEFAULT '',
+            token_prefix VARCHAR(64) NOT NULL,
+            token_hash   VARCHAR(255) NOT NULL,
+            permissions  TEXT,
+            created_by   INT NOT NULL,
+            created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            last_used_at DATETIME NULL,
+            revoked_at   DATETIME NULL,
+            FOREIGN KEY (created_by) REFERENCES users(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+    $tryIndex("CREATE INDEX idx_club_bot_tokens_club ON club_bot_tokens(club_id, country)");
+    $tryIndex("CREATE INDEX idx_club_bot_tokens_prefix ON club_bot_tokens(token_prefix)");
+    echo "[OK] club_bot_tokens 表已创建\n";
+
+    $db->exec("
         CREATE TABLE IF NOT EXISTS club_recommendations (
             id          INT AUTO_INCREMENT PRIMARY KEY,
             club_id     INT NOT NULL,
@@ -537,6 +557,25 @@ if ($isMysql) {
     ");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_verify_codes_club ON club_verification_codes(club_id)");
     echo "[OK] club_verification_codes 表已创建\n";
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS club_bot_tokens (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            club_id      INTEGER NOT NULL,
+            country      TEXT DEFAULT 'china',
+            name         TEXT DEFAULT '',
+            token_prefix TEXT NOT NULL,
+            token_hash   TEXT NOT NULL,
+            permissions  TEXT DEFAULT '[]',
+            created_by   INTEGER NOT NULL REFERENCES users(id),
+            created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+            last_used_at TEXT,
+            revoked_at   TEXT
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_club_bot_tokens_club ON club_bot_tokens(club_id, country)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_club_bot_tokens_prefix ON club_bot_tokens(token_prefix)");
+    echo "[OK] club_bot_tokens 表已创建\n";
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS club_recommendations (

@@ -136,6 +136,8 @@ function voteEnsureFlowSchema(PDO $db): void {
                 entry_id INT NOT NULL,
                 rank_no INT NOT NULL DEFAULT 0,
                 votes INT NOT NULL DEFAULT 0,
+                score_total INT NOT NULL DEFAULT 0,
+                rating_count INT NOT NULL DEFAULT 0,
                 score_avg DECIMAL(8,3),
                 advanced TINYINT(1) NOT NULL DEFAULT 0,
                 snapshot_json TEXT,
@@ -178,6 +180,8 @@ function voteEnsureFlowSchema(PDO $db): void {
         voteTryExec($db, "CREATE INDEX idx_vote_flow_pool_entries_pool ON vote_flow_pool_entries(pool_id, status, group_key)");
         voteTryExec($db, "CREATE INDEX idx_vote_flow_results_pool ON vote_flow_results(pool_id, advanced, rank_no)");
         voteTryExec($db, "CREATE INDEX idx_vote_flow_matches_pool ON vote_flow_matches(pool_id, round_no, match_no)");
+        voteTryExec($db, "ALTER TABLE vote_flow_results ADD COLUMN score_total INT NOT NULL DEFAULT 0");
+        voteTryExec($db, "ALTER TABLE vote_flow_results ADD COLUMN rating_count INT NOT NULL DEFAULT 0");
         return;
     }
 
@@ -239,6 +243,8 @@ function voteEnsureFlowSchema(PDO $db): void {
             entry_id INTEGER NOT NULL,
             rank_no INTEGER NOT NULL DEFAULT 0,
             votes INTEGER NOT NULL DEFAULT 0,
+            score_total INTEGER NOT NULL DEFAULT 0,
+            rating_count INTEGER NOT NULL DEFAULT 0,
             score_avg REAL,
             advanced INTEGER NOT NULL DEFAULT 0,
             snapshot_json TEXT DEFAULT '{}',
@@ -281,6 +287,8 @@ function voteEnsureFlowSchema(PDO $db): void {
     $db->exec("CREATE INDEX IF NOT EXISTS idx_vote_flow_pool_entries_pool ON vote_flow_pool_entries(pool_id, status, group_key)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_vote_flow_results_pool ON vote_flow_results(pool_id, advanced, rank_no)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_vote_flow_matches_pool ON vote_flow_matches(pool_id, round_no, match_no)");
+    voteTryExec($db, "ALTER TABLE vote_flow_results ADD COLUMN score_total INTEGER NOT NULL DEFAULT 0");
+    voteTryExec($db, "ALTER TABLE vote_flow_results ADD COLUMN rating_count INTEGER NOT NULL DEFAULT 0");
 }
 
 function voteEnsureSchema(?PDO $db = null): void {
@@ -947,7 +955,117 @@ function voteFlowPoolForStage(PDO $db, int $stageId): ?array {
     return $row ?: null;
 }
 
+function voteFlowPoolRuntime(array $pool, ?array $stage = null): array {
+    $config = voteDecode($pool['config_json'] ?? '{}');
+    $stage = $stage ?: [];
+    return [
+        'rule_version' => max(1, (int)($config['rule_version'] ?? 1)),
+        'vote_mode' => (string)($pool['vote_mode'] ?? $stage['vote_mode'] ?? 'multi_select'),
+        'group_count' => max(1, (int)($pool['group_count'] ?? $stage['group_count'] ?? 1)),
+        'max_select' => max(1, (int)($pool['max_select'] ?? $stage['max_select'] ?? 1)),
+        'advance_count' => max(0, (int)($pool['advance_count'] ?? $stage['advance_count'] ?? 0)),
+        'score_min' => max(0, (int)($config['score_min'] ?? $stage['score_min'] ?? 1)),
+        'score_max' => max(1, (int)($config['score_max'] ?? $stage['score_max'] ?? 10)),
+        'allow_vote_change' => array_key_exists('allow_vote_change', $config)
+            ? !empty($config['allow_vote_change'])
+            : !empty($stage['allow_vote_change']),
+        'ends_at' => $config['ends_at'] ?? ($stage['ends_at'] ?? null),
+        'result_visibility' => voteNormalize(
+            (string)($config['result_visibility'] ?? $stage['result_visibility'] ?? 'live_rank_only'),
+            VOTE_RESULT_VISIBILITIES,
+            'live_rank_only'
+        ),
+        'group_ticket_scope' => (string)($config['group_ticket_scope'] ?? 'stage'),
+        'scoring_method' => (string)($config['scoring_method'] ?? 'average'),
+        'grouping_method' => (string)($config['grouping_method'] ?? 'round_robin'),
+        'grouping_seed' => (string)($config['grouping_seed'] ?? ''),
+        'tie_rule' => (string)($config['tie_rule'] ?? 'manual'),
+        'tie_breaks' => is_array($config['tie_breaks'] ?? null) ? $config['tie_breaks'] : [],
+        'match_tie_breaks' => is_array($config['match_tie_breaks'] ?? null) ? $config['match_tie_breaks'] : [],
+    ];
+}
+
+function voteResultVisibilityFlags(array $project, string $stageStatus, string $visibility): array {
+    $visibility = voteNormalize($visibility, VOTE_RESULT_VISIBILITIES, 'live_rank_only');
+    if ($visibility === 'live_votes') return ['rank_visible' => true, 'metrics_visible' => true];
+    if ($visibility === 'live_rank_only') return ['rank_visible' => true, 'metrics_visible' => false];
+    if ($visibility === 'after_stage') {
+        $visible = $stageStatus === 'settled';
+        return ['rank_visible' => $visible, 'metrics_visible' => $visible];
+    }
+    if ($visibility === 'after_event') {
+        $visible = ($project['status'] ?? '') === 'ended';
+        return ['rank_visible' => $visible, 'metrics_visible' => $visible];
+    }
+    return ['rank_visible' => false, 'metrics_visible' => false];
+}
+
+function voteMoeRuntimeConfig(array $run, array $stage): array {
+    $config = voteStageConfig($stage);
+    $seedSource = implode(':', [
+        (int)($run['project_id'] ?? $stage['project_id'] ?? 0),
+        (int)($stage['id'] ?? 0),
+        (int)($run['version_no'] ?? $run['id'] ?? 1),
+    ]);
+    return array_merge($config, [
+        'rule_version' => 2,
+        'score_min' => max(0, (int)($stage['score_min'] ?? 1)),
+        'score_max' => max(1, (int)($stage['score_max'] ?? 10)),
+        'allow_vote_change' => !empty($stage['allow_vote_change']),
+        'ends_at' => $stage['ends_at'] ?? null,
+        'result_visibility' => voteNormalize(
+            (string)($stage['result_visibility'] ?? 'live_rank_only'),
+            VOTE_RESULT_VISIBILITIES,
+            'live_rank_only'
+        ),
+        'group_ticket_scope' => 'per_group',
+        'scoring_method' => 'total_points',
+        'grouping_method' => 'seeded_shuffle',
+        'grouping_seed' => hash('sha256', $seedSource),
+        'tie_rule' => 'manual',
+    ]);
+}
+
+function voteFlowDeterministicShuffle(array $entryIds, string $seed): array {
+    usort($entryIds, function ($a, $b) use ($seed) {
+        $left = hash('sha256', $seed . ':' . (int)$a);
+        $right = hash('sha256', $seed . ':' . (int)$b);
+        $cmp = strcmp($left, $right);
+        return $cmp !== 0 ? $cmp : ((int)$a <=> (int)$b);
+    });
+    return $entryIds;
+}
+
+function voteValidateMoePoolConfig(array $pool, int $entryCount): void {
+    $runtime = voteFlowPoolRuntime($pool);
+    if ($runtime['rule_version'] < 2) return;
+    $groupCount = $runtime['group_count'];
+    if (!in_array($groupCount, [1, 2, 4], true)) {
+        throw new RuntimeException('萌战海选仅支持 1、2 或 4 组');
+    }
+    if ($entryCount <= 0) throw new RuntimeException('阶段池没有可用候选');
+    $advanceCount = $runtime['advance_count'];
+    if (($pool['stage_type'] ?? '') === 'qualifier') {
+        if ($advanceCount <= 0 || $advanceCount > $entryCount) {
+            throw new RuntimeException('晋级数必须大于 0 且不能超过候选数');
+        }
+        if ($advanceCount % $groupCount !== 0) {
+            throw new RuntimeException('晋级数必须能被分组数整除');
+        }
+        $smallestGroup = intdiv($entryCount, $groupCount);
+        if (intdiv($advanceCount, $groupCount) > $smallestGroup) {
+            throw new RuntimeException('每组候选数不足以满足晋级名额');
+        }
+        if (!voteIsPowerOfTwo($advanceCount) || $advanceCount < 4) {
+            throw new RuntimeException('萌战淘汰赛晋级数必须是至少 4 的 2 次幂');
+        }
+    }
+}
+
 function voteFlowCreatePool(PDO $db, array $run, array $stage): array {
+    $project = voteGetProject((int)($run['project_id'] ?? $stage['project_id'] ?? 0));
+    $isMoe = ($project['project_type'] ?? $stage['project_type'] ?? '') === 'moe';
+    $config = $isMoe ? voteMoeRuntimeConfig($run, $stage) : voteStageConfig($stage);
     $stmt = $db->prepare(
         'INSERT INTO vote_flow_pools (run_id, project_id, stage_id, stage_type, title, status, vote_mode, group_count, max_select, advance_count, config_json)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
@@ -963,7 +1081,7 @@ function voteFlowCreatePool(PDO $db, array $run, array $stage): array {
         max(1, (int)($stage['group_count'] ?? 1)),
         max(1, (int)($stage['max_select'] ?? 1)),
         max(0, (int)($stage['advance_count'] ?? 0)),
-        voteJson($stage['config_json'] ?? '{}'),
+        voteJson($config),
     ]);
     return voteFlowPoolById($db, (int)$db->lastInsertId());
 }
@@ -975,7 +1093,12 @@ function voteFlowSeedPoolEntries(PDO $db, array $pool, array $entryIds, ?int $so
     $stmt = $db->prepare("SELECT id FROM vote_entries WHERE project_id = ? AND entry_status = 'approved' AND id IN ($placeholders)");
     $stmt->execute(array_merge([(int)$pool['project_id']], $entryIds));
     $valid = array_flip(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN)));
-    $groupCount = max(1, (int)($pool['group_count'] ?? 1));
+    $runtime = voteFlowPoolRuntime($pool);
+    $groupCount = $runtime['group_count'];
+    if ($runtime['rule_version'] >= 2 && $runtime['grouping_method'] === 'seeded_shuffle') {
+        $entryIds = voteFlowDeterministicShuffle($entryIds, $runtime['grouping_seed']);
+    }
+    voteValidateMoePoolConfig($pool, count($entryIds));
     $ins = $db->prepare(
         "INSERT INTO vote_flow_pool_entries (run_id, pool_id, project_id, entry_id, group_key, seed_no, source_pool_id, source_rank, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')"
@@ -1002,6 +1125,25 @@ function voteFlowPoolEntries(PDO $db, int $poolId): array {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function voteFlowPoolUsageCounts(PDO $db, array $pool): array {
+    $voteStmt = $db->prepare('SELECT COUNT(*) FROM vote_votes WHERE stage_id = ?');
+    $voteStmt->execute([(int)$pool['stage_id']]);
+    $matchStmt = $db->prepare('SELECT COUNT(*) FROM vote_flow_matches WHERE pool_id = ?');
+    $matchStmt->execute([(int)$pool['id']]);
+    $resultStmt = $db->prepare('SELECT COUNT(*) FROM vote_flow_results WHERE pool_id = ?');
+    $resultStmt->execute([(int)$pool['id']]);
+    return [
+        'votes' => (int)$voteStmt->fetchColumn(),
+        'matches' => (int)$matchStmt->fetchColumn(),
+        'results' => (int)$resultStmt->fetchColumn(),
+    ];
+}
+
+function voteFlowPoolCanRebuild(PDO $db, array $pool): bool {
+    $counts = voteFlowPoolUsageCounts($db, $pool);
+    return $counts['votes'] === 0 && $counts['matches'] === 0 && $counts['results'] === 0;
+}
+
 function voteFlowStatus(PDO $db, int $projectId): array {
     $run = voteFlowActiveRun($db, $projectId);
     if (!$run) return ['run' => null, 'pools' => [], 'active_pool' => null];
@@ -1021,10 +1163,14 @@ function voteFlowStatus(PDO $db, int $projectId): array {
     $stmt->execute([(int)$run['id']]);
     $pools = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $active = null;
-    foreach ($pools as $pool) {
-        if (($pool['status'] ?? '') === 'open') {
+    foreach ($pools as &$pool) {
+        $pool['runtime'] = voteFlowPoolRuntime($pool);
+        $pool['usage'] = voteFlowPoolUsageCounts($db, $pool);
+        $pool['can_rebuild'] = $pool['usage']['votes'] === 0
+            && $pool['usage']['matches'] === 0
+            && $pool['usage']['results'] === 0;
+        if ($active === null && ($pool['status'] ?? '') === 'open') {
             $active = $pool;
-            break;
         }
     }
     return ['run' => $run, 'pools' => $pools, 'active_pool' => $active];
@@ -1155,20 +1301,35 @@ function voteFlowOpenPool(PDO $db, array $pool): array {
     }
     $now = voteNowExpr();
     $db->beginTransaction();
-    $db->prepare("UPDATE vote_flow_pools SET status = 'locked' WHERE run_id = ? AND status = 'open' AND id <> ?")->execute([(int)$pool['run_id'], (int)$pool['id']]);
-    $db->prepare("UPDATE vote_flow_pools SET status = 'open', opened_at = COALESCE(opened_at, $now) WHERE id = ?")->execute([(int)$pool['id']]);
-    $db->prepare("UPDATE vote_stages SET status = 'locked', updated_at = $now WHERE project_id = ? AND status = 'open' AND id <> ?")->execute([(int)$pool['project_id'], (int)$pool['stage_id']]);
-    $db->prepare("UPDATE vote_stages SET status = 'open', updated_at = $now WHERE id = ?")->execute([(int)$pool['stage_id']]);
-    voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'open_pool');
-    $db->commit();
-    return voteFlowPoolById($db, (int)$pool['id']);
+    try {
+        $db->prepare("UPDATE vote_flow_pools SET status = 'locked' WHERE run_id = ? AND status = 'open' AND id <> ?")->execute([(int)$pool['run_id'], (int)$pool['id']]);
+        $db->prepare("UPDATE vote_flow_pools SET status = 'open', opened_at = COALESCE(opened_at, $now) WHERE id = ?")->execute([(int)$pool['id']]);
+        $db->prepare("UPDATE vote_stages SET status = 'locked', updated_at = $now WHERE project_id = ? AND status = 'open' AND id <> ?")->execute([(int)$pool['project_id'], (int)$pool['stage_id']]);
+        $db->prepare("UPDATE vote_stages SET status = 'open', updated_at = $now WHERE id = ?")->execute([(int)$pool['stage_id']]);
+        voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'open_pool');
+        $db->commit();
+        return voteFlowPoolById($db, (int)$pool['id']);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
+    }
 }
 
-function voteFlowSortResultRows(array &$rows, string $mode): void {
-    usort($rows, function ($a, $b) use ($mode) {
+function voteFlowSortResultRows(array &$rows, string $mode, int $ruleVersion = 1): void {
+    usort($rows, function ($a, $b) use ($mode, $ruleVersion) {
         if ($mode === 'score') {
-            $scoreCmp = ((float)($b['score_avg'] ?? 0)) <=> ((float)($a['score_avg'] ?? 0));
-            if ($scoreCmp !== 0) return $scoreCmp;
+            if ($ruleVersion < 2) {
+                $averageCmp = ((float)($b['score_avg'] ?? 0)) <=> ((float)($a['score_avg'] ?? 0));
+                if ($averageCmp !== 0) return $averageCmp;
+                $voteCmp = ((int)($b['votes'] ?? 0)) <=> ((int)($a['votes'] ?? 0));
+                if ($voteCmp !== 0) return $voteCmp;
+            }
+            $totalCmp = ((int)($b['score_total'] ?? $b['votes'] ?? 0)) <=> ((int)($a['score_total'] ?? $a['votes'] ?? 0));
+            if ($totalCmp !== 0) return $totalCmp;
+            $countCmp = ((int)($b['rating_count'] ?? 0)) <=> ((int)($a['rating_count'] ?? 0));
+            if ($countCmp !== 0) return $countCmp;
+            $averageCmp = ((float)($b['score_avg'] ?? 0)) <=> ((float)($a['score_avg'] ?? 0));
+            if ($averageCmp !== 0) return $averageCmp;
         }
         $voteCmp = ((int)($b['votes'] ?? 0)) <=> ((int)($a['votes'] ?? 0));
         if ($voteCmp !== 0) return $voteCmp;
@@ -1178,19 +1339,29 @@ function voteFlowSortResultRows(array &$rows, string $mode): void {
     });
 }
 
-function voteFlowRankRowsForPool(array $pool, array $rows): array {
+function voteFlowResultMetricEquals(array $left, array $right, string $mode): bool {
+    if ($mode === 'score') {
+        return (int)($left['score_total'] ?? $left['votes'] ?? 0) === (int)($right['score_total'] ?? $right['votes'] ?? 0)
+            && (int)($left['rating_count'] ?? 0) === (int)($right['rating_count'] ?? 0)
+            && abs((float)($left['score_avg'] ?? 0) - (float)($right['score_avg'] ?? 0)) < 0.0005;
+    }
+    return (int)($left['votes'] ?? 0) === (int)($right['votes'] ?? 0);
+}
+
+function voteFlowRankRowsForPoolDetailed(array $pool, array $rows): array {
     $mode = (string)($pool['vote_mode'] ?? 'multi_select');
+    $runtime = voteFlowPoolRuntime($pool);
     $advanceCount = (int)($pool['advance_count'] ?? 0);
     if (($pool['stage_type'] ?? '') === 'final' && $mode === 'match_single') $advanceCount = 1;
     if ($advanceCount <= 0) $advanceCount = count($rows);
 
     $groupCount = max(1, (int)($pool['group_count'] ?? 1));
     $groupedQualifier = ($pool['stage_type'] ?? '') === 'qualifier'
-        && in_array($groupCount, [2, 4], true)
+        && ($runtime['rule_version'] >= 2 || in_array($groupCount, [2, 4], true))
         && $advanceCount > 0;
 
     if (!$groupedQualifier) {
-        voteFlowSortResultRows($rows, $mode);
+        voteFlowSortResultRows($rows, $mode, (int)$runtime['rule_version']);
         $ranked = [];
         $rank = 1;
         foreach ($rows as $row) {
@@ -1199,7 +1370,7 @@ function voteFlowRankRowsForPool(array $pool, array $rows): array {
             $ranked[] = $row;
             $rank++;
         }
-        return $ranked;
+        return ['rows' => $ranked, 'tie_breaks' => []];
     }
 
     $perGroup = max(1, intdiv($advanceCount, $groupCount));
@@ -1218,29 +1389,64 @@ function voteFlowRankRowsForPool(array $pool, array $rows): array {
     natcasesort($order);
 
     $ranked = [];
+    $tieBreaks = [];
     $rank = 1;
     foreach ($order as $key) {
         $groupRows = $groups[$key];
-        voteFlowSortResultRows($groupRows, $mode);
+        voteFlowSortResultRows($groupRows, $mode, (int)$runtime['rule_version']);
+        if ($runtime['rule_version'] >= 2 && count($groupRows) > $perGroup) {
+            $inside = $groupRows[$perGroup - 1];
+            $outside = $groupRows[$perGroup];
+            if (voteFlowResultMetricEquals($inside, $outside, $mode)) {
+                $boundaryCandidates = array_values(array_filter(
+                    $groupRows,
+                    fn($row) => voteFlowResultMetricEquals($inside, $row, $mode)
+                ));
+                $automatic = 0;
+                foreach ($groupRows as $row) {
+                    if (voteFlowResultMetricEquals($inside, $row, $mode)) break;
+                    $automatic++;
+                }
+                $tieBreaks[] = [
+                    'group_key' => $key,
+                    'slots' => max(1, $perGroup - $automatic),
+                    'entry_ids' => array_values(array_map(fn($row) => (int)$row['entry_id'], $boundaryCandidates)),
+                ];
+            }
+        }
         $groupRank = 1;
         foreach ($groupRows as $row) {
             $row['_rank_no'] = $rank;
             $row['_group_rank'] = $groupRank;
             $row['_group_advance_count'] = $perGroup;
-            $row['_advanced'] = $groupRank <= $perGroup ? 1 : 0;
+            $pendingTie = false;
+            foreach ($tieBreaks as $tieBreak) {
+                if ($tieBreak['group_key'] === $key && in_array((int)$row['entry_id'], $tieBreak['entry_ids'], true)) {
+                    $pendingTie = true;
+                    break;
+                }
+            }
+            $row['_advanced'] = !$pendingTie && $groupRank <= $perGroup ? 1 : 0;
             $ranked[] = $row;
             $rank++;
             $groupRank++;
         }
     }
-    return $ranked;
+    return ['rows' => $ranked, 'tie_breaks' => $tieBreaks];
+}
+
+function voteFlowRankRowsForPool(array $pool, array $rows): array {
+    return voteFlowRankRowsForPoolDetailed($pool, $rows)['rows'];
 }
 
 function voteFlowSettlePool(PDO $db, array $pool): array {
     if (!in_array($pool['status'] ?? '', ['open', 'locked'], true)) throw new RuntimeException('阶段池尚未打开，不能结算');
+    $runtime = voteFlowPoolRuntime($pool);
     $aggregate = ($pool['vote_mode'] ?? '') === 'score'
-        ? 'COALESCE(SUM(v.vote_value), 0) AS votes, AVG(v.score_value) AS score_avg'
-        : 'COALESCE(SUM(v.vote_value), 0) AS votes, NULL AS score_avg';
+        ? ($runtime['rule_version'] >= 2
+            ? 'COALESCE(SUM(v.score_value), 0) AS votes, COALESCE(SUM(v.score_value), 0) AS score_total, COUNT(v.id) AS rating_count, AVG(v.score_value) AS score_avg'
+            : 'COALESCE(SUM(v.vote_value), 0) AS votes, COALESCE(SUM(v.score_value), 0) AS score_total, COUNT(v.id) AS rating_count, AVG(v.score_value) AS score_avg')
+        : 'COALESCE(SUM(v.vote_value), 0) AS votes, 0 AS score_total, COUNT(v.id) AS rating_count, NULL AS score_avg';
     $stmt = $db->prepare(
         "SELECT fpe.entry_id, fpe.seed_no, fpe.group_key, $aggregate
          FROM vote_flow_pool_entries fpe
@@ -1253,39 +1459,135 @@ function voteFlowSettlePool(PDO $db, array $pool): array {
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $config = voteDecode($pool['config_json'] ?? '{}');
     if (($pool['vote_mode'] ?? '') === 'score' && empty($config['allow_zero_fill'])) {
-        $rows = array_values(array_filter($rows, fn($row) => (int)($row['votes'] ?? 0) > 0));
+        $rows = array_values(array_filter($rows, fn($row) => (int)($row['rating_count'] ?? 0) > 0));
     }
     if (!$rows) throw new RuntimeException('阶段池没有候选，不能结算');
-    $rankedRows = voteFlowRankRowsForPool($pool, $rows);
+    $ranking = voteFlowRankRowsForPoolDetailed($pool, $rows);
+    $rankedRows = $ranking['rows'];
+    $tieBreaks = $ranking['tie_breaks'];
     $now = voteNowExpr();
     $db->beginTransaction();
-    $db->prepare('DELETE FROM vote_flow_results WHERE pool_id = ?')->execute([(int)$pool['id']]);
-    $ins = $db->prepare(
-        'INSERT INTO vote_flow_results (run_id, pool_id, project_id, entry_id, rank_no, votes, score_avg, advanced, snapshot_json)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-    );
-    $advancedCount = 0;
-    foreach ($rankedRows as $row) {
-        $advanced = (int)($row['_advanced'] ?? 0);
-        if ($advanced) $advancedCount++;
-        $snapshot = [
-            'group_key' => $row['group_key'] ?? '',
-            'seed_no' => (int)($row['seed_no'] ?? 0),
-        ];
-        if (isset($row['_group_rank'])) {
-            $snapshot['group_rank'] = (int)$row['_group_rank'];
-            $snapshot['group_advance_count'] = (int)($row['_group_advance_count'] ?? 0);
+    try {
+        $db->prepare('DELETE FROM vote_flow_results WHERE pool_id = ?')->execute([(int)$pool['id']]);
+        $ins = $db->prepare(
+            'INSERT INTO vote_flow_results (run_id, pool_id, project_id, entry_id, rank_no, votes, score_total, rating_count, score_avg, advanced, snapshot_json)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $advancedCount = 0;
+        foreach ($rankedRows as $row) {
+            $advanced = (int)($row['_advanced'] ?? 0);
+            if ($advanced) $advancedCount++;
+            $snapshot = [
+                'group_key' => $row['group_key'] ?? '',
+                'seed_no' => (int)($row['seed_no'] ?? 0),
+            ];
+            if (isset($row['_group_rank'])) {
+                $snapshot['group_rank'] = (int)$row['_group_rank'];
+                $snapshot['group_advance_count'] = (int)($row['_group_advance_count'] ?? 0);
+            }
+            $ins->execute([
+                (int)$pool['run_id'],
+                (int)$pool['id'],
+                (int)$pool['project_id'],
+                (int)$row['entry_id'],
+                (int)$row['_rank_no'],
+                (int)($row['votes'] ?? 0),
+                (int)($row['score_total'] ?? 0),
+                (int)($row['rating_count'] ?? 0),
+                $row['score_avg'],
+                $advanced,
+                voteJson($snapshot),
+            ]);
         }
-        $ins->execute([(int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], (int)$row['entry_id'], (int)$row['_rank_no'], (int)$row['votes'], $row['score_avg'], $advanced, voteJson($snapshot)]);
+        $nextStatus = $tieBreaks ? 'reviewing' : 'settled';
+        $config['tie_breaks'] = $tieBreaks;
+        $settledAt = $tieBreaks ? 'NULL' : $now;
+        $db->prepare("UPDATE vote_flow_pools SET status = ?, settled_at = $settledAt, config_json = ? WHERE id = ?")
+            ->execute([$nextStatus, voteJson($config), (int)$pool['id']]);
+        $db->prepare("UPDATE vote_stages SET status = ?, updated_at = $now WHERE id = ?")
+            ->execute([$nextStatus, (int)$pool['stage_id']]);
+        if (!$tieBreaks && ($pool['stage_type'] ?? '') === 'final') {
+            $db->prepare("UPDATE vote_projects SET status = 'ended', ended_at = COALESCE(ended_at, $now), updated_at = $now WHERE id = ?")->execute([(int)$pool['project_id']]);
+        }
+        voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'settle_pool', [
+            'advanced_count' => $advancedCount,
+            'status' => $nextStatus,
+            'tie_breaks' => $tieBreaks,
+        ]);
+        $db->commit();
+        return [
+            'advanced_count' => $advancedCount,
+            'result_count' => count($rankedRows),
+            'status' => $nextStatus,
+            'tie_breaks' => $tieBreaks,
+        ];
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
     }
-    $db->prepare("UPDATE vote_flow_pools SET status = 'settled', settled_at = $now WHERE id = ?")->execute([(int)$pool['id']]);
-    $db->prepare("UPDATE vote_stages SET status = 'settled', updated_at = $now WHERE id = ?")->execute([(int)$pool['stage_id']]);
-    if (($pool['stage_type'] ?? '') === 'final') {
-        $db->prepare("UPDATE vote_projects SET status = 'ended', ended_at = COALESCE(ended_at, $now), updated_at = $now WHERE id = ?")->execute([(int)$pool['project_id']]);
+}
+
+function voteFlowResolvePoolTie(PDO $db, array $pool, array $decisions): array {
+    if (($pool['status'] ?? '') !== 'reviewing') {
+        throw new RuntimeException('当前阶段池不在待裁定状态');
     }
-    voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'settle_pool', ['advanced_count' => $advancedCount]);
-    $db->commit();
-    return ['advanced_count' => $advancedCount, 'result_count' => count($rankedRows)];
+    $config = voteDecode($pool['config_json'] ?? '{}');
+    $tieBreaks = is_array($config['tie_breaks'] ?? null) ? $config['tie_breaks'] : [];
+    if (!$tieBreaks) throw new RuntimeException('当前阶段池没有待裁定候选');
+
+    $decisionMap = [];
+    foreach ($decisions as $decision) {
+        if (!is_array($decision)) continue;
+        $groupKey = trim((string)($decision['group_key'] ?? ''));
+        $entryIds = $decision['entry_ids'] ?? [];
+        if ($groupKey === '' || !is_array($entryIds)) continue;
+        $decisionMap[$groupKey] = array_values(array_unique(array_filter(array_map('intval', $entryIds))));
+    }
+
+    $selected = [];
+    foreach ($tieBreaks as $tieBreak) {
+        $groupKey = trim((string)($tieBreak['group_key'] ?? ''));
+        $slots = max(1, (int)($tieBreak['slots'] ?? 1));
+        $candidates = array_values(array_unique(array_map('intval', $tieBreak['entry_ids'] ?? [])));
+        $chosen = $decisionMap[$groupKey] ?? [];
+        if (count($chosen) !== $slots || array_diff($chosen, $candidates)) {
+            throw new RuntimeException("分组 {$groupKey} 必须从待裁定候选中选择 {$slots} 项");
+        }
+        $selected = array_merge($selected, $chosen);
+    }
+    $selected = array_values(array_unique($selected));
+
+    $now = voteNowExpr();
+    $db->beginTransaction();
+    try {
+        if ($selected) {
+            $placeholders = implode(',', array_fill(0, count($selected), '?'));
+            $params = array_merge([(int)$pool['id']], $selected);
+            $db->prepare("UPDATE vote_flow_results SET advanced = 1 WHERE pool_id = ? AND entry_id IN ($placeholders)")
+                ->execute($params);
+        }
+        $config['tie_breaks'] = [];
+        $db->prepare("UPDATE vote_flow_pools SET status = 'settled', settled_at = $now, config_json = ? WHERE id = ?")
+            ->execute([voteJson($config), (int)$pool['id']]);
+        $db->prepare("UPDATE vote_stages SET status = 'settled', updated_at = $now WHERE id = ?")
+            ->execute([(int)$pool['stage_id']]);
+        if (($pool['stage_type'] ?? '') === 'final') {
+            $db->prepare("UPDATE vote_projects SET status = 'ended', ended_at = COALESCE(ended_at, $now), updated_at = $now WHERE id = ?")
+                ->execute([(int)$pool['project_id']]);
+        }
+        $advancedCountStmt = $db->prepare('SELECT COUNT(*) FROM vote_flow_results WHERE pool_id = ? AND advanced = 1');
+        $advancedCountStmt->execute([(int)$pool['id']]);
+        $advancedCount = (int)$advancedCountStmt->fetchColumn();
+        voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'resolve_pool_tie', [
+            'selected_entry_ids' => $selected,
+            'advanced_count' => $advancedCount,
+        ]);
+        $db->commit();
+        return ['advanced_count' => $advancedCount, 'selected_entry_ids' => $selected, 'status' => 'settled'];
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
+    }
 }
 
 function voteFlowGenerateNextPool(PDO $db, array $sourcePool): array {
@@ -1421,6 +1723,76 @@ function voteFlowOpenNextReadyMatches(PDO $db, int $poolId): void {
         ->execute([$poolId, $roundNo]);
 }
 
+function voteFlowMatchVoteCounts(PDO $db, array $match): array {
+    $stmt = $db->prepare(
+        'SELECT entry_id, COALESCE(SUM(vote_value), 0) AS votes
+         FROM vote_votes
+         WHERE stage_id = ? AND match_id = ?
+         GROUP BY entry_id'
+    );
+    $stmt->execute([(int)$match['stage_id'], (int)$match['id']]);
+    $counts = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $counts[(int)$row['entry_id']] = (int)$row['votes'];
+    }
+    return $counts;
+}
+
+function voteFlowMatchWinnerFromVotes(array $match, array $counts): array {
+    $slotA = (int)($match['slot_a_entry_id'] ?? 0);
+    $slotB = (int)($match['slot_b_entry_id'] ?? 0);
+    $votesA = $slotA ? (int)($counts[$slotA] ?? 0) : 0;
+    $votesB = $slotB ? (int)($counts[$slotB] ?? 0) : 0;
+    if (!$slotA || !$slotB) {
+        return ['winner' => 0, 'reason' => 'missing_slot', 'slot_a_votes' => $votesA, 'slot_b_votes' => $votesB];
+    }
+    if ($votesA === $votesB) {
+        return ['winner' => 0, 'reason' => 'tie', 'slot_a_votes' => $votesA, 'slot_b_votes' => $votesB];
+    }
+    return [
+        'winner' => $votesA > $votesB ? $slotA : $slotB,
+        'reason' => '',
+        'slot_a_votes' => $votesA,
+        'slot_b_votes' => $votesB,
+    ];
+}
+
+function voteFlowSettleOpenMatchesByVotes(PDO $db, array $pool): array {
+    $stmt = $db->prepare("SELECT * FROM vote_flow_matches WHERE pool_id = ? AND status = 'open' ORDER BY round_no ASC, match_no ASC");
+    $stmt->execute([(int)$pool['id']]);
+    $settled = [];
+    $unresolved = [];
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $match) {
+        $decision = voteFlowMatchWinnerFromVotes($match, voteFlowMatchVoteCounts($db, $match));
+        if (empty($decision['winner'])) {
+            $unresolved[] = array_merge([
+                'match_id' => (int)$match['id'],
+                'entry_ids' => array_values(array_filter([
+                    (int)($match['slot_a_entry_id'] ?? 0),
+                    (int)($match['slot_b_entry_id'] ?? 0),
+                ])),
+            ], $decision);
+            continue;
+        }
+        voteFlowSettleMatch($db, $match, (int)$decision['winner']);
+        $settled[] = array_merge([
+            'match_id' => (int)$match['id'],
+            'winner_entry_id' => (int)$decision['winner'],
+        ], $decision);
+    }
+    if ($unresolved) {
+        $fresh = voteFlowPoolById($db, (int)$pool['id']) ?: $pool;
+        $config = voteDecode($fresh['config_json'] ?? '{}');
+        $config['match_tie_breaks'] = $unresolved;
+        $now = voteNowExpr();
+        $db->prepare("UPDATE vote_flow_pools SET status = 'reviewing', config_json = ? WHERE id = ? AND status <> 'settled'")
+            ->execute([voteJson($config), (int)$pool['id']]);
+        $db->prepare("UPDATE vote_stages SET status = 'reviewing', updated_at = $now WHERE id = ? AND status <> 'settled'")
+            ->execute([(int)$pool['stage_id']]);
+    }
+    return ['settled' => $settled, 'unresolved' => $unresolved];
+}
+
 function voteFlowSettleMatch(PDO $db, array $match, int $winnerEntryId): array {
     $pool = voteFlowPoolById($db, (int)$match['pool_id']);
     if (!$pool) throw new RuntimeException('流程池不存在');
@@ -1431,18 +1803,37 @@ function voteFlowSettleMatch(PDO $db, array $match, int $winnerEntryId): array {
     }
     $now = voteNowExpr();
     $db->beginTransaction();
-    $db->prepare("UPDATE vote_flow_matches SET winner_entry_id = ?, status = 'settled', updated_at = $now WHERE id = ?")
-        ->execute([$winnerEntryId, (int)$match['id']]);
-    if (!empty($match['next_match_id'])) {
-        $field = ($match['next_slot'] ?? '') === 'B' ? 'slot_b_entry_id' : 'slot_a_entry_id';
-        $db->prepare("UPDATE vote_flow_matches SET $field = ?, updated_at = $now WHERE id = ?")->execute([$winnerEntryId, (int)$match['next_match_id']]);
-        voteFlowOpenNextReadyMatches($db, (int)$pool['id']);
-    } else {
-        voteFlowMaybeSettleTerminalMatches($db, $pool);
+    try {
+        $db->prepare("UPDATE vote_flow_matches SET winner_entry_id = ?, status = 'settled', updated_at = $now WHERE id = ?")
+            ->execute([$winnerEntryId, (int)$match['id']]);
+        if (!empty($match['next_match_id'])) {
+            $field = ($match['next_slot'] ?? '') === 'B' ? 'slot_b_entry_id' : 'slot_a_entry_id';
+            $db->prepare("UPDATE vote_flow_matches SET $field = ?, updated_at = $now WHERE id = ?")->execute([$winnerEntryId, (int)$match['next_match_id']]);
+            voteFlowOpenNextReadyMatches($db, (int)$pool['id']);
+        } else {
+            voteFlowMaybeSettleTerminalMatches($db, $pool);
+        }
+        $freshPool = voteFlowPoolById($db, (int)$pool['id']) ?: $pool;
+        $config = voteDecode($freshPool['config_json'] ?? '{}');
+        if (is_array($config['match_tie_breaks'] ?? null)) {
+            $config['match_tie_breaks'] = array_values(array_filter(
+                $config['match_tie_breaks'],
+                fn($tie) => (int)($tie['match_id'] ?? 0) !== (int)$match['id']
+            ));
+            $db->prepare("UPDATE vote_flow_pools SET config_json = ?, status = CASE WHEN status = 'reviewing' AND ? = 0 THEN 'open' ELSE status END WHERE id = ?")
+                ->execute([voteJson($config), count($config['match_tie_breaks']), (int)$pool['id']]);
+            if (!$config['match_tie_breaks']) {
+                $db->prepare("UPDATE vote_stages SET status = CASE WHEN status = 'reviewing' THEN 'open' ELSE status END WHERE id = ?")
+                    ->execute([(int)$pool['stage_id']]);
+            }
+        }
+        voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'settle_match', ['match_id' => (int)$match['id'], 'winner_entry_id' => $winnerEntryId]);
+        $db->commit();
+        return voteFlowMatchRows($db, (int)$pool['stage_id']);
+    } catch (Throwable $e) {
+        if ($db->inTransaction()) $db->rollBack();
+        throw $e;
     }
-    voteFlowLog($db, (int)$pool['run_id'], (int)$pool['id'], (int)$pool['project_id'], 'settle_match', ['match_id' => (int)$match['id'], 'winner_entry_id' => $winnerEntryId]);
-    $db->commit();
-    return voteFlowMatchRows($db, (int)$pool['stage_id']);
 }
 
 function voteFlowMaybeSettleTerminalMatches(PDO $db, array $pool): void {

@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>同好会运行画像生成器</title>
+  <meta name="description" content="通过几个简单问题，生成同好会的六维运行画像。面向高校视觉小说同好会的轻量自我观察工具。">
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('themePreference');
+        var theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="portrait-header">
+    <div class="portrait-header-inner">
+      <a href="../index.html" class="portrait-back-link" title="返回地图">
+        <svg class="icon icon-btn" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M19 12H5" />
+          <path d="M12 19l-7-7 7-7" />
+        </svg>
+        返回地图
+      </a>
+      <div class="portrait-header-text">
+        <h1>同好会运行画像生成器</h1>
+        <p class="portrait-subtitle">通过几个简单问题，生成同好会的六维运行画像</p>
+      </div>
+      <button class="portrait-theme-toggle" id="themeToggle" type="button" title="切换明亮/暗色模式" aria-label="切换明亮/暗色模式">
+        <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2" />
+          <path d="M12 20v2" />
+          <path d="M4.93 4.93l1.41 1.41" />
+          <path d="M17.66 17.66l1.41 1.41" />
+          <path d="M2 12h2" />
+          <path d="M20 12h2" />
+          <path d="M4.93 19.07l1.41-1.41" />
+          <path d="M17.66 6.34l1.41-1.41" />
+        </svg>
+        <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="portrait-main">
+
+    <!-- Step indicator (mobile) -->
+    <div class="step-indicator" id="stepIndicator">
+      <span class="step-dot active" data-step="1">1</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="2">2</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="3">3</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="4">4</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="5">5</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="6">6</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="7">7</span>
+      <span class="step-line"></span>
+      <span class="step-dot" data-step="8">8</span>
+    </div>
+
+    <div class="portrait-layout">
+
+      <!-- ===== LEFT: FORM ===== -->
+      <section class="portrait-form-area" id="formArea">
+
+        <!-- Step 1: Basic Info -->
+        <div class="form-step active" data-step="1">
+          <div class="step-header">
+            <h2 class="step-title">基础信息</h2>
+            <p class="step-desc">先填写同好会的基本信息</p>
+          </div>
+          <div class="form-group prefill-group" id="prefillGroup" style="display:none">
+            <label class="form-label" for="prefillClubSelect">从已加入同好会预填</label>
+            <select class="form-select" id="prefillClubSelect">
+              <option value="">不使用预填，手动填写</option>
+            </select>
+            <p class="form-hint" id="prefillHint">选择后仅回填基础信息，所有字段仍可手动修改。</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label">同好会名称 <span class="required">*</span></label>
+            <input type="text" class="form-input" id="clubName" placeholder="例：橘柚视觉小说同好会" maxlength="50">
+          </div>
+          <div class="form-group">
+            <label class="form-label">学校名称</label>
+            <input type="text" class="form-input" id="schoolName" placeholder="例：XXX 大学" maxlength="50">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">所在城市</label>
+              <input type="text" class="form-input" id="city" placeholder="例：重庆" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label class="form-label">成立年份</label>
+              <input type="number" class="form-input" id="foundedYear" placeholder="例：2023" min="1980" max="2026">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">一句话介绍</label>
+            <textarea class="form-textarea" id="shortIntro" placeholder="以视觉小说交流、作品推荐和同好会联合企划为主要方向。" rows="2" maxlength="200"></textarea>
+          </div>
+          <div class="btn-row btn-row--end">
+            <button class="btn btn-next" data-next="2">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 2: 组织稳定度 -->
+        <div class="form-step" data-step="2">
+          <div class="step-header">
+            <h2 class="step-title">组织稳定度</h2>
+            <p class="step-desc">现在有没有稳定的组织骨架</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">总成员数</label>
+              <input type="number" class="form-input" id="os_total_members" min="0" placeholder="例：30">
+            </div>
+            <div class="form-group">
+              <label class="form-label">核心成员数</label>
+              <input type="number" class="form-input" id="os_core_members" min="0" placeholder="例：8">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">负责人/管理员人数</label>
+            <input type="number" class="form-input" id="os_managers_count" min="0" placeholder="例：3">
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="os_has_clear_leader"> 有明确负责人</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="os_has_core_group"> 有核心组</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="os_has_fixed_channel"> 有固定交流渠道</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="os_has_task_division"> 有基本分工</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">管理模式</label>
+            <select class="form-select" id="os_management_mode">
+              <option value="">— 请选择 —</option>
+              <option value="single_leader">单人负责</option>
+              <option value="small_core_group">小型核心组</option>
+              <option value="distributed_team">分散协作</option>
+              <option value="loose_interest_group">松散兴趣组</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="os_text" placeholder="请简单说明同好会目前的组织结构、负责人情况、核心成员分工和日常交流方式。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="1">上一步</button>
+            <button class="btn btn-next" data-next="3">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 3: 活动执行力 -->
+        <div class="form-step" data-step="3">
+          <div class="step-header">
+            <h2 class="step-title">活动执行力</h2>
+            <p class="step-desc">事情能不能办成</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">近 3 个月活动数</label>
+              <input type="number" class="form-input" id="ae_activities_last_3" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">近 12 个月活动数</label>
+              <input type="number" class="form-input" id="ae_activities_last_12" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">平均参与人数</label>
+              <input type="number" class="form-input" id="ae_avg_participants" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">最大活动参与人数</label>
+              <input type="number" class="form-input" id="ae_largest_participants" min="0" placeholder="0">
+            </div>
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="ae_has_event_plan"> 有活动策划习惯</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="ae_has_event_review"> 有活动复盘习惯</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">活动频率</label>
+            <select class="form-select" id="ae_frequency">
+              <option value="">— 请选择 —</option>
+              <option value="none">基本不办</option>
+              <option value="occasional">偶尔办</option>
+              <option value="semester">每学期几次</option>
+              <option value="monthly">每月都有</option>
+              <option value="high_frequency">高频（每周/双周）</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">执行稳定性</label>
+            <select class="form-select" id="ae_execution_stability">
+              <option value="">— 请选择 —</option>
+              <option value="often_cancelled">经常取消或无法落地</option>
+              <option value="sometimes_completed">有时能办成</option>
+              <option value="mostly_completed">大部分能办成</option>
+              <option value="stable">稳定执行</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="ae_text" placeholder="请说明近一年主要举办过哪些活动，以及活动组织和执行是否稳定。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="2">上一步</button>
+            <button class="btn btn-next" data-next="4">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 4: 成员规模与参与度 -->
+        <div class="form-step" data-step="4">
+          <div class="step-header">
+            <h2 class="step-title">成员规模与参与度</h2>
+            <p class="step-desc">成员是否真实参与</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">总成员数</label>
+              <input type="number" class="form-input" id="mp_total_members" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">活跃成员数</label>
+              <input type="number" class="form-input" id="mp_active_members" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">核心成员数</label>
+              <input type="number" class="form-input" id="mp_core_members" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">平均活动参与人数</label>
+              <input type="number" class="form-input" id="mp_avg_attendance" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">协助事务的成员数</label>
+              <input type="number" class="form-input" id="mp_helped_ops" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">分享/投稿成员数</label>
+              <input type="number" class="form-input" id="mp_submitted" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">发表/分享过作品的成员数</label>
+              <input type="number" class="form-input" id="mp_presented_shared" min="0" placeholder="0">
+            </div>
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="radio" class="choice-radio" name="mp_activity_level" value="low"> 活跃度低</label>
+            <label class="choice-chip"><input type="radio" class="choice-radio" name="mp_activity_level" value="medium"> 活跃度中等</label>
+            <label class="choice-chip"><input type="radio" class="choice-radio" name="mp_activity_level" value="high"> 活跃度高</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">参与模式</label>
+            <select class="form-select" id="mp_participation_pattern">
+              <option value="">— 请选择 —</option>
+              <option value="leader_only">只有负责人在做事</option>
+              <option value="core_members_only">核心成员在做事</option>
+              <option value="core_plus_some">核心 + 部分成员参与</option>
+              <option value="broad_participation">广泛参与</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">新成员融入</label>
+            <select class="form-select" id="mp_new_member_integration">
+              <option value="">— 请选择 —</option>
+              <option value="difficult">比较困难</option>
+              <option value="depends_on_acquaintance">看熟人关系</option>
+              <option value="has_basic_path">有基本融入路径</option>
+              <option value="clear_path">有清晰的新人引导</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="mp_text" placeholder="请说明普通成员通常如何参与同好会，例如参加活动、分享作品、协助事务、参与企划等。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="3">上一步</button>
+            <button class="btn btn-next" data-next="5">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 5: 内容沉淀力 -->
+        <div class="form-step" data-step="5">
+          <div class="step-header">
+            <h2 class="step-title">内容沉淀力</h2>
+            <p class="step-desc">做过的事情有没有留下成果</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">专栏数/文章数</label>
+              <input type="number" class="form-input" id="ca_articles" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">活动总结数</label>
+              <input type="number" class="form-input" id="ca_reports" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">刊物投稿数</label>
+              <input type="number" class="form-input" id="ca_publications" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">海报/宣传图数</label>
+              <input type="number" class="form-input" id="ca_visuals" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">推荐文章/推荐数</label>
+              <input type="number" class="form-input" id="ca_recommendations" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">媒体产出数(海报/视频/电台等)</label>
+              <input type="number" class="form-input" id="ca_media_outputs" min="0" placeholder="0">
+            </div>
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="ca_has_public_archive"> 有公开内容归档</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="ca_has_representative_work"> 有代表性成果</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">产出频率</label>
+            <select class="form-select" id="ca_output_frequency">
+              <option value="">— 请选择 —</option>
+              <option value="none">基本没有</option>
+              <option value="occasional">偶尔产出</option>
+              <option value="regular">定期产出</option>
+              <option value="active">活跃产出</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="ca_text" placeholder="请说明同好会有哪些代表性内容产出，例如文章、推荐、合刊、活动总结、海报、视频、电台等。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="4">上一步</button>
+            <button class="btn btn-next" data-next="6">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 6: 外部连接力 -->
+        <div class="form-step" data-step="6">
+          <div class="step-header">
+            <h2 class="step-title">外部连接力</h2>
+            <p class="step-desc">能不能和校外/跨校产生联系</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">参与联合企划数</label>
+              <input type="number" class="form-input" id="ec_joint_participated" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">发起联合企划数</label>
+              <input type="number" class="form-input" id="ec_joint_initiated" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">合作同好会数量</label>
+              <input type="number" class="form-input" id="ec_partner_clubs" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">跨校/外部活动参与数</label>
+              <input type="number" class="form-input" id="ec_external_events" min="0" placeholder="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">跨校活动数</label>
+              <input type="number" class="form-input" id="ec_cross_school_events" min="0" placeholder="0">
+            </div>
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="ec_has_external_contact"> 有对外联系人</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">合作网络</label>
+            <select class="form-select" id="ec_collaboration_network">
+              <option value="">— 请选择 —</option>
+              <option value="none">基本没有</option>
+              <option value="few_private_contacts">少数私人联系</option>
+              <option value="stable_partners">稳定合作伙伴</option>
+              <option value="wide_network">广泛合作网络</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">未来合作意愿</label>
+            <select class="form-select" id="ec_willingness">
+              <option value="">— 请选择 —</option>
+              <option value="not_now">暂不考虑</option>
+              <option value="interested_but_inexperienced">有兴趣但没经验</option>
+              <option value="willing_to_join">愿意参与</option>
+              <option value="willing_to_initiate">愿意发起</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="ec_text" placeholder="请说明同好会和其他高校、展会、社群之间的合作情况。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="5">上一步</button>
+            <button class="btn btn-next" data-next="7">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 7: 传承持续力 -->
+        <div class="form-step" data-step="7">
+          <div class="step-header">
+            <h2 class="step-title">传承持续力</h2>
+            <p class="step-desc">未来能不能继续延续</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">连续活跃年数</label>
+              <input type="number" class="form-input" id="co_active_years" min="0" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label class="form-label">换届次数</label>
+              <input type="number" class="form-input" id="co_transition_count" min="0" placeholder="0">
+            </div>
+          </div>
+          <fieldset class="choice-group">
+            <legend class="choice-group-title">状态选择</legend>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="co_has_completed_transition"> 已完成过换届</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="co_has_handover_docs"> 有交接文档</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="co_has_history_records"> 有历史记录</label>
+            <label class="choice-chip"><input type="checkbox" class="choice-checkbox" id="co_has_yearly_basic_activity"> 每年有基本活动</label>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label">对单一负责人依赖度</label>
+            <select class="form-select" id="co_dependence">
+              <option value="">— 请选择 —</option>
+              <option value="very_high">非常依赖</option>
+              <option value="high">比较依赖</option>
+              <option value="medium">一般</option>
+              <option value="low">不依赖</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">传承风险自评</label>
+            <select class="form-select" id="co_continuity_risk">
+              <option value="">— 请选择 —</option>
+              <option value="high">高风险</option>
+              <option value="medium">中等风险</option>
+              <option value="low">低风险</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">补充说明</label>
+            <textarea class="form-textarea" id="co_text" placeholder="请说明同好会的换届、交接、历史记录和未来延续情况。" rows="2"></textarea>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="6">上一步</button>
+            <button class="btn btn-next" data-next="8">下一步</button>
+          </div>
+        </div>
+
+        <!-- Step 8: 选择生成方式 -->
+        <div class="form-step" data-step="8">
+          <div class="step-header">
+            <h2 class="step-title">生成画像</h2>
+            <p class="step-desc">信息已填写完毕，请选择生成方式</p>
+          </div>
+          <div class="generate-options">
+            <div class="generate-card" id="genCardDirect">
+              <div class="generate-card-icon" aria-hidden="true">
+                <svg class="icon icon-card" viewBox="0 0 24 24" focusable="false">
+                  <path d="M4 19h16" />
+                  <path d="M7 16V9" />
+                  <path d="M12 16V5" />
+                  <path d="M17 16v-7" />
+                </svg>
+              </div>
+              <h3 class="generate-card-title">直接生成运行画像</h3>
+              <p class="generate-card-desc">基于已填写数据，使用内置评分引擎快速生成六维画像和基础分析</p>
+              <button class="btn btn-generate" id="btnGenerateDirect">生成运行画像</button>
+            </div>
+            <div class="generate-card" id="genCardLlm">
+              <div class="generate-card-icon" aria-hidden="true">
+                <svg class="icon icon-card" viewBox="0 0 24 24" focusable="false">
+                  <path d="M12 4v2" />
+                  <path d="M8 4h8" />
+                  <rect x="5" y="7" width="14" height="12" rx="3" />
+                  <path d="M9 12h.01" />
+                  <path d="M15 12h.01" />
+                  <path d="M9 16h6" />
+                </svg>
+              </div>
+              <h3 class="generate-card-title">AI 问答后生成</h3>
+              <p class="generate-card-desc">AI 根据填写内容进行追问，补充信息后可获得更深入、更精准的分析画像</p>
+              <button class="btn btn-outline" id="btnGenerateWithLlm">开始 AI 问答</button>
+            </div>
+          </div>
+          <div class="generate-secondary">
+            <button class="btn btn-outline" id="btnExample">载入示例数据</button>
+            <button class="btn btn-ghost" id="btnReset">重置</button>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="7">上一步</button>
+          </div>
+        </div>
+
+        <!-- Step 9: AI 问答 -->
+        <div class="form-step" data-step="9">
+          <div class="step-header">
+            <h2 class="step-title">AI 追问 · 数据修正</h2>
+            <p class="step-desc">AI 根据你填写的信息提出了以下追问，回答后可获得更精准的分析</p>
+          </div>
+          <div id="followUpContainerStep9"></div>
+          <div class="btn-row">
+            <button class="btn btn-prev" data-prev="8">返回</button>
+            <button class="btn btn-generate" id="btnSubmitLlmAndGenerate">
+              <svg class="icon icon-btn" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M12 3l1.35 5.15L18.5 9.5l-5.15 1.35L12 16l-1.35-5.15L5.5 9.5l5.15-1.35L12 3Z" />
+                <path d="M18 14l.7 2.3L21 17l-2.3.7L18 20l-.7-2.3L15 17l2.3-.7L18 14Z" />
+              </svg>
+              提交并生成画像
+            </button>
+          </div>
+          <div class="follow-up-skip">
+            <button class="btn btn-ghost" id="btnSkipLlm">跳过追问，直接生成</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===== RIGHT: RESULT ===== -->
+      <section class="portrait-result-area" id="resultArea">
+        <!-- Placeholder -->
+        <div class="result-placeholder" id="resultPlaceholder">
+          <div class="placeholder-icon" aria-hidden="true">
+            <svg class="icon icon-placeholder" viewBox="0 0 24 24" focusable="false">
+              <path d="M4 19h16" />
+              <path d="M7 16V9" />
+              <path d="M12 16V5" />
+              <path d="M17 16v-7" />
+            </svg>
+          </div>
+          <p>填写信息后点击「AI 分析生成画像」<br>即可查看同好会的六维画像</p>
+        </div>
+
+        <!-- Real result (hidden initially) -->
+        <div class="result-content" id="resultContent" style="display:none">
+
+          <!-- Result Card -->
+          <div class="result-card" id="resultCard">
+            <div class="result-card-header">
+              <h2 id="resultClubName" class="result-name"></h2>
+              <span id="resultSchool" class="result-school"></span>
+              <p id="resultIntro" class="result-intro"></p>
+            </div>
+            <div class="result-card-body">
+              <!-- Radar Chart -->
+              <div class="radar-section">
+                <div class="radar-wrapper" id="radarWrapper">
+                  <canvas id="radarChart" width="400" height="400"></canvas>
+                </div>
+                <!-- Scale Overview -->
+                <div class="scale-overview" id="scaleOverview"></div>
+              </div>
+
+              <!-- Score Bars -->
+              <div class="score-bars-section">
+                <h3 class="section-title">维度评分</h3>
+                <div class="score-bars" id="scoreBars"></div>
+              </div>
+
+              <!-- Analysis -->
+              <div class="analysis-section" id="analysisSection">
+                <h3 class="section-title">分析摘要</h3>
+                <p class="analysis-summary" id="analysisSummary"></p>
+                <div class="analysis-details">
+                  <div class="analysis-col analysis-strengths">
+                    <h4 class="analysis-col-title analysis-col-title--good">优势</h4>
+                    <ul id="strengthsList"></ul>
+                  </div>
+                  <div class="analysis-col analysis-risks">
+                    <h4 class="analysis-col-title analysis-col-title--warn">风险</h4>
+                    <ul id="risksList"></ul>
+                  </div>
+                  <div class="analysis-col analysis-suggestions">
+                    <h4 class="analysis-col-title analysis-col-title--info">建议</h4>
+                    <ul id="suggestionsList"></ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Advisor Correction Analysis -->
+              <div class="advisor-section" id="advisorSection" style="display:none">
+                <h3 class="section-title">顾问修正分析</h3>
+                <p class="advisor-summary" id="advisorSummary"></p>
+                <div class="advisor-evaluation" id="advisorEvaluation" style="display:none">
+                  <div class="advisor-evaluation-label" id="advisorEvaluationLabel"></div>
+                  <p class="advisor-evaluation-line" id="advisorEvaluationLine"></p>
+                  <dl class="advisor-evaluation-grid">
+                    <div>
+                      <dt>当前状态</dt>
+                      <dd id="advisorEvaluationState"></dd>
+                    </div>
+                    <div>
+                      <dt>关键观察</dt>
+                      <dd id="advisorEvaluationObservation"></dd>
+                    </div>
+                    <div>
+                      <dt>下一步</dt>
+                      <dd id="advisorEvaluationNextStep"></dd>
+                    </div>
+                    <div>
+                      <dt>置信度</dt>
+                      <dd id="advisorEvaluationConfidence"></dd>
+                    </div>
+                  </dl>
+                </div>
+                <div class="advisor-follow-up" id="advisorFollowUp" style="display:none">
+                  <div id="advisorFollowUpContainer"></div>
+                  <div class="advisor-actions">
+                    <button class="btn btn-generate" id="btnAdvisorSubmit">提交补充并修正</button>
+                    <button class="btn btn-ghost" id="btnAdvisorRetry">重试 AI 追问</button>
+                  </div>
+                </div>
+                <div class="advisor-score-changes" id="advisorScoreChanges"></div>
+                <div class="analysis-details advisor-details">
+                  <div class="analysis-col analysis-strengths">
+                    <h4 class="analysis-col-title analysis-col-title--good">顾问优势</h4>
+                    <ul id="advisorAdvantagesList"></ul>
+                  </div>
+                  <div class="analysis-col analysis-risks">
+                    <h4 class="analysis-col-title analysis-col-title--warn">顾问风险</h4>
+                    <ul id="advisorRisksList"></ul>
+                  </div>
+                  <div class="analysis-col analysis-suggestions">
+                    <h4 class="analysis-col-title analysis-col-title--info">实施建议</h4>
+                    <ul id="advisorRecommendationsList"></ul>
+                  </div>
+                </div>
+                <p class="advisor-classification" id="advisorClassification"></p>
+              </div>
+            </div>
+            <div class="result-card-footer">
+              <span class="result-footer-text">同好会运行画像 · 仅用于观察，不用于排名比较</span>
+            </div>
+          </div>
+
+          <!-- Share Actions -->
+          <div class="share-actions">
+            <button class="btn btn-share" id="btnScreenshot">
+              <svg class="icon icon-btn" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M7 7l1.5-2h7L17 7h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h2Z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+              截图保存
+            </button>
+            <button class="btn btn-outline" id="btnCopy">
+              <svg class="icon icon-btn" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 4h7a2 2 0 0 1 2 2v12" />
+                <rect x="5" y="8" width="11" height="14" rx="2" />
+                <path d="M8 12h5" />
+                <path d="M8 16h5" />
+              </svg>
+              复制分析文案
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="portrait-footer">
+    <p>该画像用于观察同好会运行状态，不用于排名或比较。</p>
+    <p class="footer-sub">VNFest 同好会运行画像生成器 ·  v1.0</p>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

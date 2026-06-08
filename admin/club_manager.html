@@ -2997,6 +2997,7 @@ body::after {
       <button class="tab-btn" data-tab="members">👥 成员</button>
       <button class="tab-btn" data-tab="settings">⚙️ 设置</button>
       <button class="tab-btn" data-tab="codes">🔑 绑定码</button>
+      <button class="tab-btn" data-tab="bot_tokens">🤖 Bot 接入</button>
       <button class="tab-btn" data-tab="recommendations">⭐ 神器榜</button>
       <button class="tab-btn" data-tab="projects">企划枢纽</button>
       <button class="tab-btn" data-tab="users" id="usersTabBtn" style="display:none;">👥 用户管理</button>
@@ -3315,6 +3316,11 @@ function renderList(tab) {
 
   if (tab === 'codes') {
     renderCodes();
+    return;
+  }
+
+  if (tab === 'bot_tokens') {
+    renderBotTokens();
     return;
   }
 
@@ -3916,6 +3922,47 @@ const projectHubState = {
   request: null
 };
 
+const projectHubApiRoot = window.location.protocol === 'file:' ? '../api/' : '/api/';
+
+function projectHubApi(path) {
+  return projectHubApiRoot + String(path || '').replace(/^\/+/, '');
+}
+
+function projectHubResolvedUrl(url) {
+  try {
+    return new URL(url, window.location.href).href;
+  } catch (error) {
+    return String(url || '');
+  }
+}
+
+async function projectHubReadJson(response, label, requestUrl) {
+  const text = await response.text();
+  const source = requestUrl ? ' [' + requestUrl + ']' : '';
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch (error) {
+    const plain = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+    throw new Error((label || '接口') + '返回异常' + source + (plain ? '：' + plain : ''));
+  }
+  if (!response.ok) {
+    throw new Error((data.message || ((label || '接口') + '请求失败：HTTP ' + response.status)) + source);
+  }
+  return data || {};
+}
+
+async function projectHubFetchJson(url, options, label) {
+  const requestUrl = projectHubResolvedUrl(url);
+  let response = null;
+  try {
+    response = await fetch(url, options || {});
+  } catch (error) {
+    throw new Error((label || '接口') + '请求失败 [' + requestUrl + ']：' + (error.message || 'NetworkError'));
+  }
+  return projectHubReadJson(response, label, requestUrl);
+}
+
 function projectClubKey(club) {
   if (!club) return '';
   const id = Number(club.id ?? club.club_id ?? 0);
@@ -3979,23 +4026,20 @@ async function loadProjectHubForManager(force = false, silent = false) {
   }
   projectHubState.request = (async function() {
   try {
-    const [projectsResp, itemsResp, partsResp] = await Promise.all([
-      fetch('../api/projects.php?include_deleted=1', { credentials: 'same-origin', cache: 'no-store' }),
-      fetch('../api/project_items.php?include_deleted=1', { credentials: 'same-origin', cache: 'no-store' }),
-      fetch('../api/project_participations.php?include_withdrawn=1', { credentials: 'same-origin', cache: 'no-store' })
+    const [projectsData, itemsData, partsData] = await Promise.all([
+      projectHubFetchJson(projectHubApi('projects.php?include_deleted=1'), { credentials: 'same-origin', cache: 'no-store' }, '企划列表'),
+      projectHubFetchJson(projectHubApi('project_items.php?include_deleted=1'), { credentials: 'same-origin', cache: 'no-store' }, '参与项列表'),
+      projectHubFetchJson(projectHubApi('project_participations.php?include_withdrawn=1'), { credentials: 'same-origin', cache: 'no-store' }, '审核记录')
     ]);
-    const projectsData = await projectsResp.json();
-    const itemsData = await itemsResp.json();
-    const partsData = await partsResp.json();
-    projectHubState.projects = projectsData.projects || [];
-    projectHubState.items = itemsData.items || [];
+    projectHubState.projects = (projectsData.projects || []).filter(project => !project.deleted_at);
+    projectHubState.items = (itemsData.items || []).filter(item => !item.deleted_at);
     projectHubState.participations = partsData.participations || [];
     projectHubState.loadedAt = Date.now();
-  } catch {
+  } catch (error) {
     projectHubState.projects = [];
     projectHubState.items = [];
     projectHubState.participations = [];
-    if (!silent) showToast('企划枢纽加载失败', 'error');
+    if (!silent) showToast(error.message || '企划枢纽加载失败', 'error');
   } finally {
     projectHubState.request = null;
   }
@@ -4413,8 +4457,7 @@ async function uploadProjectPoster(projectId) {
   form.append('image', file);
   if (status) status.textContent = '上传中...';
   try {
-    const r = await fetch('../api/club_avatar.php?scope=event', { method: 'POST', credentials: 'same-origin', body: form });
-    const data = await r.json();
+    const data = await projectHubFetchJson(projectHubApi('club_avatar.php?scope=event'), { method: 'POST', credentials: 'same-origin', body: form }, '上传宣传图');
     if (!data.success || !data.image_url) {
       throw new Error(data.message || '上传失败');
     }
@@ -4461,37 +4504,45 @@ async function saveProjectHub(projectId) {
   };
   if (projectId) payload.id = Number(projectId);
 
+  let data = null;
   try {
-    const r = await fetch('../api/projects.php', {
-      method: projectId ? 'PUT' : 'POST',
+    if (projectId) payload.ph_method = 'PUT';
+    data = await projectHubFetchJson(projectHubApi('projects.php'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify(payload)
-    });
-    const data = await r.json();
-    if (!data.success) {
-      showToast(data.message || '保存失败', 'error');
-      return;
-    }
-    projectHubState.selectedId = Number(data.project?.id || projectId);
-    showToast(data.message || '已保存', 'success');
-    projectHubState.loadedAt = 0;
+    }, '保存企划');
+  } catch (error) {
+    showToast(error.message || '保存企划失败', 'error');
+    return;
+  }
+
+  if (!data.success) {
+    showToast(data.message || '保存失败', 'error');
+    return;
+  }
+  projectHubState.selectedId = Number(data.project?.id || projectId);
+  showToast(data.message || '已保存', 'success');
+  projectHubState.loadedAt = 0;
+
+  try {
     await renderProjects(true);
-  } catch {
-    showToast('网络错误', 'error');
+  } catch (error) {
+    console.warn('Project hub refresh failed after save:', error);
+    showToast('企划已保存，但刷新失败，请手动刷新', 'error');
   }
 }
 
 async function deleteProjectHub(projectId) {
   if (!confirm('确定删除此企划吗？活动企划会同步移除对应日历活动。')) return;
   try {
-    const r = await fetch('../api/projects.php', {
-      method: 'DELETE',
+    const data = await projectHubFetchJson(projectHubApi('projects.php'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ id: Number(projectId) })
-    });
-    const data = await r.json();
+      body: JSON.stringify({ ph_method: 'DELETE', id: Number(projectId) })
+    }, '删除企划');
     if (!data.success) {
       showToast(data.message || '删除失败', 'error');
       return;
@@ -4500,8 +4551,8 @@ async function deleteProjectHub(projectId) {
     showToast('企划已删除', 'success');
     projectHubState.loadedAt = 0;
     await renderProjects(true);
-  } catch {
-    showToast('网络错误', 'error');
+  } catch (error) {
+    showToast(error.message || '删除失败', 'error');
   }
 }
 
@@ -4547,15 +4598,17 @@ async function saveProjectItem(projectId, itemId) {
     max_slots: document.getElementById('piMaxSlots').value,
     description: document.getElementById('piDescription').value.trim()
   };
-  if (itemId) payload.id = itemId;
+  if (itemId) {
+    payload.id = itemId;
+    payload.ph_method = 'PUT';
+  }
   try {
-    const r = await fetch('../api/project_items.php', {
-      method: itemId ? 'PUT' : 'POST',
+    const data = await projectHubFetchJson(projectHubApi('project_items.php'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
       body: JSON.stringify(payload)
-    });
-    const data = await r.json();
+    }, '保存参与项');
     if (!data.success) {
       showToast(data.message || '保存失败', 'error');
       return;
@@ -4563,21 +4616,20 @@ async function saveProjectItem(projectId, itemId) {
     showToast(data.message || '已保存', 'success');
     projectHubState.loadedAt = 0;
     await renderProjects(true);
-  } catch {
-    showToast('网络错误', 'error');
+  } catch (error) {
+    showToast(error.message || '保存参与项失败', 'error');
   }
 }
 
 async function deleteProjectItem(itemId) {
   if (!confirm('确定删除此参与项吗？')) return;
   try {
-    const r = await fetch('../api/project_items.php', {
-      method: 'DELETE',
+    const data = await projectHubFetchJson(projectHubApi('project_items.php'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ id: itemId })
-    });
-    const data = await r.json();
+      body: JSON.stringify({ ph_method: 'DELETE', id: itemId })
+    }, '删除参与项');
     if (!data.success) {
       showToast(data.message || '删除失败', 'error');
       return;
@@ -4585,21 +4637,20 @@ async function deleteProjectItem(itemId) {
     showToast('参与项已删除', 'success');
     projectHubState.loadedAt = 0;
     await renderProjects(true);
-  } catch {
-    showToast('网络错误', 'error');
+  } catch (error) {
+    showToast(error.message || '删除参与项失败', 'error');
   }
 }
 
 async function reviewProjectParticipation(id, status) {
   const note = prompt(status === 'accepted' ? '通过备注（可留空）' : '拒绝原因（建议填写）') || '';
   try {
-    const r = await fetch('../api/project_participations.php', {
-      method: 'PUT',
+    const data = await projectHubFetchJson(projectHubApi('project_participations.php'), {
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({ id: Number(id), status, review_note: note })
-    });
-    const data = await r.json();
+      body: JSON.stringify({ ph_method: 'PUT', id: Number(id), status, review_note: note })
+    }, '审核参与记录');
     if (!data.success) {
       showToast(data.message || '审核失败', 'error');
       return;
@@ -4607,8 +4658,8 @@ async function reviewProjectParticipation(id, status) {
     showToast('审核状态已更新', 'success');
     projectHubState.loadedAt = 0;
     await renderProjects(true);
-  } catch {
-    showToast('网络错误', 'error');
+  } catch (error) {
+    showToast(error.message || '审核失败', 'error');
   }
 }
 
@@ -4750,6 +4801,136 @@ function copyCode(code) {
     document.body.removeChild(ta);
     showToast('📋 已复制: ' + code, 'success');
   }
+}
+
+// ====== Bot Tokens ======
+
+async function renderBotTokens() {
+  const container = document.getElementById('listContainer');
+  if (!selectedClubId || selectedClubId <= 0) {
+    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    return;
+  }
+
+  let tokens = [];
+  try {
+    const r = await fetch(`../api/bot.php?action=bot_tokens_list&club_id=${selectedClubId}&country=${selectedCountry}`, { credentials: 'same-origin' });
+    const data = await r.json();
+    if (data.success) tokens = data.tokens || [];
+    else showToast(data.error || '加载 Bot token 失败', 'error');
+  } catch {
+    showToast('加载 Bot token 失败', 'error');
+  }
+
+  const clubName = getClubName(selectedClubId, selectedCountry);
+  let html = `<div class="section-card">
+    <div class="section-title">🤖 创建 Bot 接入 token</div>
+    <div class="section-sub">用于 AstrBot 插件公开接入「${escapeHtml(clubName)}」。token 明文只会在创建成功后显示一次，请立即复制保存。</div>
+    <div class="form-row">
+      <div class="form-group" style="min-width:220px;max-width:320px;">
+        <label>名称</label>
+        <input type="text" id="botTokenName" class="form-input" value="AstrBot 接入">
+        <span class="form-hint">用于区分接入的群或负责人</span>
+      </div>
+      <label class="form-group" style="min-width:240px;margin-top:20px;gap:8px;flex-direction:row;align-items:center;">
+        <input type="checkbox" id="botTokenApprove" style="width:16px;height:16px;">
+        <span>允许插件审批本同好会申请</span>
+      </label>
+      <button class="btn btn-primary" style="height:38px;margin-top:20px;" onclick="generateBotToken()">创建 token</button>
+    </div>
+    <div id="newBotTokenBox" class="section-sub" style="display:none;margin-top:12px;margin-bottom:0;"></div>
+  </div>`;
+
+  html += `<div class="section-card">
+    <div class="section-title">📋 已创建 Bot token (${tokens.length})</div>`;
+
+  if (tokens.length === 0) {
+    html += '<div style="text-align:center;padding:32px;color:var(--text-secondary);font-size:14px;">暂无 Bot token</div>';
+  } else {
+    html += '<div class="item-list">';
+    tokens.forEach(t => {
+      const active = t.active && !t.revoked_at;
+      const permissions = t.permissions || [];
+      html += `<div class="item-row">
+        <div class="col" style="flex:1.2;">
+          <strong>${escapeHtml(t.name || 'AstrBot 接入')}</strong>
+          <div class="item-meta">${escapeHtml(t.token_prefix || '')}...</div>
+        </div>
+        <div class="col" style="flex:1;"><span class="item-meta">权限</span>${permissions.includes('approve_membership') ? '可审批' : '只读'}</div>
+        <div class="col col-sm"><span class="item-meta">最近使用</span><span style="font-size:12px;">${t.last_used_at ? formatDate(t.last_used_at) : '—'}</span></div>
+        <div class="col col-xs"><span class="badge ${active ? 'badge-active' : 'badge-disabled'}">● ${active ? '启用' : '已吊销'}</span></div>
+        <div class="col col-actions">
+          ${active ? `<button class="btn btn-sm btn-danger" onclick="revokeBotToken(${t.id})">吊销</button>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  html += `<div class="section-sub" style="margin-top:12px;margin-bottom:0;">💡 同好会 Bot token 只能读取本同好会信息和申请；全站超管能力仍需站点私有 BOT_API_KEY。</div>`;
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+async function generateBotToken() {
+  if (!selectedClubId || selectedClubId <= 0) {
+    showToast('请先选择同好会', 'error');
+    return;
+  }
+  const name = document.getElementById('botTokenName')?.value.trim() || 'AstrBot 接入';
+  const approve = !!document.getElementById('botTokenApprove')?.checked;
+  try {
+    const r = await fetch('../api/bot.php?action=bot_tokens_create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        club_id: selectedClubId,
+        country: selectedCountry,
+        name,
+        approve_membership: approve
+      })
+    });
+    const data = await r.json();
+    if (!data.success) {
+      showToast(data.error || '创建失败', 'error');
+      return;
+    }
+    const box = document.getElementById('newBotTokenBox');
+    if (box) {
+      box.style.display = 'block';
+      box.innerHTML = `新 token：<code style="font-family:monospace;color:var(--accent-gold);word-break:break-all;">${escapeHtml(data.token)}</code>
+        <button class="btn btn-sm btn-ghost" onclick="copyBotToken('${escapeHtml(data.token)}')" style="margin-left:8px;">复制</button>`;
+    }
+    showToast('✅ Bot token 已创建，请立即复制保存', 'success');
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+async function revokeBotToken(tokenId) {
+  if (!confirm('确定吊销此 Bot token？已接入的 AstrBot 将无法继续使用它。')) return;
+  try {
+    const r = await fetch('../api/bot.php?action=bot_tokens_revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ token_id: tokenId })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('✅ Bot token 已吊销', 'success');
+      renderBotTokens();
+    } else {
+      showToast(data.error || '操作失败', 'error');
+    }
+  } catch {
+    showToast('网络错误', 'error');
+  }
+}
+
+function copyBotToken(token) {
+  copyCode(token);
 }
 
 // ====== Recommendation Board ======

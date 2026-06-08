@@ -4,7 +4,7 @@
 
   // State
   var HUB_STATE = { filter: 'running', page: 1, projects: [], total: 0 };
-  var CONTEST_STATE = { project: null, stages: [], currentStage: null, entries: [], matches: [], myVotes: {}, myNominations: [], groups: [], currentGroup: 0, resultRows: [], resultMap: {} };
+  var CONTEST_STATE = { project: null, stages: [], currentStage: null, entries: [], matches: [], myVotes: {}, myScores: {}, myNominations: [], groups: [], currentGroup: 0, resultRows: [], resultMap: {}, runtime: null, rankVisible: false, metricsVisible: false, voteLocked: false };
 
   // Select mode state for batch withdraw
   var SELECT_MODE = false;
@@ -543,6 +543,7 @@
   }
 
   function canShowVoteNumbers(stage, resultData) {
+    if (resultData && typeof resultData.metrics_visible === 'boolean') return resultData.metrics_visible;
     var visibility = stage.result_visibility || (resultData && resultData.result_visibility) || 'live_rank_only';
     var status = (resultData && resultData.stage_status) || stage.status || '';
     if (visibility === 'hidden') return false;
@@ -552,13 +553,27 @@
     return false;
   }
 
+  function canShowRank(stage, resultData) {
+    if (resultData && typeof resultData.rank_visible === 'boolean') return resultData.rank_visible;
+    var visibility = (resultData && resultData.result_visibility) || stage.result_visibility || 'live_rank_only';
+    if (visibility === 'hidden') return false;
+    if (visibility === 'live_votes' || visibility === 'live_rank_only') return true;
+    if (visibility === 'after_stage') return ((resultData && resultData.stage_status) || stage.status) === 'settled';
+    if (visibility === 'after_event') return CONTEST_STATE.project && CONTEST_STATE.project.status === 'ended';
+    return false;
+  }
+
   function applyResultStats(entries, rows) {
     var map = {};
     for (var i = 0; i < (rows || []).length; i++) map[Number(rows[i].entry_id || rows[i].id)] = rows[i];
     return entries.map(function (entry) {
       var stat = map[Number(entry.id)] || {};
-      entry.votes = Number(stat.votes || 0);
+      if (Object.prototype.hasOwnProperty.call(stat, 'votes')) entry.votes = Number(stat.votes || 0);
+      if (Object.prototype.hasOwnProperty.call(stat, 'score_total')) entry.score_total = Number(stat.score_total || 0);
+      if (Object.prototype.hasOwnProperty.call(stat, 'rating_count')) entry.rating_count = Number(stat.rating_count || 0);
+      if (Object.prototype.hasOwnProperty.call(stat, 'score_avg')) entry.score_avg = Number(stat.score_avg || 0);
       entry.rank_no = stat.rank_no ? Number(stat.rank_no) : null;
+      entry.group_rank = stat.group_rank ? Number(stat.group_rank) : null;
       entry.advanced = Number(stat.advanced || 0);
       return entry;
     });
@@ -605,6 +620,10 @@
   }
 
   function renderVoting(stage) {
+    if (stage.vote_mode === 'score') {
+      renderScoreVoting(stage);
+      return;
+    }
     var maxVotes = Number(stage.max_select) || 8;
     var content = document.getElementById('moContestContent');
     CONTEST_STATE.myVotes = {};
@@ -620,26 +639,41 @@
       loadMyStageVotes(stage),
       loadStageResults(stage)
     ]).then(function (results) {
-      var entries = ((results[0] && results[0].data) || []).map(normalizeStageEntry);
+      var entryData = results[0] || {};
+      var runtime = entryData.runtime || stage;
+      CONTEST_STATE.runtime = runtime;
+      maxVotes = Number(runtime.max_select || stage.max_select) || 1;
+      var entries = (entryData.data || []).map(normalizeStageEntry);
       var votes = results[1] || [];
       var resultData = results[2] || {};
       var showVotes = canShowVoteNumbers(stage, resultData);
+      CONTEST_STATE.rankVisible = canShowRank(stage, resultData);
+      CONTEST_STATE.metricsVisible = showVotes;
       entries = applyResultStats(entries, resultData.data || []);
       for (var i = 0; i < votes.length; i++) {
         CONTEST_STATE.myVotes[Number(votes[i].entry_id)] = true;
       }
-      CONTEST_STATE.groups = groupEntriesByKey(entries, stage.group_count);
+      CONTEST_STATE.groups = groupEntriesByKey(entries, runtime.group_count);
       CONTEST_STATE.currentGroup = 0;
+      var locked = votes.length > 0 && !runtime.allow_vote_change;
       if (CONTEST_STATE.groups.length > 1) {
         var action = content.querySelector('.mo-action');
         if (action && !document.getElementById('moGroupTabs')) {
           action.insertAdjacentHTML('afterend', '<div class="mo-group-tabs" id="moGroupTabs"></div>');
         }
-        renderVoteGroupTabs(maxVotes, votes.length > 0, showVotes);
-        renderVoteGrid(CONTEST_STATE.groups[0].entries, maxVotes, votes.length > 0, showVotes);
+        renderVoteGroupTabs(maxVotes, locked, showVotes);
+        renderVoteGrid(CONTEST_STATE.groups[0].entries, maxVotes, locked, showVotes);
       } else {
-        renderVoteGrid(entries, maxVotes, votes.length > 0, showVotes);
+        renderVoteGrid(entries, maxVotes, locked, showVotes);
       }
+      var hint = content.querySelector('.mo-action-hint');
+      if (hint) hint.innerHTML = '每组最多选择 <strong style="color:var(--mo-purple)">' + maxVotes + '</strong> 项 · 当前组已选 <strong style="color:var(--mo-purple)" id="moVoteCount">0</strong> 项';
+      var currentEntries = CONTEST_STATE.groups[CONTEST_STATE.currentGroup] ? CONTEST_STATE.groups[CONTEST_STATE.currentGroup].entries : entries;
+      var currentCount = selectedCountForEntries(currentEntries);
+      var currentCountEl = document.getElementById('moVoteCount');
+      if (currentCountEl) currentCountEl.textContent = currentCount;
+      var submit = document.getElementById('moVoteSubmit');
+      if (submit && votes.length > 0 && runtime.allow_vote_change) submit.textContent = '修改投票';
     }).catch(function () {
       document.getElementById('moVoteGrid').innerHTML = '<div class="mo-empty" style="grid-column:1/-1">加载失败</div>';
     });
@@ -650,10 +684,176 @@
       var btn = document.getElementById('moVoteSubmit');
       if (btn) { btn.disabled = true; btn.innerHTML = '<span class="mo-spinner"></span>提交中...'; }
       post('../api/moe_votes.php?action=cast', { stage_id: stage.id, entry_ids: selected.map(Number) }).then(function (r) {
-        if (r && r.success) { if (btn) { btn.disabled = true; btn.innerHTML = '<span class="mo-spinner"></span>已投票'; } toast('投票成功'); }
+        if (r && r.success) {
+          if (btn) {
+            btn.disabled = !(CONTEST_STATE.runtime && CONTEST_STATE.runtime.allow_vote_change);
+            btn.textContent = CONTEST_STATE.runtime && CONTEST_STATE.runtime.allow_vote_change ? '修改投票' : '已投票';
+          }
+          toast('投票成功');
+        }
         else { if (btn) { btn.disabled = false; btn.textContent = '提交投票'; } toast((r && r.message) || '投票失败'); }
       }).catch(function () { if (btn) { btn.disabled = false; btn.textContent = '提交投票'; } toast('投票失败'); });
     });
+  }
+
+  function renderScoreVoting(stage) {
+    var content = document.getElementById('moContestContent');
+    CONTEST_STATE.myVotes = {};
+    CONTEST_STATE.myScores = {};
+    content.innerHTML =
+      '<div class="mo-action">' +
+        '<div class="mo-action-hint" id="moScoreHint">加载评分规则中...</div>' +
+        '<button class="mo-btn mo-btn--purple mo-btn--full" id="moScoreSubmit" style="margin-top:8px;">提交评分</button>' +
+      '</div>' +
+      '<div class="mo-group-tabs" id="moScoreGroupTabs"></div>' +
+      '<div class="mo-char-grid" id="moScoreGrid"><div class="mo-loading" style="grid-column:1/-1">加载中...</div></div>';
+
+    Promise.all([
+      api('../api/moe_stages.php?action=stage_entries&stage_id=' + stage.id),
+      loadMyStageVotes(stage),
+      loadStageResults(stage)
+    ]).then(function (results) {
+      var entryData = results[0] || {};
+      var runtime = entryData.runtime || stage;
+      var entries = (entryData.data || []).map(normalizeStageEntry);
+      var votes = results[1] || [];
+      var resultData = results[2] || {};
+      CONTEST_STATE.runtime = runtime;
+      CONTEST_STATE.rankVisible = canShowRank(stage, resultData);
+      CONTEST_STATE.metricsVisible = canShowVoteNumbers(stage, resultData);
+      entries = applyResultStats(entries, resultData.data || []);
+      for (var i = 0; i < votes.length; i++) {
+        var entryId = Number(votes[i].entry_id);
+        CONTEST_STATE.myVotes[entryId] = true;
+        CONTEST_STATE.myScores[entryId] = Number(votes[i].score_value);
+      }
+      CONTEST_STATE.groups = groupEntriesByKey(entries, runtime.group_count);
+      CONTEST_STATE.currentGroup = 0;
+      var locked = votes.length > 0 && !runtime.allow_vote_change;
+      renderScoreGroupTabs(runtime, locked);
+      renderScoreGrid(CONTEST_STATE.groups[0] ? CONTEST_STATE.groups[0].entries : [], runtime, locked);
+      if (votes.length > 0 && runtime.allow_vote_change) document.getElementById('moScoreSubmit').textContent = '修改评分';
+    }).catch(function () {
+      document.getElementById('moScoreGrid').innerHTML = '<div class="mo-empty" style="grid-column:1/-1">加载失败</div>';
+    });
+
+    document.getElementById('moScoreSubmit').addEventListener('click', function () {
+      var entryIds = Object.keys(CONTEST_STATE.myVotes).filter(function (key) { return CONTEST_STATE.myVotes[key]; }).map(Number);
+      if (!entryIds.length) { toast('请至少选择一项并评分'); return; }
+      var scores = {};
+      for (var i = 0; i < entryIds.length; i++) scores[entryIds[i]] = Number(CONTEST_STATE.myScores[entryIds[i]]);
+      var btn = document.getElementById('moScoreSubmit');
+      btn.disabled = true;
+      btn.textContent = '提交中...';
+      post('../api/moe_votes.php?action=cast', { stage_id: stage.id, entry_ids: entryIds, scores: scores }).then(function (result) {
+        if (!result || !result.success) {
+          btn.disabled = false;
+          btn.textContent = '提交评分';
+          toast((result && result.message) || '评分失败');
+          return;
+        }
+        btn.disabled = !(CONTEST_STATE.runtime && CONTEST_STATE.runtime.allow_vote_change);
+        btn.textContent = CONTEST_STATE.runtime && CONTEST_STATE.runtime.allow_vote_change ? '修改评分' : '已评分';
+        toast('评分已提交');
+      }).catch(function () {
+        btn.disabled = false;
+        btn.textContent = '提交评分';
+        toast('评分失败');
+      });
+    });
+  }
+
+  function renderScoreGroupTabs(runtime, locked) {
+    var tabs = document.getElementById('moScoreGroupTabs');
+    if (!tabs) return;
+    tabs.innerHTML = '';
+    for (var i = 0; i < CONTEST_STATE.groups.length; i++) {
+      (function (index) {
+        var group = CONTEST_STATE.groups[index];
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'mo-group-tab' + (index === CONTEST_STATE.currentGroup ? ' active' : '');
+        button.textContent = group.label;
+        button.addEventListener('click', function () {
+          CONTEST_STATE.currentGroup = index;
+          var buttons = tabs.querySelectorAll('.mo-group-tab');
+          for (var j = 0; j < buttons.length; j++) buttons[j].classList.remove('active');
+          button.classList.add('active');
+          renderScoreGrid(group.entries, runtime, locked);
+        });
+        tabs.appendChild(button);
+      })(i);
+    }
+  }
+
+  function renderScoreGrid(entries, runtime, locked) {
+    var grid = document.getElementById('moScoreGrid');
+    if (!grid) return;
+    var maxSelect = Number(runtime.max_select || 1);
+    var scoreMin = Number(runtime.score_min || 1);
+    var scoreMax = Number(runtime.score_max || 10);
+    var hint = document.getElementById('moScoreHint');
+    if (hint) hint.textContent = '本组最多评分 ' + maxSelect + ' 项，分值范围 ' + scoreMin + ' - ' + scoreMax + '；已选 ' + selectedCountForEntries(entries) + ' 项';
+    grid.innerHTML = '';
+    for (var i = 0; i < entries.length; i++) {
+      (function (entry, index) {
+        var card = document.createElement('div');
+        card.className = 'mo-char-item' + (CONTEST_STATE.myVotes[entry.id] ? ' selected' : '');
+        var resultMeta = '';
+        if (CONTEST_STATE.metricsVisible && entry.score_total != null) {
+          resultMeta = '<div class="mo-char-work">积分 ' + Number(entry.score_total || 0) + ' · ' + Number(entry.rating_count || 0) + '人 · 均分 ' + Number(entry.score_avg || 0).toFixed(2) + '</div>';
+        } else if (CONTEST_STATE.rankVisible && (entry.group_rank || entry.rank_no)) {
+          resultMeta = '<div class="mo-char-work">组内 #' + Number(entry.group_rank || entry.rank_no) + '</div>';
+        }
+        card.innerHTML =
+          '<div class="mo-char-avatar" style="background-image:' + (entry.image_url ? 'url(' + esc(entry.image_url) + ')' : avatarGradient(index)) + '"></div>' +
+          '<div class="mo-char-name">' + esc(entry.title_cn || entry.title || '?') + '</div>' +
+          '<div class="mo-char-work">' + esc(entry.subtitle || '') + '</div>' +
+          '<input class="mo-score-input" type="number" min="' + scoreMin + '" max="' + scoreMax + '" step="1" placeholder="' + scoreMin + '-' + scoreMax + '"' +
+            (CONTEST_STATE.myVotes[entry.id] ? ' value="' + Number(CONTEST_STATE.myScores[entry.id]) + '"' : '') +
+            (locked ? ' disabled' : '') + '>' +
+          resultMeta;
+        var input = card.querySelector('.mo-score-input');
+        input.addEventListener('change', function () {
+          var raw = input.value.trim();
+          if (raw === '') {
+            delete CONTEST_STATE.myVotes[entry.id];
+            delete CONTEST_STATE.myScores[entry.id];
+            card.classList.remove('selected');
+          } else {
+            var value = Number(raw);
+            if (!Number.isInteger(value) || value < scoreMin || value > scoreMax) {
+              toast('评分必须在 ' + scoreMin + ' - ' + scoreMax + ' 之间');
+              input.value = CONTEST_STATE.myVotes[entry.id] ? CONTEST_STATE.myScores[entry.id] : '';
+              return;
+            }
+            if (!CONTEST_STATE.myVotes[entry.id] && selectedCountForEntries(entries) >= maxSelect) {
+              toast('本组最多评分 ' + maxSelect + ' 项');
+              input.value = '';
+              return;
+            }
+            CONTEST_STATE.myVotes[entry.id] = true;
+            CONTEST_STATE.myScores[entry.id] = value;
+            card.classList.add('selected');
+          }
+          if (hint) hint.textContent = '本组最多评分 ' + maxSelect + ' 项，分值范围 ' + scoreMin + ' - ' + scoreMax + '；已选 ' + selectedCountForEntries(entries) + ' 项';
+        });
+        grid.appendChild(card);
+      })(entries[i], i);
+    }
+    var submit = document.getElementById('moScoreSubmit');
+    if (locked && submit) {
+      submit.disabled = true;
+      submit.textContent = '已评分';
+    }
+  }
+
+  function selectedCountForEntries(entries) {
+    var allowed = {};
+    for (var i = 0; i < entries.length; i++) allowed[Number(entries[i].id)] = true;
+    return Object.keys(CONTEST_STATE.myVotes).filter(function (key) {
+      return CONTEST_STATE.myVotes[key] && allowed[Number(key)];
+    }).length;
   }
 
   function renderVoteGrid(entries, maxVotes, locked, showVotes) {
@@ -673,16 +873,20 @@
           '</div>' +
           '<div class="mo-char-name">' + esc(entry.title || '?') + '</div>' +
           '<div class="mo-char-work">' + esc(entry.subtitle || '') + '</div>' +
-          (showVotes ? '<div class="mo-char-work">票数 ' + Number(entry.votes || 0) + (entry.rank_no ? ' · #' + Number(entry.rank_no) : '') + '</div>' : '');
+          (showVotes
+            ? '<div class="mo-char-work">' + (entry.score_total != null ? ('积分 ' + Number(entry.score_total || 0) + ' · ' + Number(entry.rating_count || 0) + '人评分') : ('票数 ' + Number(entry.votes || 0))) + '</div>'
+            : (CONTEST_STATE.rankVisible && (entry.group_rank || entry.rank_no)
+              ? '<div class="mo-char-work">组内 #' + Number(entry.group_rank || entry.rank_no) + '</div>'
+              : ''));
         div.addEventListener('click', function () {
           if (locked) return;
-          var count = Object.keys(CONTEST_STATE.myVotes).filter(function (k) { return CONTEST_STATE.myVotes[k]; }).length;
+          var count = selectedCountForEntries(entries);
           if (CONTEST_STATE.myVotes[entry.id]) {
             CONTEST_STATE.myVotes[entry.id] = false; div.classList.remove('selected');
           } else if (count < maxVotes) {
             CONTEST_STATE.myVotes[entry.id] = true; div.classList.add('selected');
           }
-          var newCount = Object.keys(CONTEST_STATE.myVotes).filter(function (k) { return CONTEST_STATE.myVotes[k]; }).length;
+          var newCount = selectedCountForEntries(entries);
           var countEl = document.getElementById('moVoteCount');
           if (countEl) countEl.textContent = newCount;
           if (newCount >= maxVotes) {
@@ -698,7 +902,7 @@
         grid.appendChild(div);
       })(e, i);
     }
-    var selectedCount = Object.keys(CONTEST_STATE.myVotes).filter(function (k) { return CONTEST_STATE.myVotes[k]; }).length;
+    var selectedCount = selectedCountForEntries(entries);
     var countEl = document.getElementById('moVoteCount');
     var submitBtn = document.getElementById('moVoteSubmit');
     if (countEl) countEl.textContent = selectedCount;
@@ -794,8 +998,7 @@
   }
 
   function renderBracket(stage) {
-    var cfg = parseConfigVote(stage.config_json);
-    var bracketSize = cfg.bracket_size || 16;
+    var bracketSize = 0;
     CONTEST_STATE.myVotes = {};
     var content = document.getElementById('moContestContent');
     content.innerHTML = '<div class="mo-loading">加载对阵中...</div>';
@@ -810,7 +1013,11 @@
       var votes = results[2] || [];
       var matchStats = resultData.match_results || [];
       var matches = (data && data.data) || [];
+      var firstRound = matches.filter(function (match) { return Number(match.round_no || 1) === 1; });
+      bracketSize = Math.max(2, firstRound.length * 2 || matches.length * 2 || 2);
       var showVotes = canShowVoteNumbers(stage, resultData);
+      CONTEST_STATE.runtime = resultData.runtime || stage;
+      CONTEST_STATE.voteLocked = votes.length > 0 && !CONTEST_STATE.runtime.allow_vote_change;
       matches = mergeMatchStats(matches, matchStats, showVotes);
       var currentMatches = currentOpenRoundMatches(matches);
       CONTEST_STATE.allMatches = matches;
@@ -890,6 +1097,7 @@
   }
 
   function selectMatchSide(matchId, side, totalMatches) {
+    if (CONTEST_STATE.voteLocked) return;
     CONTEST_STATE.preVotedCurrentRound = false;
     CONTEST_STATE.myVotes[matchId] = side;
     var row = document.querySelector('.mo-match-row[data-match-id="' + matchId + '"]');
@@ -913,14 +1121,19 @@
 
     Promise.all([
       api('../api/moe_matches.php?action=list&stage_id=' + stage.id),
-      loadStageResults(stage)
+      loadStageResults(stage),
+      loadMyStageVotes(stage)
     ]).then(function (results) {
       var data = results[0] || {};
       var resultData = results[1] || {};
       var matchStats = resultData.match_results || [];
       var matches = (data && data.data) || [];
+      var votes = results[2] || [];
       matches = mergeMatchStats(matches, matchStats, canShowVoteNumbers(stage, resultData));
       CONTEST_STATE.matches = matches;
+      CONTEST_STATE.runtime = resultData.runtime || stage;
+      hydrateMatchVoteState(matches, votes);
+      CONTEST_STATE.voteLocked = false;
       if (!matches.length) { content.innerHTML = '<div class="mo-empty">决赛对阵尚未生成，请联系负责人在管理端生成对阵</div>'; return; }
       content.innerHTML = '';
       for (var i = 0; i < matches.length; i++) {
@@ -928,7 +1141,11 @@
         var isChampion = (m.match_type === 'final' || i === 0);
         var card = buildMatchCard(m, i, isChampion ? 'final' : 'third');
         content.appendChild(card);
+        if (CONTEST_STATE.myVotes[Number(m.id)]) {
+          selectMatchCardSide(Number(m.id), CONTEST_STATE.myVotes[Number(m.id)]);
+        }
       }
+      CONTEST_STATE.voteLocked = votes.length > 0 && !CONTEST_STATE.runtime.allow_vote_change;
       (function() { var el = document.getElementById('moBottomBar'); if (el) el.style.display = 'flex'; })();
       document.getElementById('moHeaderSubmit').style.display = '';
       bindSubmit(stage);
@@ -973,6 +1190,7 @@
   }
 
   function selectMatchCardSide(matchId, side) {
+    if (CONTEST_STATE.voteLocked) return;
     CONTEST_STATE.myVotes[matchId] = side;
     var card = document.querySelector('.mo-match-card[data-match-id="' + matchId + '"]');
     if (!card) return;
@@ -994,8 +1212,14 @@
     var btn = document.getElementById('moBottomSubmit');
     var championPicked = CONTEST_STATE.matches[0] && CONTEST_STATE.myVotes[CONTEST_STATE.matches[0].id];
     var thirdPicked = CONTEST_STATE.matches[1] && CONTEST_STATE.myVotes[CONTEST_STATE.matches[1].id];
-    if (hint) hint.innerHTML = '冠军赛 <strong style="color:var(--mo-gold)">' + (championPicked ? '已选' : '待选') + '</strong> · 季军赛 <strong style="color:var(--mo-muted)">' + (thirdPicked ? '已选' : '待选') + '</strong>';
-    if (btn) { btn.className = 'mo-btn mo-btn--gold'; btn.style.opacity = selected >= total ? '1' : '0.5'; btn.disabled = selected < total; }
+    if (hint) hint.innerHTML = CONTEST_STATE.voteLocked
+      ? '本轮已投票'
+      : '冠军赛 <strong style="color:var(--mo-gold)">' + (championPicked ? '已选' : '待选') + '</strong> · 季军赛 <strong style="color:var(--mo-muted)">' + (thirdPicked ? '已选' : '待选') + '</strong>';
+    if (btn) {
+      btn.className = 'mo-btn mo-btn--gold';
+      btn.style.opacity = selected >= total && !CONTEST_STATE.voteLocked ? '1' : '0.5';
+      btn.disabled = selected < total || CONTEST_STATE.voteLocked;
+    }
   }
 
   function updateBottomBar(totalMatches, isFinal) {
@@ -1004,10 +1228,10 @@
     var btn = document.getElementById('moBottomSubmit');
     var complete = selected >= totalMatches;
     var voted = !!CONTEST_STATE.preVotedCurrentRound && complete;
-    if (hint) hint.innerHTML = (voted ? '本轮已投票' : (complete ? '本轮已选完' : '已选')) + ' <strong style="color:var(--mo-pink)">' + selected + '</strong> / ' + totalMatches + ' 组';
+    if (hint) hint.innerHTML = (CONTEST_STATE.voteLocked || voted ? '本轮已投票' : (complete ? '本轮已选完' : '已选')) + ' <strong style="color:var(--mo-pink)">' + selected + '</strong> / ' + totalMatches + ' 组';
     if (btn) {
-      btn.disabled = !complete;
-      btn.style.opacity = complete ? '1' : '0.5';
+      btn.disabled = !complete || CONTEST_STATE.voteLocked;
+      btn.style.opacity = complete && !CONTEST_STATE.voteLocked ? '1' : '0.5';
       btn.textContent = voted ? '已投票' : (complete ? '提交本轮投票' : '选择本轮全部对阵');
     }
   }
@@ -1073,25 +1297,44 @@
     loadStageResults(stage).then(function (data) {
       var rows = (data && data.data) || [];
       var showVotes = canShowVoteNumbers(stage, data);
+      var showRank = canShowRank(stage, data);
+      if (!showRank && !showVotes) {
+        content.innerHTML = '<div class="mo-empty">结果暂未公开</div>';
+        return;
+      }
       if (!rows.length) {
         content.innerHTML = '<div class="mo-empty">暂无结算结果</div>';
         return;
       }
       var html = '<div class="mo-action"><div class="mo-action-hint">' + (stage.stage_type === 'final' ? '最终名次' : '阶段结果') + '</div></div>';
-      html += '<div class="mo-char-grid">';
-      for (var i = 0; i < rows.length; i++) {
-        var row = rows[i];
-        var rank = Number(row.rank_no || i + 1);
-        var medal = rank === 1 ? '冠军' : (rank === 2 ? '亚军' : (rank === 3 ? '季军' : ('#' + rank)));
-        html += '<div class="mo-char-item selected">' +
-          '<div class="mo-char-avatar" style="background-image:' + (row.image_url ? 'url(' + esc(row.image_url) + ')' : avatarGradient(i)) + '">' +
-            '<div class="mo-char-check">' + rank + '</div>' +
-          '</div>' +
-          '<div class="mo-char-name">' + esc(row.title_cn || row.title || '?') + '</div>' +
-          '<div class="mo-char-work">' + medal + (showVotes ? ' · ' + Number(row.votes || 0) + '票' : '') + '</div>' +
-        '</div>';
+      var runtime = (data && data.runtime) || stage;
+      var groups = groupEntriesByKey(rows, runtime.group_count);
+      for (var groupIndex = 0; groupIndex < groups.length; groupIndex++) {
+        var group = groups[groupIndex];
+        if (groups.length > 1) html += '<div class="mo-action-hint mo-result-group-title">' + esc(group.label) + '</div>';
+        html += '<div class="mo-char-grid">';
+        for (var i = 0; i < group.entries.length; i++) {
+          var row = group.entries[i];
+          var rank = Number(row.group_rank || row.rank_no || i + 1);
+          var medal = stage.stage_type === 'final'
+            ? (rank === 1 ? '冠军' : (rank === 2 ? '亚军' : (rank === 3 ? '季军' : ('#' + rank))))
+            : ('组内 #' + rank);
+          var metric = '';
+          if (showVotes) {
+            metric = row.score_total != null
+              ? ' · 积分 ' + Number(row.score_total || 0) + ' · ' + Number(row.rating_count || 0) + '人 · 均分 ' + Number(row.score_avg || 0).toFixed(2)
+              : ' · ' + Number(row.votes || 0) + '票';
+          }
+          html += '<div class="mo-char-item selected">' +
+            '<div class="mo-char-avatar" style="background-image:' + (row.image_url ? 'url(' + esc(row.image_url) + ')' : avatarGradient(i)) + '">' +
+              '<div class="mo-char-check">' + (showRank ? rank : '') + '</div>' +
+            '</div>' +
+            '<div class="mo-char-name">' + esc(row.title_cn || row.title || '?') + '</div>' +
+            '<div class="mo-char-work">' + (showRank ? medal : '') + metric + '</div>' +
+          '</div>';
+        }
+        html += '</div>';
       }
-      html += '</div>';
       content.innerHTML = html;
     });
   }

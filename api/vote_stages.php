@@ -57,6 +57,18 @@ function voteStagePayload(array $input, array $base = []): array {
     ];
 }
 
+function voteStageCoreChanged(array $stage, array $payload): bool {
+    foreach (['stage_type', 'starts_at', 'vote_mode', 'max_select', 'advance_count', 'group_count', 'score_min', 'score_max', 'allow_vote_change'] as $key) {
+        if ((string)($stage[$key] ?? '') !== (string)($payload[$key] ?? '')) return true;
+    }
+    $oldConfig = voteDecode($stage['config_json'] ?? '{}');
+    $newConfig = voteDecode($payload['config_json'] ?? '{}');
+    foreach (['allow_zero_fill', 'bracket_size', 'source_stage_id', 'tie_rule'] as $key) {
+        if (($oldConfig[$key] ?? null) !== ($newConfig[$key] ?? null)) return true;
+    }
+    return false;
+}
+
 switch ($action) {
     case 'list':
         $project = voteGetProject((int)($_GET['project_id'] ?? $_GET['contest_id'] ?? 0));
@@ -86,11 +98,117 @@ switch ($action) {
         voteRespond(['success' => true, 'id' => $id]);
 
     case 'update':
+    case 'update_and_rebuild':
         $input = voteReadJson();
         $stage = voteFetchStage((int)($_GET['id'] ?? $input['id'] ?? 0));
         if (!$stage) voteRespond(['success' => false, 'message' => '阶段不存在'], 404);
         [$user, $project] = voteRequireProjectManager((int)$stage['project_id']);
         $payload = voteStagePayload($input, $stage);
+        $flowPool = ($project['project_type'] ?? '') === 'moe'
+            ? voteFlowPoolForStage($db, (int)$stage['id'])
+            : null;
+        $coreChanged = voteStageCoreChanged($stage, $payload);
+        if ($flowPool && $coreChanged && $action !== 'update_and_rebuild') {
+            voteRespond([
+                'success' => false,
+                'code' => 'POOL_REBUILD_REQUIRED',
+                'message' => '阶段池生成后核心配置已锁定，请使用更新并重建',
+                'usage' => voteFlowPoolUsageCounts($db, $flowPool),
+            ], 409);
+        }
+        if ($flowPool && $action === 'update_and_rebuild') {
+            $usage = voteFlowPoolUsageCounts($db, $flowPool);
+            if (!voteFlowPoolCanRebuild($db, $flowPool)) {
+                voteRespond([
+                    'success' => false,
+                    'code' => 'POOL_HAS_ACTIVITY',
+                    'message' => '该阶段已有投票、对阵或结果，不能重建',
+                    'usage' => $usage,
+                ], 409);
+            }
+            $entryRows = voteFlowPoolEntries($db, (int)$flowPool['id']);
+            $entryIds = array_map('intval', array_column($entryRows, 'entry_id'));
+            $rankMap = [];
+            $sourcePoolId = null;
+            foreach ($entryRows as $entryRow) {
+                if ($sourcePoolId === null && !empty($entryRow['source_pool_id'])) {
+                    $sourcePoolId = (int)$entryRow['source_pool_id'];
+                }
+                if (isset($entryRow['source_rank'])) {
+                    $rankMap[(int)$entryRow['entry_id']] = (int)$entryRow['source_rank'];
+                }
+            }
+            $runStmt = $db->prepare('SELECT * FROM vote_flow_runs WHERE id = ?');
+            $runStmt->execute([(int)$flowPool['run_id']]);
+            $run = $runStmt->fetch(PDO::FETCH_ASSOC) ?: [
+                'id' => (int)$flowPool['run_id'],
+                'project_id' => (int)$project['id'],
+            ];
+            $updatedStage = array_merge($stage, $payload);
+            $runtimeConfig = voteMoeRuntimeConfig($run, $updatedStage);
+            $previewPool = array_merge($flowPool, [
+                'stage_type' => $payload['stage_type'],
+                'vote_mode' => $payload['vote_mode'],
+                'group_count' => $payload['group_count'],
+                'max_select' => $payload['max_select'],
+                'advance_count' => $payload['advance_count'],
+                'config_json' => voteJson($runtimeConfig),
+            ]);
+            try {
+                voteValidateMoePoolConfig($previewPool, count($entryIds));
+            } catch (Throwable $e) {
+                voteRespond(['success' => false, 'code' => 'INVALID_POOL_CONFIG', 'message' => $e->getMessage()], 400);
+            }
+            $now = voteNowExpr();
+            $db->beginTransaction();
+            try {
+                $stmt = $db->prepare(
+                    "UPDATE vote_stages SET stage_type = ?, title = ?, starts_at = ?, ends_at = ?, vote_mode = ?, max_select = ?, advance_count = ?, group_count = ?, score_min = ?, score_max = ?, allow_vote_change = ?, result_visibility = ?, config_json = ?, updated_at = $now WHERE id = ?"
+                );
+                $stmt->execute([$payload['stage_type'], $payload['title'], $payload['starts_at'], $payload['ends_at'], $payload['vote_mode'], $payload['max_select'], $payload['advance_count'], $payload['group_count'], $payload['score_min'], $payload['score_max'], $payload['allow_vote_change'], $payload['result_visibility'], $payload['config_json'], (int)$stage['id']]);
+                $db->prepare(
+                    'UPDATE vote_flow_pools SET stage_type = ?, title = ?, vote_mode = ?, group_count = ?, max_select = ?, advance_count = ?, config_json = ? WHERE id = ?'
+                )->execute([$payload['stage_type'], $payload['title'], $payload['vote_mode'], $payload['group_count'], $payload['max_select'], $payload['advance_count'], voteJson($runtimeConfig), (int)$flowPool['id']]);
+                $db->prepare('DELETE FROM vote_flow_pool_entries WHERE pool_id = ?')->execute([(int)$flowPool['id']]);
+                $rebuiltPool = array_merge($previewPool, ['config_json' => voteJson($runtimeConfig)]);
+                $seededCount = voteFlowSeedPoolEntries($db, $rebuiltPool, $entryIds, $sourcePoolId, $rankMap);
+                voteFlowLog($db, (int)$flowPool['run_id'], (int)$flowPool['id'], (int)$project['id'], 'update_and_rebuild_pool', [
+                    'seeded_count' => $seededCount,
+                ]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                voteRespond(['success' => false, 'code' => 'UPDATE_AND_REBUILD_FAILED', 'message' => $e->getMessage()], 400);
+            }
+            logAction('vote_stage.update_and_rebuild', 'vote_stages', (int)$stage['id'], ['pool_id' => (int)$flowPool['id']]);
+            $freshPool = voteFlowPoolById($db, (int)$flowPool['id']);
+            voteRespond([
+                'success' => true,
+                'rebuilt' => true,
+                'seeded_count' => $seededCount,
+                'pool_id' => (int)$flowPool['id'],
+                'runtime' => voteFlowPoolRuntime($freshPool, voteFetchStage((int)$stage['id'])),
+            ]);
+        }
+        if ($flowPool) {
+            $config = voteDecode($flowPool['config_json'] ?? '{}');
+            $config['ends_at'] = $payload['ends_at'];
+            $config['result_visibility'] = $payload['result_visibility'];
+            $now = voteNowExpr();
+            $db->beginTransaction();
+            try {
+                $db->prepare("UPDATE vote_stages SET title = ?, ends_at = ?, result_visibility = ?, updated_at = $now WHERE id = ?")
+                    ->execute([$payload['title'], $payload['ends_at'], $payload['result_visibility'], (int)$stage['id']]);
+                $db->prepare('UPDATE vote_flow_pools SET title = ?, config_json = ? WHERE id = ?')
+                    ->execute([$payload['title'], voteJson($config), (int)$flowPool['id']]);
+                $db->commit();
+            } catch (Throwable $e) {
+                if ($db->inTransaction()) $db->rollBack();
+                voteRespond(['success' => false, 'code' => 'UPDATE_SAFE_FIELDS_FAILED', 'message' => $e->getMessage()], 400);
+            }
+            logAction('vote_stage.update_safe_fields', 'vote_stages', (int)$stage['id'], ['pool_id' => (int)$flowPool['id']]);
+            voteRespond(['success' => true, 'rebuilt' => false, 'pool_id' => (int)$flowPool['id']]);
+        }
         $now = voteNowExpr();
         $stmt = $db->prepare(
             "UPDATE vote_stages SET stage_type = ?, title = ?, starts_at = ?, ends_at = ?, vote_mode = ?, max_select = ?, advance_count = ?, group_count = ?, score_min = ?, score_max = ?, allow_vote_change = ?, result_visibility = ?, config_json = ?, updated_at = $now WHERE id = ?"
@@ -449,6 +567,23 @@ switch ($action) {
             ],
         ]);
 
+    case 'resolve_flow_tie':
+        $input = voteReadJson();
+        $pool = voteFlowPoolById($db, (int)($_GET['pool_id'] ?? $input['pool_id'] ?? 0));
+        if (!$pool) voteRespond(['success' => false, 'message' => '阶段池不存在'], 404);
+        [$user, $project] = voteRequireProjectManager((int)$pool['project_id']);
+        try {
+            $result = voteFlowResolvePoolTie(
+                $db,
+                $pool,
+                is_array($input['decisions'] ?? null) ? $input['decisions'] : []
+            );
+            logAction('vote_stage.resolve_flow_tie', 'vote_flow_pools', (int)$pool['id'], $result);
+            voteRespond(array_merge(['success' => true, 'pool_id' => (int)$pool['id']], $result));
+        } catch (Throwable $e) {
+            voteRespond(['success' => false, 'code' => 'RESOLVE_FLOW_TIE_FAILED', 'message' => $e->getMessage()], 400);
+        }
+
     case 'resolve_tie':
         $input = voteReadJson();
         $stage = voteFetchStage((int)($_GET['id'] ?? $input['stage_id'] ?? 0));
@@ -569,6 +704,12 @@ switch ($action) {
         $flowPool = voteFlowPoolForStage($db, $stageId);
         if ($flowPool) {
             $rows = voteFlowPoolEntries($db, (int)$flowPool['id']);
+            $runtime = voteFlowPoolRuntime($flowPool, $stage);
+            $visibility = voteResultVisibilityFlags(
+                $project,
+                (string)($flowPool['status'] ?? ''),
+                (string)$runtime['result_visibility']
+            );
             $voteStmt = $db->prepare('SELECT entry_id, COALESCE(SUM(vote_value), 0) AS votes FROM vote_votes WHERE stage_id = ? GROUP BY entry_id');
             $voteStmt->execute([$stageId]);
             $voteCounts = [];
@@ -581,7 +722,11 @@ switch ($action) {
                 if (!empty($r['image_url'])) $r['image_url'] = proxyImageUrl($r['image_url']);
                 $r['stage_id'] = $stageId;
                 $r['entry_id'] = (int)$r['entry_id'];
-                $r['votes'] = (int)($voteCounts[(int)$r['entry_id']] ?? 0);
+                if (($project['project_type'] ?? '') !== 'moe' || $visibility['metrics_visible']) {
+                    $r['votes'] = (int)($voteCounts[(int)$r['entry_id']] ?? 0);
+                } else {
+                    unset($r['votes']);
+                }
                 $groupKey = (string)($r['group_key'] ?? '');
                 if ($groupKey === '') $groupKey = 'all';
                 if (!isset($groups[$groupKey])) $groups[$groupKey] = 0;
@@ -599,6 +744,9 @@ switch ($action) {
                 'count' => count($rows),
                 'raw_count' => voteFlowPoolEntryCount($db, (int)$flowPool['id']),
                 'groups' => $groups,
+                'runtime' => $runtime,
+                'rank_visible' => $visibility['rank_visible'],
+                'metrics_visible' => $visibility['metrics_visible'],
                 'data' => $rows,
             ]);
         }

@@ -26,6 +26,7 @@ if ($method === 'GET') {
 
 $authUser = requireLogin();
 $input = projectHubInput();
+$method = projectHubEffectiveMethod($input);
 $projects = projectHubLoadProjects(true, false);
 
 $findProject = function (int $projectId) use ($projects): ?array {
