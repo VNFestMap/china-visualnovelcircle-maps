@@ -7,6 +7,8 @@ services:
     image: ghcr.io/vnfestmap/galgame-community-map:latest
     container_name: vnfest-app
     restart: unless-stopped
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
     ports:
       - "127.0.0.1:8080:80"    # 仅本地监听，由宝塔 Nginx 反代
     environment:
