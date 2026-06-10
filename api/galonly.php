@@ -67,6 +67,111 @@ switch ($action) {
         echo json_encode(['success' => true, 'events' => $events], JSON_UNESCAPED_UNICODE);
         exit();
 
+    case 'list_participants':
+        if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+            echo json_encode(['success' => false, 'message' => '仅支持 GET 请求'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $eventId = (int)($_GET['event_id'] ?? 0);
+        if (!$eventId) {
+            echo json_encode(['success' => false, 'message' => '缺少 event_id 参数'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $db = getDB();
+
+        // 获取活动信息
+        $stmt = $db->prepare("SELECT * FROM galonly_events WHERE id = ?");
+        $stmt->execute([$eventId]);
+        $event = $stmt->fetch();
+
+        if (!$event) {
+            echo json_encode(['success' => false, 'message' => '活动不存在'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        // 获取已批准的申请
+        $stmt = $db->prepare(
+            "SELECT id, booth_name, is_joint, joint_name, notes, image_path
+             FROM galonly_applications
+             WHERE event_id = ? AND status = 'approved'
+             ORDER BY created_at ASC"
+        );
+        $stmt->execute([$eventId]);
+        $applications = $stmt->fetchAll();
+
+        // 加载 clubs.json 建立 id => club 映射
+        $clubsJsonPath = __DIR__ . '/../data/clubs.json';
+        $clubsMap = [];
+        if (file_exists($clubsJsonPath)) {
+            $clubsData = json_decode(file_get_contents($clubsJsonPath), true);
+            foreach (($clubsData['data'] ?? []) as $club) {
+                $clubsMap[(int)$club['id']] = $club;
+            }
+        }
+
+        // 当前访问者的 IP
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
+        // 查询该 IP 是否已投票
+        $stmt = $db->prepare("SELECT application_id FROM galonly_public_votes WHERE event_id = ? AND ip_address = ?");
+        $stmt->execute([$eventId, $ip]);
+        $myVoteAppId = $stmt->fetchColumn();
+
+        // 查询所有申请的投票数
+        $stmt = $db->prepare("SELECT application_id, COUNT(*) as cnt FROM galonly_public_votes WHERE event_id = ? GROUP BY application_id");
+        $stmt->execute([$eventId]);
+        $voteRows = $stmt->fetchAll();
+        $voteMap = [];
+        foreach ($voteRows as $row) {
+            $voteMap[(int)$row['application_id']] = (int)$row['cnt'];
+        }
+
+        // 每个申请附加上同好会信息和投票数
+        foreach ($applications as &$app) {
+            $stmt = $db->prepare("SELECT club_id, club_country FROM galonly_application_clubs WHERE application_id = ?");
+            $stmt->execute([$app['id']]);
+            $appClubs = $stmt->fetchAll();
+
+            $app['clubs'] = [];
+            foreach ($appClubs as $ac) {
+                $clubId = (int)$ac['club_id'];
+                if (isset($clubsMap[$clubId])) {
+                    $c = $clubsMap[$clubId];
+                    $app['clubs'][] = [
+                        'id'           => $clubId,
+                        'name'         => $c['name'] ?? '',
+                        'display_name' => $c['display_name'] ?? $c['name'] ?? '',
+                        'school'       => $c['school'] ?? '',
+                        'logo_url'     => $c['logo_url'] ?? '',
+                        'info'         => $c['info'] ?? '',
+                    ];
+                }
+            }
+
+            // 附加投票信息
+            $appId = (int)$app['id'];
+            $app['vote_count'] = $voteMap[$appId] ?? 0;
+            $app['my_vote'] = ($myVoteAppId && (int)$myVoteAppId === $appId);
+            $app['image_paths'] = decodeImagePaths($app);
+        }
+        unset($app);
+
+        // 总票数
+        $stmt = $db->prepare("SELECT COUNT(*) FROM galonly_public_votes WHERE event_id = ?");
+        $stmt->execute([$eventId]);
+        $totalVotes = (int)$stmt->fetchColumn();
+
+        echo json_encode([
+            'success'      => true,
+            'event'        => $event,
+            'participants' => $applications,
+            'total'        => count($applications),
+            'total_votes'  => $totalVotes,
+        ], JSON_UNESCAPED_UNICODE);
+        exit();
+
     case 'check_eligibility':
         if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
             echo json_encode(['success' => false, 'message' => '仅支持 GET 请求'], JSON_UNESCAPED_UNICODE);
@@ -705,6 +810,61 @@ switch ($action) {
         }
         exit();
 
+    case 'cast_public_vote':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $input = json_decode(file_get_contents('php://input'), true);
+        $eventId = (int)($input['event_id'] ?? 0);
+        $applicationId = (int)($input['application_id'] ?? 0);
+
+        if (!$eventId || !$applicationId) {
+            echo json_encode(['success' => false, 'message' => '缺少参数'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $db = getDB();
+
+        // 验证申请属于该活动且已批准
+        $stmt = $db->prepare("SELECT id FROM galonly_applications WHERE id = ? AND event_id = ? AND status = 'approved'");
+        $stmt->execute([$applicationId, $eventId]);
+        if (!$stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => '无效的申请'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        // 检查是否已投票
+        $stmt = $db->prepare("SELECT id FROM galonly_public_votes WHERE event_id = ? AND ip_address = ?");
+        $stmt->execute([$eventId, $ip]);
+        if ($stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => '您已投过票', 'already_voted' => true], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+
+        // 插入投票
+        $stmt = $db->prepare("INSERT INTO galonly_public_votes (event_id, application_id, ip_address) VALUES (?, ?, ?)");
+        $stmt->execute([$eventId, $applicationId, $ip]);
+
+        // 更新后的票数
+        $stmt = $db->prepare("SELECT COUNT(*) FROM galonly_public_votes WHERE application_id = ?");
+        $stmt->execute([$applicationId]);
+        $voteCount = (int)$stmt->fetchColumn();
+
+        $stmt = $db->prepare("SELECT COUNT(*) FROM galonly_public_votes WHERE event_id = ?");
+        $stmt->execute([$eventId]);
+        $totalVotes = (int)$stmt->fetchColumn();
+
+        echo json_encode([
+            'success' => true,
+            'message' => '投票成功',
+            'vote_count' => $voteCount,
+            'total_votes' => $totalVotes,
+        ], JSON_UNESCAPED_UNICODE);
+        exit();
+
     case 'add_event':
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo json_encode(['success' => false, 'message' => '仅支持 POST 请求'], JSON_UNESCAPED_UNICODE);
@@ -867,9 +1027,9 @@ switch ($action) {
 
     default:
         echo json_encode(['success' => false, 'message' => '未知动作', 'available_actions' => [
-            'list_events', 'check_eligibility', 'submit', 'get_application',
+            'list_events', 'list_participants', 'check_eligibility', 'submit', 'get_application',
             'update_application', 'delete_application', 'upload_image',
-            'list_applications', 'vote', 'withdraw_vote',
+            'list_applications', 'vote', 'withdraw_vote', 'cast_public_vote',
             'add_event', 'delete_event', 'update_event',
         ]], JSON_UNESCAPED_UNICODE);
         exit();
