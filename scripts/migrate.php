@@ -324,6 +324,20 @@ if ($isMysql) {
     echo "[OK] galonly_votes 表已创建\n";
 
     $db->exec("
+        CREATE TABLE IF NOT EXISTS galonly_public_votes (
+            id              INT AUTO_INCREMENT PRIMARY KEY,
+            event_id        INT NOT NULL,
+            application_id  INT NOT NULL,
+            ip_address      VARCHAR(45) NOT NULL,
+            created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(event_id, ip_address)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+    $tryIndex("CREATE INDEX idx_galonly_public_votes_event ON galonly_public_votes(event_id)");
+    $tryIndex("CREATE INDEX idx_galonly_public_votes_app ON galonly_public_votes(application_id)");
+    echo "[OK] galonly_public_votes 表已创建\n";
+
+    $db->exec("
         CREATE TABLE IF NOT EXISTS announcements (
             id            INT AUTO_INCREMENT PRIMARY KEY,
             title         VARCHAR(255) NOT NULL,
@@ -386,6 +400,9 @@ if ($isMysql) {
     echo "[OK] galonly_applications.resubmitted 列已添加\n";
     $tryAlter("ALTER TABLE galonly_applications ADD COLUMN has_update TINYINT(1) NOT NULL DEFAULT 0");
     echo "[OK] galonly_applications.has_update 列已添加\n";
+
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url VARCHAR(500) NOT NULL DEFAULT '' AFTER description");
+    echo "[OK] galonly_events.image_url 列已添加\n";
 
 } else {
     // ==================== SQLite 建表 ====================
@@ -706,6 +723,20 @@ if ($isMysql) {
     echo "[OK] galonly_votes 表已创建\n";
 
     $db->exec("
+        CREATE TABLE IF NOT EXISTS galonly_public_votes (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id        INTEGER NOT NULL,
+            application_id  INTEGER NOT NULL,
+            ip_address      TEXT NOT NULL,
+            created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(event_id, ip_address)
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_galonly_public_votes_event ON galonly_public_votes(event_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_galonly_public_votes_app ON galonly_public_votes(application_id)");
+    echo "[OK] galonly_public_votes 表已创建\n";
+
+    $db->exec("
         CREATE TABLE IF NOT EXISTS star_unions (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             name        TEXT NOT NULL,
@@ -751,6 +782,9 @@ if ($isMysql) {
     echo "[OK] galonly_applications.resubmitted 列已添加\n";
     $tryAlter("ALTER TABLE galonly_applications ADD COLUMN has_update INTEGER NOT NULL DEFAULT 0");
     echo "[OK] galonly_applications.has_update 列已添加\n";
+
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url TEXT NOT NULL DEFAULT ''");
+    echo "[OK] galonly_events.image_url 列已添加\n";
 }
 
 moeEnsureSchema($db);
