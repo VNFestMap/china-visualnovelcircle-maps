@@ -20,6 +20,9 @@ assert.ok(app.includes("document.documentElement.setAttribute('data-theme', effe
 assert.ok(!app.includes("document.documentElement.removeAttribute('data-theme')"), 'system theme must not remove data-theme after the first paint');
 assert.ok(app.includes('State.listProvincesCache'), 'list filters should use the latest province cache');
 assert.ok(app.includes('listRenderToken'), 'club card rendering should guard stale batched work');
+assert.ok(app.includes('groupListRenderToken'), 'map-side group list rendering should guard stale batched work');
+assert.ok(app.includes("listEl.dataset.groupDelegated"), 'map-side group list should use delegated click handling');
+assert.ok(app.includes("document.getElementById('searchInput')?.addEventListener('input', Utils.debounce"), 'map-side search should debounce expensive detail rendering');
 assert.ok(app.includes('function enterMobileListView'), 'mobile list mode should bypass desktop transition state');
 assert.ok(app.includes("mobile-list-mode-active"), 'mobile list mode should use an isolated layout state class');
 assert.ok(index.includes('class="list-user-identity"'), 'mobile list account identity should have a left-aligned wrapper');
@@ -31,9 +34,13 @@ const listTopRowEnd = index.indexOf('<div class="list-nav-row"', listTopRowStart
 const listTopRowMarkup = index.slice(listTopRowStart, listTopRowEnd);
 assert.ok(
   listTopRowMarkup.indexOf('data-mode="map"') < listTopRowMarkup.indexOf('data-mode="list"') &&
-  listTopRowMarkup.indexOf('data-mode="list"') < listTopRowMarkup.indexOf('data-mode="starmap"'),
-  'mobile list mode switch should be ordered map/list/star'
+  !listTopRowMarkup.includes('data-mode="starmap"'),
+  'mobile list mode switch should focus on the animated map/list pair'
 );
+const listNavRowStart = index.indexOf('<div class="list-nav-row"', listTopRowEnd);
+const listNavRowEnd = index.indexOf('</div>', listNavRowStart);
+const listNavRowMarkup = index.slice(listNavRowStart, listNavRowEnd);
+assert.ok(listNavRowMarkup.includes('data-action="starmap"'), 'list navigation should expose star map outside the map/list switch');
 
 const styles = read('css/styles.css');
 assert.ok(styles.includes(':root.mobile-list-mode-active .list-mode-inner'), 'mobile list mode should have isolated inner layout rules');
@@ -50,7 +57,7 @@ assert.ok(styles.includes(':root.mobile-list-mode-active .list-menu-btn'), 'mobi
 assert.ok(styles.includes('min-height: 30px;'), 'mobile list top chrome should stay compact');
 assert.ok(styles.includes('align-items: center;') && styles.includes('justify-content: center;'), 'mobile list account buttons should center text vertically');
 assert.ok(styles.includes(':root.mobile-list-mode-active .list-secondary-actions'), 'mobile list mode should expose calendar/publication as secondary actions');
-assert.ok(styles.includes('.list-nav-row .user-nav-btn[data-action="project-hub"]'), 'mobile list mode should hide project hub from the primary three-button nav');
+assert.ok(index.includes('data-action="project-hub"') && index.includes('id="listSecondaryActions"'), 'mobile list should keep project hub reachable without blocking the map/list switch');
 assert.ok(app.includes("document.getElementById('listMenuBtn')"), 'mobile list in-row menu button should open the drawer');
 assert.ok(app.includes('.list-secondary-actions .user-nav-btn'), 'mobile list secondary actions should reuse list navigation behavior');
 assert.ok(styles.includes('#selectedCard') && styles.includes('left: 50% !important') && styles.includes('translateX(-50%)'), 'mobile map detail card should be centered or full-width constrained');
@@ -84,13 +91,17 @@ assert.ok(starMap.includes("StarState.submode === 'union' && !isMobileStarMap()"
 assert.ok(starMap.includes('var maxLightweightClusters'), 'mobile union rendering should cap visible cluster work');
 assert.ok(starMap.includes('(lightLayout || mobileEnhancedLayout) ? {} : buildSharedUnionMembershipIndex(positions)'), 'mobile union layout should skip shared-member indexing outside desktop full render');
 
-const user = read('user.html');
-assert.ok(user.includes('queueParticleTick'), 'user page particles should be scheduled at a capped cadence');
-assert.ok(user.includes('debounceParticleResize'), 'user page particle resize should be debounced');
-assert.ok(user.includes('external: 0.5'), 'user page should rank IEM below formal members');
+const user = [
+  read('user.html'),
+  read('user-v2-react/src/App.jsx'),
+  read('user-v2-react/src/styles.css')
+].join('\n');
+assert.ok(user.includes('user-v2-assets/'), 'user page should load the React user center assets');
+assert.ok(user.includes("window.addEventListener('resize', check)"), 'React user page should debounce layout work through a shared viewport state');
+assert.ok(user.includes('external: 1') && user.includes('member: 2'), 'user page should rank IEM below formal members');
 assert.ok(user.includes('外交成员（IEM）'), 'user page should display the IEM role label');
-assert.ok(user.includes('white-space: nowrap;') && user.includes('overflow-wrap: anywhere;'), 'mobile user page should avoid wrapped titles and overflowing notifications');
-assert.ok(user.includes('syncUserNotificationsNow') && user.includes("window.addEventListener('focus'"), 'user page should refresh notifications when returning to the tab');
+assert.ok(user.includes('white-space: nowrap;') && user.includes('text-overflow: ellipsis;'), 'mobile user page should avoid wrapped titles and overflowing notifications');
+assert.ok(user.includes("api/notifications.php?action=list") && user.includes("api/notifications.php?action=count_unread"), 'user page should load notification state through the notifications API');
 
 const membershipApi = read('api/membership.php');
 assert.ok(membershipApi.includes('join_method') && membershipApi.includes('external_exchange'), 'membership API should accept join methods including external exchange');

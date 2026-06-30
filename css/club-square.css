@@ -4,16 +4,16 @@
   --cs-bg-start: #f5f3fc;
   --cs-bg-mid: #faf8ff;
   --cs-bg-end: #f3f6fb;
-  --cs-card-bg: #ffffff;
+  --cs-card-bg: #fbfafc;
   --cs-card-border: rgba(160, 140, 200, 0.18);
   --cs-card-shadow: 0 2px 12px rgba(100, 80, 140, 0.06);
   --cs-text: #3a3650;
   --cs-text-secondary: #8884a8;
-  --cs-moe-stroke: #9078c8;
-  --cs-moe-stat: #8068b8;
-  --cs-moe-enter-bg: rgba(140, 110, 200, 0.1);
-  --cs-moe-enter-text: #8068b8;
-  --cs-moe-enter-border: rgba(160, 130, 210, 0.2);
+  --cs-moe-stroke: #f472b6;
+  --cs-moe-stat: #ec4899;
+  --cs-moe-enter-bg: rgba(244, 114, 182, 0.1);
+  --cs-moe-enter-text: #f472b6;
+  --cs-moe-enter-border: rgba(244, 114, 182, 0.2);
   --cs-twelve-stroke: #6890c0;
   --cs-twelve-stat: #5880b8;
   --cs-twelve-enter-bg: rgba(90, 140, 200, 0.1);
@@ -24,16 +24,21 @@
   --cs-radar-enter-bg: rgba(70, 160, 140, 0.1);
   --cs-radar-enter-text: #3d8a7e;
   --cs-radar-enter-border: rgba(70, 160, 140, 0.22);
-  --cs-ongoing-bg: #ffffff;
+  --cs-simulator-stroke: #c07878;
+  --cs-simulator-stat: #ad6868;
+  --cs-simulator-enter-bg: rgba(200, 110, 110, 0.1);
+  --cs-simulator-enter-text: #ad6868;
+  --cs-simulator-enter-border: rgba(200, 110, 110, 0.22);
+  --cs-ongoing-bg: #fbfafc;
   --cs-ongoing-hover: rgba(100, 80, 150, 0.03);
   --cs-ongoing-border: rgba(160, 140, 200, 0.1);
-  --cs-ongoing-tag-moe-bg: rgba(160, 120, 210, 0.1);
-  --cs-ongoing-tag-moe-text: #8068b8;
+  --cs-ongoing-tag-moe-bg: rgba(244, 114, 182, 0.1);
+  --cs-ongoing-tag-moe-text: #f472b6;
   --cs-ongoing-tag-twelve-bg: rgba(100, 150, 210, 0.1);
   --cs-ongoing-tag-twelve-text: #5880b8;
   --cs-ongoing-status-bg: rgba(80, 180, 100, 0.1);
   --cs-ongoing-status-text: #509850;
-  --cs-topbar-bg: rgba(255, 255, 255, 0.7);
+  --cs-topbar-bg: rgba(251, 250, 252, 0.78);
   --cs-topbar-border: rgba(180, 170, 200, 0.2);
 }
 
@@ -46,11 +51,11 @@
   --cs-card-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
   --cs-text: #d8d4e8;
   --cs-text-secondary: #9894b8;
-  --cs-moe-stroke: #c8b8f0;
-  --cs-moe-stat: #9888c0;
-  --cs-moe-enter-bg: rgba(140, 110, 200, 0.2);
-  --cs-moe-enter-text: #c8b8f0;
-  --cs-moe-enter-border: rgba(160, 130, 210, 0.25);
+  --cs-moe-stroke: #f9a8d4;
+  --cs-moe-stat: #f9a8d4;
+  --cs-moe-enter-bg: rgba(244, 114, 182, 0.2);
+  --cs-moe-enter-text: #f9a8d4;
+  --cs-moe-enter-border: rgba(249, 168, 212, 0.25);
   --cs-twelve-stroke: #b8cce8;
   --cs-twelve-stat: #8898c0;
   --cs-twelve-enter-bg: rgba(90, 140, 200, 0.2);
@@ -61,11 +66,16 @@
   --cs-radar-enter-bg: rgba(90, 220, 190, 0.2);
   --cs-radar-enter-text: #9be7d7;
   --cs-radar-enter-border: rgba(120, 240, 210, 0.32);
+  --cs-simulator-stroke: #f0aaaa;
+  --cs-simulator-stat: #e8a0a0;
+  --cs-simulator-enter-bg: rgba(220, 110, 120, 0.2);
+  --cs-simulator-enter-text: #f0aaaa;
+  --cs-simulator-enter-border: rgba(240, 140, 150, 0.3);
   --cs-ongoing-bg: rgba(22, 18, 38, 0.7);
   --cs-ongoing-hover: rgba(140, 120, 200, 0.06);
   --cs-ongoing-border: rgba(160, 140, 200, 0.1);
-  --cs-ongoing-tag-moe-bg: rgba(160, 120, 210, 0.18);
-  --cs-ongoing-tag-moe-text: #c0a8e8;
+  --cs-ongoing-tag-moe-bg: rgba(244, 114, 182, 0.18);
+  --cs-ongoing-tag-moe-text: #f9a8d4;
   --cs-ongoing-tag-twelve-bg: rgba(100, 150, 210, 0.18);
   --cs-ongoing-tag-twelve-text: #a0c0e8;
   --cs-ongoing-status-bg: rgba(80, 200, 120, 0.1);
@@ -138,10 +148,10 @@ body {
   color: var(--cs-text-secondary);
 }
 
-/* ===== 两大入口卡片 ===== */
+/* ===== 活动入口卡片 ===== */
 .gateway {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   padding: 8px 0 20px;
 }
@@ -188,6 +198,11 @@ body {
   color: var(--cs-radar-stroke);
 }
 
+.gateway-card.simulator .gateway-icon {
+  background: linear-gradient(135deg, rgba(210, 110, 120, 0.15), rgba(170, 80, 100, 0.06));
+  color: var(--cs-simulator-stroke);
+}
+
 [data-theme="dark"] .gateway-card.radar .gateway-icon {
   background: linear-gradient(135deg, rgba(90, 220, 190, 0.18), rgba(30, 110, 100, 0.1));
 }
@@ -207,6 +222,7 @@ body {
 .gateway-card.moe .gateway-body h2 { color: var(--cs-moe-enter-text); }
 .gateway-card.twelve .gateway-body h2 { color: var(--cs-twelve-enter-text); }
 .gateway-card.radar .gateway-body h2 { color: var(--cs-radar-enter-text); }
+.gateway-card.simulator .gateway-body h2 { color: var(--cs-simulator-enter-text); }
 
 .gateway-desc {
   margin: 0;
@@ -224,6 +240,7 @@ body {
 .gateway-card.moe .gateway-stats { color: var(--cs-moe-stat); }
 .gateway-card.twelve .gateway-stats { color: var(--cs-twelve-stat); }
 .gateway-card.radar .gateway-stats { color: var(--cs-radar-stat); }
+.gateway-card.simulator .gateway-stats { color: var(--cs-simulator-stat); }
 
 /* 进入按钮 */
 .gateway-enter {
@@ -255,6 +272,12 @@ body {
   background: var(--cs-radar-enter-bg);
   color: var(--cs-radar-enter-text);
   border: 1px solid var(--cs-radar-enter-border);
+}
+
+.gateway-card.simulator .gateway-enter {
+  background: var(--cs-simulator-enter-bg);
+  color: var(--cs-simulator-enter-text);
+  border: 1px solid var(--cs-simulator-enter-border);
 }
 
 .gateway-enter::after {
@@ -378,6 +401,10 @@ body {
 }
 
 /* ===== 响应式 ===== */
+@media (max-width: 1000px) {
+  .gateway { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
 @media (max-width: 700px) {
   .hero { padding: 36px 16px 18px; }
   .hero h1 { font-size: 26px; }

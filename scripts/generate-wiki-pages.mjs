@@ -370,23 +370,22 @@ function renderRecentUpdates(entries, libraryDocs) {
     .sort((a, b) => dateValue(b.updated_at) - dateValue(a.updated_at) || String(a.title).localeCompare(String(b.title), 'zh-CN'))
     .slice(0, 6);
 
-  const cards = items.map((item) => `<article class="wiki-module-card wiki-recent-card" data-search="${escapeHtml([
+  const cards = items.map((item) => `<article class="wiki-index-card wiki-entry" data-search="${escapeHtml([
     item.title,
     item.description,
     item.kind,
   ].join(' ').toLowerCase())}">
     <div class="wiki-index-card-meta">${escapeHtml(item.kind)} · ${escapeHtml(item.updated_at || '未记录更新')}</div>
-    <h3>${escapeHtml(item.title)}</h3>
+    <h3><a href="${escapeHtml(item.url)}">${escapeHtml(item.title)}</a></h3>
     <p>${escapeHtml(item.description)}</p>
-    <a href="${escapeHtml(item.url)}">查看更新</a>
   </article>`).join('\n');
 
-  return `<section class="wiki-index-country wiki-recent-updates" id="wiki-recent-updates">
+  return `<section class="wiki-index-country wiki-article-shell" id="recent-updates">
     <div class="wiki-index-section-heading">
       <h2>最近更新</h2>
       <span>${items.length} 条动态</span>
     </div>
-    <div class="wiki-module-grid">${cards || '<p class="wiki-index-empty">暂无最近更新。</p>'}</div>
+    <div class="wiki-entry-list" id="recentUpdates">${cards || '<p class="wiki-index-empty">暂无最近更新。</p>'}</div>
   </section>`;
 }
 
@@ -399,7 +398,7 @@ function renderMaintenanceQueue(entries) {
   const cards = items.map((item) => {
     const score = Number(item.completeness_score || 0);
     const missing = (item.missing_fields || []).slice(0, 3).join('、') || '继续补充内容';
-    return `<article class="wiki-module-card wiki-maintenance-card" data-search="${escapeHtml([
+    return `<article class="wiki-extension-card wiki-maintenance-item" data-search="${escapeHtml([
       item.title,
       item.club_name,
       item.school,
@@ -413,13 +412,7 @@ function renderMaintenanceQueue(entries) {
     </article>`;
   }).join('\n');
 
-  return `<section class="wiki-index-country wiki-maintenance-queue" id="wiki-maintenance-queue">
-    <div class="wiki-index-section-heading">
-      <h2>待完善页面</h2>
-      <span>${items.length} 个维护项</span>
-    </div>
-    <div class="wiki-module-grid">${cards || '<p class="wiki-index-empty">当前没有明显待完善页面。</p>'}</div>
-  </section>`;
+  return cards || '<p class="wiki-index-empty">当前没有明显待完善页面。</p>';
 }
 
 function renderWikiHome(manifest, libraryDocs, featureSlots) {
@@ -443,24 +436,23 @@ function renderWikiHome(manifest, libraryDocs, featureSlots) {
     const regionBlocks = regions.map((region) => {
       const cards = countryEntries
         .filter((item) => (item.region || '未标注地区') === region)
-        .map((item) => `<article class="wiki-index-card" data-search="${escapeHtml([
+        .map((item) => `<article class="wiki-index-card wiki-entry" data-search="${escapeHtml([
           item.title,
           item.club_name,
           item.school,
           item.region,
           item.summary,
         ].join(' ').toLowerCase())}">
-          <div class="wiki-index-card-meta">${escapeHtml(item.school || item.club_name || '未标注学校')} · ${escapeHtml(item.updated_at || '未记录更新')}</div>
-          <h3>${escapeHtml(item.title)}</h3>
-          <p>${escapeHtml(item.summary || '该页面已建立，内容可继续补充。')}</p>
-          <a href="${escapeHtml(item.url)}">进入页面</a>
+          <div class="wiki-index-card-meta">${escapeHtml(item.school || item.club_name || '未标注学校')} · ${escapeHtml(item.region || '未标注地区')} · ${escapeHtml(item.updated_at || '未记录更新')}</div>
+          <h3><a href="${escapeHtml(item.url)}">${escapeHtml(item.title)}</a></h3>
+          <p>${escapeHtml(String(item.summary || '该页面已建立，内容可继续补充。').split(/\r?\n/).filter(Boolean)[0] || '该页面已建立，内容可继续补充。')}</p>
         </article>`).join('\n');
       return `<section class="wiki-index-region">
         <h3>${escapeHtml(region)} <span>${countryEntries.filter((item) => (item.region || '未标注地区') === region).length}</span></h3>
-        <div class="wiki-index-grid">${cards}</div>
+        <div class="wiki-entry-list">${cards}</div>
       </section>`;
     }).join('\n');
-    return `<section class="wiki-index-country" id="country-${country}">
+    return `<section class="wiki-index-country wiki-article-shell" id="country-${country}">
       <div class="wiki-index-section-heading">
         <h2>${label}</h2>
         <span>${countryEntries.length} 个页面</span>
@@ -469,27 +461,34 @@ function renderWikiHome(manifest, libraryDocs, featureSlots) {
     </section>`;
   }).join('\n');
 
-  const libraryCards = libraryDocs.map((doc) => `<article class="wiki-library-card" data-search="${escapeHtml([
+  const libraryCards = libraryDocs.map((doc) => `<article class="wiki-library-card wiki-entry" data-search="${escapeHtml([
     doc.title,
     doc.category,
     doc.description,
   ].join(' ').toLowerCase())}">
     <div class="wiki-index-card-meta">${escapeHtml(doc.category)} · ${escapeHtml(doc.updated_at || '未记录更新')}</div>
-    <h3>${escapeHtml(doc.title)}</h3>
+    <h3><a href="${escapeHtml(doc.url)}">${escapeHtml(doc.title)}</a></h3>
     <p>${escapeHtml(doc.description || '文档库条目')}</p>
-    <a href="${escapeHtml(doc.url)}">查看文档</a>
   </article>`).join('\n');
 
   const reservedFeatureSlots = featureSlots.filter((slot) => !['recent', 'todo'].includes(slot.key));
   const extensionCards = reservedFeatureSlots.map((slot) => {
     const enabled = slot.status === 'active' && slot.url;
-    return `<article class="wiki-extension-card${enabled ? '' : ' is-disabled'}">
+    return `<article class="wiki-extension-card wiki-maintenance-item${enabled ? '' : ' is-disabled'}">
       <div class="wiki-index-card-meta">${escapeHtml(enabled ? '已启用' : '预留模块')} · ${escapeHtml(slot.key)}</div>
       <h3>${escapeHtml(slot.title)}</h3>
       <p>${escapeHtml(slot.description)}</p>
       <a href="${escapeHtml(enabled ? slot.url : '#')}">${enabled ? '进入模块' : '等待后续开发'}</a>
     </article>`;
   }).join('\n');
+
+  const allPages = entries.map((item) => `<a class="wiki-page-index-item wiki-index-card" href="${escapeHtml(item.url)}" data-search="${escapeHtml([
+    item.title,
+    item.club_name,
+    item.school,
+    item.region,
+    item.summary,
+  ].join(' ').toLowerCase())}">${escapeHtml(item.title)}<span>${escapeHtml(item.school || item.region || '未标注')}</span></a>`).join('\n') || '<p class="wiki-index-empty">暂无已生成的高校 Wiki 页面。</p>';
 
   return `<!DOCTYPE html>
 <html lang="zh-CN">
@@ -499,77 +498,123 @@ function renderWikiHome(manifest, libraryDocs, featureSlots) {
   <title>VNFest WIKI</title>
   <link rel="stylesheet" href="./wiki.css">
 </head>
-<body>
-  <header class="wiki-header">
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
+    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
+      <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
+      <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
+    </nav>
   </header>
-  <main class="wiki-index-page">
-    <section class="wiki-index-hero">
-      <div>
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="站点目录">
+      <div class="wiki-sidebar-card">
         <p class="wiki-index-kicker">VNFest WIKI</p>
-        <h1>高校同好会与资料文档库</h1>
-        <p>集中索引已填写并生成的高校 Wiki 页面，同时预留文档库用于整理编写规范、运营资料、活动资料和公开教程。</p>
+        <h1>高校同好会百科</h1>
+        <p>集中整理高校视觉小说、Galgame 与相关同好会资料。</p>
       </div>
-      <div class="wiki-index-stats" aria-label="统计">
-        <div><strong>${total}</strong><span>高校 Wiki</span></div>
-        <div><strong>${libraryDocs.length}</strong><span>文档条目</span></div>
-      </div>
-    </section>
-
-    <section class="wiki-index-tools" aria-label="检索">
-      <input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档">
-      <nav>
+      <nav class="wiki-nav wiki-index-toc" aria-label="首页目录">
+        <a href="#recent-updates">最近更新</a>
         <a href="#country-china">中国</a>
         <a href="#country-japan">日本</a>
-        <a href="#wiki-recent-updates">最近更新</a>
-        <a href="#wiki-maintenance-queue">待完善</a>
+        <a href="#all-pages">全部页面</a>
         <a href="#wiki-library">文档库</a>
+        <a href="#maintenance">维护中心</a>
       </nav>
-      <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
-        <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
-        <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
-      </nav>
+    </aside>
+
+    <section class="wiki-index-main">
+    <section class="wiki-index-hero wiki-article-shell">
+      <div>
+        <p class="wiki-index-kicker">百科索引</p>
+        <h2>VNFest WIKI 首页</h2>
+        <p>按地区、学校、文档和维护状态浏览同好会 Wiki。新增页面后，首页会从 JSON 索引自动同步。</p>
+      </div>
+      <div class="wiki-index-stats" aria-label="统计">
+        <div><strong id="statWiki">${total}</strong><span>高校 Wiki</span></div>
+        <div><strong id="statLib">${libraryDocs.length}</strong><span>文档条目</span></div>
+      </div>
     </section>
 
-    <section class="wiki-index-notice">
+    <section class="wiki-index-tools wiki-article-shell" aria-label="检索">
+      <label class="wiki-search-label" for="wikiIndexSearch">搜索条目</label>
+      <input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档">
+      <p>搜索会同时过滤地区索引、全部页面和文档库。</p>
+    </section>
+
+    <section class="wiki-index-notice wiki-article-shell">
       <strong>索引规则</strong>
       <span>本页由生成器检测 wiki/content 中已填写的高校 Wiki 内容后生成。新增或保存学校 Wiki 后，重新运行生成器即可同步到这里。</span>
     </section>
 
-    <section class="wiki-index-country" id="wiki-extensions">
+    ${renderRecentUpdates(entries, libraryDocs)}
+
+    <div id="wikiCountries">
+    ${countryBlocks}
+    </div>
+
+    <section class="wiki-index-country wiki-article-shell" id="all-pages">
       <div class="wiki-index-section-heading">
-        <h2>后续功能预留</h2>
-        <span>${reservedFeatureSlots.length} 个扩展位</span>
+        <h2>全部页面索引</h2>
+        <span id="allPagesCount">${total} 个页面</span>
       </div>
-      <div class="wiki-extension-grid">${extensionCards}</div>
+      <div class="wiki-page-index" id="allPagesList">${allPages}</div>
     </section>
 
-    ${renderRecentUpdates(entries, libraryDocs)}
-    ${renderMaintenanceQueue(entries)}
-
-    ${countryBlocks}
-
-    <section class="wiki-index-country" id="wiki-library">
+    <div id="wikiLibrary">
+    <section class="wiki-index-country wiki-article-shell" id="wiki-library">
       <div class="wiki-index-section-heading">
         <h2>文档库</h2>
         <span>${libraryDocs.length} 个文档</span>
       </div>
-      <div class="wiki-index-grid">
+      <div class="wiki-entry-list">
         ${libraryCards || '<p class="wiki-index-empty">暂无文档。可以在 wiki/library/index.json 中添加文档条目。</p>'}
       </div>
     </section>
+    </div>
+    <div class="wiki-empty-search" id="emptySearch">没有找到匹配的结果，试试其他关键词。</div>
+    </section>
+
+    <aside class="wiki-index-aside" aria-label="维护与编写">
+      <section class="wiki-sidebar-card" id="maintenance">
+        <div class="wiki-index-section-heading">
+          <h2>维护中心</h2>
+          <span id="statExt">${reservedFeatureSlots.length} 个扩展位</span>
+        </div>
+        <div class="wiki-maintenance-list" id="extensionsGrid">
+          ${extensionCards || '<p class="wiki-index-empty">暂无扩展预留。</p>'}
+          ${renderMaintenanceQueue(entries)}
+        </div>
+      </section>
+      <section class="wiki-sidebar-card">
+        <h2>编写指南</h2>
+        <p>建议优先补充简介、发展沿革、活动记录、公开链接和参考资料。</p>
+        <a class="wiki-text-link" href="./library/wiki-writing-guide.html">查看编写说明</a>
+      </section>
+    </aside>
   </main>
   <script>
   (function () {
     var input = document.getElementById('wikiIndexSearch');
-    var cards = Array.prototype.slice.call(document.querySelectorAll('.wiki-index-card, .wiki-library-card, .wiki-module-card'));
+    var empty = document.getElementById('emptySearch');
+    var cards = Array.prototype.slice.call(document.querySelectorAll('.wiki-index-card, .wiki-library-card'));
     if (!input) return;
     input.addEventListener('input', function () {
       var keyword = input.value.trim().toLowerCase();
+      var anyVisible = false;
       cards.forEach(function (card) {
-        card.style.display = !keyword || card.getAttribute('data-search').indexOf(keyword) !== -1 ? '' : 'none';
+        var hit = !keyword || card.getAttribute('data-search').indexOf(keyword) !== -1;
+        card.style.display = hit ? '' : 'none';
+        if (hit && card.closest('#wikiCountries, #wikiLibrary, #all-pages')) anyVisible = true;
       });
+      document.querySelectorAll('.wiki-index-region').forEach(function (region) {
+        var hasVisible = Array.prototype.some.call(region.querySelectorAll('.wiki-index-card'), function (card) {
+          return card.style.display !== 'none';
+        });
+        region.classList.toggle('is-hidden', !hasVisible);
+      });
+      if (empty) empty.classList.toggle('is-visible', !!keyword && !anyVisible);
     });
   })();
   </script>

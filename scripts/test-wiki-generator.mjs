@@ -186,29 +186,31 @@ if (!existsSync(homePath)) {
   throw new Error('Expected generated VNFest WIKI index HTML');
 }
 const home = readFileSync(homePath, 'utf8');
-if (!home.includes('VNFest WIKI') || !home.includes('高校同好会与资料文档库')) {
-  throw new Error('Wiki index should render the VNFest WIKI home page');
+if (!home.includes('VNFest WIKI') || !home.includes('高校同好会百科')) {
+  throw new Error('Wiki index should render the encyclopedia-style VNFest WIKI home page');
 }
 if (!home.includes('文档库') || !home.includes('编写说明')) {
   throw new Error('Wiki index should render library documents');
 }
-if (!home.includes('后续功能预留') || !home.includes('精选 Wiki')) {
-  throw new Error('Wiki index should render reserved feature slots');
+if (!home.includes('wiki-encyclopedia-layout') || !home.includes('wiki-index-sidebar')) {
+  throw new Error('Wiki index should render the encyclopedia layout shell');
 }
-
-if (!home.includes('wiki-recent-updates') || !home.includes('最近更新')) {
-  throw new Error('Wiki index should render the real recent updates module');
+if (!home.includes('id="recent-updates"') || !home.includes('最近更新')) {
+  throw new Error('Wiki index should render the recent updates section');
 }
 if (!home.includes('wikiIndexLangSwitch') || !home.includes('lang=ja')) {
   throw new Error('Wiki index should expose a Chinese/Japanese language switch');
 }
-if (!home.includes('wiki-maintenance-queue') || !home.includes('待完善页面')) {
-  throw new Error('Wiki index should render the real maintenance queue module');
+if (!home.includes('id="all-pages"') || !home.includes('全部页面索引')) {
+  throw new Error('Wiki index should render the all-pages index');
+}
+if (!home.includes('id="maintenance"') || !home.includes('维护中心')) {
+  throw new Error('Wiki index should render the maintenance center');
 }
 if (!home.includes('Incomplete Wiki Test Club') || !home.includes('完整度')) {
   throw new Error('Maintenance queue should include incomplete wiki pages with completeness hints');
 }
-if (home.indexOf('缂栧啓璇存槑') > home.indexOf('瀹夌悊浜屾鍏冨悓濂戒氦娴佸湀')) {
+if (home.indexOf('编写说明') > home.indexOf('安理二次元同好交流圈')) {
   throw new Error('Recent updates should sort library and wiki entries by updated_at descending');
 }
 

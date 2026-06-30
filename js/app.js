@@ -27,6 +27,8 @@ const State = {
   currentDataSource: 'none',
   mobileSheetHeightPx: null,
   viewMode: 'map',
+  viewTransitionToken: 0,
+  viewTransitionTimers: [],
   currentCountry: 'china',
   japanRows: [],
   japanGroupsMap: new Map()
@@ -2122,7 +2124,7 @@ Object.assign(translations.zh, {
     modeStarmap: '星图',
     topLogin: '登录 / 注册',
     topAccount: '账号',
-    topAdmin: '同好会管理',
+    topAdmin: '管理',
     roleAudit: '活动审核',
     vnRoleVisitor: '见习同好',
     vnRoleMember: '同好会成员',
@@ -2258,7 +2260,7 @@ Object.assign(translations.ja, {
     modeStarmap: '星図',
     topLogin: 'ログイン / 登録',
     topAccount: 'アカウント',
-    topAdmin: '同好会管理',
+    topAdmin: '管理',
     roleAudit: 'イベント審査',
     vnRoleVisitor: '見習い同好',
     vnRoleMember: '同好会メンバー',
@@ -2939,12 +2941,147 @@ function clearListViewInlineMotion() {
     document.querySelector('.list-left'),
     document.querySelector('.list-center'),
     document.getElementById('clubGrid'),
-    document.getElementById('listToolbar')
+    document.getElementById('listToolbar'),
+    document.querySelector('.list-top-bar'),
+    document.querySelector('.list-content'),
+    document.getElementById('listModeView')
   ].forEach(el => {
     if (!el) return;
     el.style.transition = '';
     el.style.transform = '';
     el.style.opacity = '';
+    el.style.transitionDelay = '';
+  });
+  document.querySelectorAll('.club-card').forEach(card => {
+    card.style.transitionDelay = '';
+  });
+}
+
+function clearMapViewInlineMotion() {
+  [
+    document.getElementById('mapSvg'),
+    document.getElementById('selectedCard'),
+    document.getElementById('userInfoCard'),
+    document.getElementById('introCard')
+  ].forEach(el => {
+    if (!el) return;
+    el.style.transition = '';
+    el.style.transform = '';
+    el.style.opacity = '';
+    el.style.filter = '';
+    el.style.pointerEvents = '';
+    el.style.display = '';
+  });
+}
+
+function applyStableListViewState() {
+  var root = document.documentElement;
+  var listView = document.getElementById('listModeView');
+  var mapSvg = document.getElementById('mapSvg');
+  root.classList.add('list-mode-active');
+  if (isMobileListLayout()) root.classList.add('mobile-list-mode-active');
+  if (listView) {
+    listView.style.display = 'block';
+    listView.style.opacity = '1';
+    listView.style.transform = 'translateY(0) scale(1)';
+    listView.style.pointerEvents = 'auto';
+  }
+  if (mapSvg) {
+    mapSvg.style.opacity = '0';
+    mapSvg.style.pointerEvents = 'none';
+    mapSvg.style.display = 'none';
+  }
+  ['selectedCard', 'userInfoCard', 'introCard', 'siteFooter'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+  });
+  var clubGrid = document.getElementById('clubGrid');
+  if (clubGrid) clubGrid.classList.add('visible');
+  document.querySelectorAll('.club-card').forEach(c => c.classList.add('visible'));
+}
+
+function applyStableMapViewState() {
+  var root = document.documentElement;
+  var listView = document.getElementById('listModeView');
+  var mapSvg = document.getElementById('mapSvg');
+  root.classList.remove('list-mode-active', 'mobile-list-mode-active');
+  if (listView) {
+    listView.style.display = 'none';
+    listView.style.opacity = '';
+    listView.style.transform = '';
+    listView.style.pointerEvents = '';
+  }
+  var clubGrid = document.getElementById('clubGrid');
+  if (clubGrid) clubGrid.classList.remove('visible');
+  if (mapSvg) {
+    mapSvg.style.display = '';
+    mapSvg.style.opacity = '1';
+    mapSvg.style.pointerEvents = '';
+  }
+  ['selectedCard', 'userInfoCard', 'introCard', 'siteFooter'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.style.opacity = '';
+    el.style.pointerEvents = '';
+  });
+}
+
+function prefersReducedViewMotion() {
+  return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function clearViewTransitionTimers() {
+  (State.viewTransitionTimers || []).forEach(id => window.clearTimeout(id));
+  State.viewTransitionTimers = [];
+}
+
+function queueViewTransitionStep(token, delay, fn) {
+  var run = function() {
+    window.requestAnimationFrame(function() {
+      if (token !== State.viewTransitionToken) return;
+      fn();
+    });
+  };
+  if (delay <= 0) {
+    run();
+    return;
+  }
+  var id = window.setTimeout(run, delay);
+  State.viewTransitionTimers.push(id);
+}
+
+function beginViewTransition(targetMode) {
+  clearViewTransitionTimers();
+  State.viewTransitionToken += 1;
+  var token = State.viewTransitionToken;
+  var root = document.documentElement;
+  root.classList.remove('view-to-list', 'view-to-map');
+  root.classList.add('view-transitioning', targetMode === 'list' ? 'view-to-list' : 'view-to-map');
+  clearListViewInlineMotion();
+  clearMapViewInlineMotion();
+  return token;
+}
+
+function finishViewTransition(token) {
+  if (token !== State.viewTransitionToken) return;
+  clearViewTransitionTimers();
+  document.documentElement.classList.remove('view-transitioning', 'view-to-list', 'view-to-map');
+  clearListViewInlineMotion();
+  clearMapViewInlineMotion();
+  if (State.viewMode === 'list') {
+    applyStableListViewState();
+  } else {
+    applyStableMapViewState();
+  }
+}
+
+function syncViewModeTabs(mode) {
+  document.querySelectorAll('.mode-tab').forEach(t => {
+    var isActive = t.dataset.mode === mode;
+    t.classList.toggle('active', isActive);
+    t.setAttribute('aria-selected', isActive ? 'true' : 'false');
   });
 }
 
@@ -3001,14 +3138,18 @@ function switchViewMode(mode) {
     window.location.href = './star_map.html';
     return;
   }
-  if (mode === State.viewMode) return;
+  if (mode === State.viewMode) {
+    var root = document.documentElement;
+    var listView = document.getElementById('listModeView');
+    var listIsVisible = root.classList.contains('list-mode-active') && listView && listView.style.display !== 'none';
+    if (mode === 'list' && !listIsVisible) animateToListView();
+    if (mode === 'map' && listIsVisible) animateToMapView();
+    return;
+  }
   State.viewMode = mode;
 
   // 更新标签 UI
-  document.querySelectorAll('.mode-tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.mode === mode);
-    t.setAttribute('aria-selected', t.dataset.mode === mode);
-  });
+  syncViewModeTabs(mode);
 
   if (mode === 'list') {
     animateToListView();
@@ -3017,7 +3158,7 @@ function switchViewMode(mode) {
   }
 }
 
-function animateToListView() {
+function animateToListViewLegacy() {
   if (isMobileListLayout()) {
     enterMobileListView();
     return;
@@ -3113,7 +3254,7 @@ function animateToListView() {
   }, 150);
 }
 
-function animateToMapView() {
+function animateToMapViewLegacy() {
   if (isMobileListLayout()) {
     exitMobileListView();
     return;
@@ -3188,6 +3329,102 @@ function animateToMapView() {
   }, 450);
 }
 
+function animateToListView() {
+  var token = beginViewTransition('list');
+  if (isMobileListLayout()) {
+    const listView = document.getElementById('listModeView');
+    if (!listView) return;
+    listView.style.display = 'block';
+    clearListViewInlineMotion();
+    void listView.offsetHeight;
+    document.documentElement.classList.add('list-mode-active', 'mobile-list-mode-active');
+    setDefaultListRegionNav();
+    renderListView();
+    document.getElementById('clubGrid')?.classList.add('visible');
+    document.querySelectorAll('.club-card').forEach(cardEl => cardEl.classList.add('visible'));
+    queueViewTransitionStep(token, prefersReducedViewMotion() ? 0 : 240, function() {
+      finishViewTransition(token);
+    });
+    return;
+  }
+
+  const listView = document.getElementById('listModeView');
+  if (!listView) return;
+
+  listView.style.display = 'block';
+  void listView.offsetHeight;
+  document.documentElement.classList.add('list-mode-active');
+  setDefaultListRegionNav();
+  renderListView();
+  document.getElementById('clubGrid')?.classList.add('visible');
+  document.querySelectorAll('.list-nav-row .user-nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.list-nav-row .user-nav-btn[data-action="china"]')?.classList.add('active');
+  document.querySelectorAll('.club-card').forEach(c => {
+    c.classList.remove('visible');
+    c.style.transitionDelay = '';
+  });
+
+  void listView.offsetHeight;
+
+  if (prefersReducedViewMotion()) {
+    document.querySelectorAll('.club-card').forEach(c => c.classList.add('visible'));
+    finishViewTransition(token);
+    return;
+  }
+
+  queueViewTransitionStep(token, 230, function() {
+    document.querySelectorAll('.club-card').forEach((c, i) => {
+      c.style.transitionDelay = Math.min(i, 18) * 18 + 'ms';
+      c.classList.add('visible');
+    });
+  });
+
+  queueViewTransitionStep(token, 620, function() {
+    finishViewTransition(token);
+  });
+}
+
+function animateToMapView() {
+  var token = beginViewTransition('map');
+  if (isMobileListLayout()) {
+    const listView = document.getElementById('listModeView');
+    if (!listView) return;
+    clearMapViewInlineMotion();
+    queueViewTransitionStep(token, prefersReducedViewMotion() ? 0 : 220, function() {
+      document.documentElement.classList.remove('list-mode-active', 'mobile-list-mode-active');
+      listView.style.display = 'none';
+    });
+    queueViewTransitionStep(token, prefersReducedViewMotion() ? 0 : 220, function() {
+      finishViewTransition(token);
+    });
+    return;
+  }
+
+  const listView = document.getElementById('listModeView');
+  if (!listView) return;
+
+  if (prefersReducedViewMotion()) {
+    document.documentElement.classList.remove('list-mode-active');
+    listView.style.display = 'none';
+    finishViewTransition(token);
+    return;
+  }
+
+  document.querySelectorAll('.club-card.visible').forEach((c, i, cards) => {
+    c.style.transitionDelay = Math.min(cards.length - 1 - i, 12) * 12 + 'ms';
+    c.classList.remove('visible');
+  });
+
+  queueViewTransitionStep(token, 430, function() {
+    document.documentElement.classList.remove('list-mode-active');
+    listView.style.display = 'none';
+  });
+
+  queueViewTransitionStep(token, 560, function() {
+    finishViewTransition(token);
+  });
+}
+
 function renderListAnnouncements() {
   const listEl = document.getElementById('listAnnouncementsList');
   if (!listEl) return;
@@ -3253,16 +3490,6 @@ function syncListModeUserState() {
   if (listLoginBtn) listLoginBtn.textContent = __('topLogin');
   if (listAccountBtn) listAccountBtn.textContent = __('topAccount');
   if (listAdminBtn) listAdminBtn.textContent = __('topAdmin');
-
-  // 同步公告横幅
-  const mapBanner = document.getElementById('announcementBanner');
-  const listBanner = document.getElementById('listAnnBanner');
-  if (listBanner && mapBanner) {
-    listBanner.style.display = mapBanner.style.display;
-    const mapBody = document.getElementById('announcementBannerBody');
-    const listBody = document.getElementById('listAnnBannerBody');
-    if (listBody && mapBody) listBody.innerHTML = mapBody.innerHTML;
-  }
 
   // 同步主题开关状态
   const themeSwitch = document.getElementById('themeSwitch');
@@ -3340,6 +3567,9 @@ function bindListModeControls() {
           document.getElementById('calendarModal')?.classList.add('open');
           document.getElementById('calendarModal')?.setAttribute('aria-hidden', 'false');
           return; // 不重新渲染
+        case 'starmap':
+          window.location.href = './star_map.html';
+          return;
         case 'publication':
         case 'project-hub':
           if (typeof window.openHubModal === 'function') {
@@ -3596,6 +3826,7 @@ function renderClubCards(rows) {
   const batchSize = window.innerWidth <= 700 ? 36 : 72;
   let rendered = Math.min(batchSize, filtered.length);
   grid.innerHTML = filtered.slice(0, rendered).map(renderCard).join('');
+  grid.classList.add('visible');
 
   function appendBatch() {
     if (token !== listRenderToken || rendered >= filtered.length) return;
@@ -4601,6 +4832,8 @@ function updateSummaryUI(source, animate = true) {
 }
 
 // 渲染列表（带地区显示）
+let groupListRenderToken = 0;
+
 function renderGroupListWithLocation(rows) {
     const listEl = document.getElementById('groupList');
     if (!listEl) return;
@@ -4611,8 +4844,9 @@ function renderGroupListWithLocation(rows) {
     }
 
     const isJapan = State.currentCountry === 'japan';
+    const token = ++groupListRenderToken;
 
-    listEl.innerHTML = rows.map((item) => {
+    const renderGroupItem = (item) => {
         const name = Utils.escapeHTML(item.name || __('listNoName'));
         const rawText = Utils.escapeHTML(item.raw_text || item.name || '');
         const isHidden = item.info_hidden === true;
@@ -4693,39 +4927,48 @@ function renderGroupListWithLocation(rows) {
                 </div>
             </article>
         `;
-    }).join('');
+    };
 
     // 绑定事件
-    document.querySelectorAll('.group-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (e.target.classList.contains('apply-mini-btn') || e.target.closest('.apply-mini-btn')) return;
-            const clubData = item.getAttribute('data-club');
-            if (clubData) {
-                const club = JSON.parse(decodeURIComponent(clubData));
-                showClubDetail(club);
-            }
-        });
-    });
+    const batchSize = window.innerWidth <= 700 ? 36 : 72;
+    let rendered = Math.min(batchSize, rows.length);
+    listEl.innerHTML = rows.slice(0, rendered).map(renderGroupItem).join('');
 
-    document.querySelectorAll('.group-info').forEach(el => {
-        el.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const clubData = el.getAttribute('data-club');
-            if (clubData) showClubDetail(JSON.parse(decodeURIComponent(clubData)));
-        });
-    });
+    function appendBatch() {
+        if (token !== groupListRenderToken || rendered >= rows.length) return;
+        const next = Math.min(rendered + batchSize, rows.length);
+        listEl.insertAdjacentHTML('beforeend', rows.slice(rendered, next).map(renderGroupItem).join(''));
+        rendered = next;
+        if (rendered < rows.length) scheduleIdleTask(appendBatch, 80);
+    }
+    if (rendered < rows.length) scheduleIdleTask(appendBatch, 80);
 
     // 申请绑定按钮
-    document.querySelectorAll('.apply-mini-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const clubData = btn.getAttribute('data-club');
-            if (clubData) {
-                const club = JSON.parse(decodeURIComponent(clubData));
-                openMembershipApplyModal(club);
+    if (listEl.dataset.groupDelegated !== '1') {
+        listEl.dataset.groupDelegated = '1';
+        listEl.addEventListener('click', (e) => {
+            const applyBtn = e.target.closest('.apply-mini-btn');
+            if (applyBtn && listEl.contains(applyBtn)) {
+                e.stopPropagation();
+                const clubData = applyBtn.getAttribute('data-club');
+                if (clubData) openMembershipApplyModal(JSON.parse(decodeURIComponent(clubData)));
+                return;
             }
+
+            const infoEl = e.target.closest('.group-info');
+            if (infoEl && listEl.contains(infoEl)) {
+                e.stopPropagation();
+                const clubData = infoEl.getAttribute('data-club');
+                if (clubData) showClubDetail(JSON.parse(decodeURIComponent(clubData)));
+                return;
+            }
+
+            const item = e.target.closest('.group-item');
+            if (!item || !listEl.contains(item)) return;
+            const clubData = item.getAttribute('data-club');
+            if (clubData) showClubDetail(JSON.parse(decodeURIComponent(clubData)));
         });
-    });
+    }
 }
 
 function showProvinceDetails(provinceName) {
@@ -5557,10 +5800,10 @@ function bindAllStaticEvents() {
     } catch (err) {}
   });
 
-  document.getElementById('searchInput')?.addEventListener('input', (e) => { 
-    State.listQuery = e.target.value.trim().toLowerCase(); 
-    renderCurrentDetail(); 
-  });
+  document.getElementById('searchInput')?.addEventListener('input', Utils.debounce((e) => {
+    State.listQuery = e.target.value.trim().toLowerCase();
+    renderCurrentDetail();
+  }, 160));
   
   document.getElementById('typeFilter')?.addEventListener('change', (e) => { 
     State.listType = e.target.value || 'all'; 
@@ -7011,6 +7254,9 @@ function initTopUserBar() {
           document.getElementById('calendarModal')?.classList.add('open');
           document.getElementById('calendarModal')?.setAttribute('aria-hidden', 'false');
           break;
+        case 'starmap':
+          window.location.href = './star_map.html';
+          break;
         case 'publication':
         case 'project-hub':
           if (typeof window.openHubModal === 'function') {
@@ -8062,9 +8308,6 @@ init();
                 if (data.success && data.announcements && data.announcements.length > 0) {
                     renderAnnouncements(data.announcements);
                     banner.style.display = '';
-                    // 同步列表模式的顶部公告横幅
-                    var listBanner = document.getElementById('listAnnBanner');
-                    if (listBanner) listBanner.style.display = '';
                     // 如果列表模式已激活，同步渲染列表公告
                     if (typeof renderListAnnouncements === 'function') {
                         renderListAnnouncements();

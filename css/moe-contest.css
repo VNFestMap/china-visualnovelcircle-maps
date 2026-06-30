@@ -1,6 +1,6 @@
 /* === CSS Variables === */
 :root {
-  --mo-pink: #d83b65; --mo-pink-light: #f08ca8; --mo-pink-bg: rgba(216,59,101,0.08);
+  --mo-pink: #f472b6; --mo-pink-light: #f9a8d4; --mo-pink-bg: rgba(244,114,182,0.08);
   --mo-purple: #7c3aed; --mo-purple-light: #b89cf0; --mo-purple-bg: rgba(124,58,237,0.06);
   --mo-gold: #eab308; --mo-gold-light: #fde68a; --mo-gold-bg: rgba(234,179,8,0.08);
   --mo-bronze: #cd7f32;
@@ -48,7 +48,7 @@ body {
 
 .mo-logo {
   width: 26px; height: 26px; border-radius: 8px;
-  background: linear-gradient(135deg, var(--mo-pink), #c83860);
+  background: linear-gradient(135deg, var(--mo-pink), #ec4899);
   display: flex; align-items: center; justify-content: center;
   color: #fff; font-size: 13px; font-weight: 800; flex-shrink: 0;
 }
@@ -61,7 +61,7 @@ body {
 .mo-hero {
   margin: 12px 12px 0; padding: 22px 18px; border-radius: var(--mo-radius-lg);
   background: linear-gradient(135deg, var(--mo-hero-start), var(--mo-hero-mid), var(--mo-hero-end));
-  border: 1px solid rgba(200,56,96,0.06);
+  border: 1px solid rgba(244,114,182,0.06);
 }
 
 .mo-hero h1 { font-size: 19px; font-weight: 800; color: var(--mo-text); margin: 0 0 4px; }
@@ -213,14 +213,14 @@ body {
 }
 @keyframes mo-spin { to { transform: rotate(360deg); } }
 
-.mo-btn--pink { background: linear-gradient(135deg, var(--mo-pink), #c83860); color: #fff; }
+.mo-btn--pink { background: linear-gradient(135deg, var(--mo-pink), #ec4899); color: #fff; }
 .mo-btn--purple { background: linear-gradient(135deg, var(--mo-purple), #6d28d9); color: #fff; }
 .mo-btn--gold { background: linear-gradient(135deg, var(--mo-gold), #d97706); color: #fff; }
 .mo-btn--full { width: 100%; padding: 10px; font-size: 13px; }
 
 .mo-btn--submit {
   padding: 10px 28px; border-radius: var(--mo-radius-sm);
-  background: linear-gradient(135deg, var(--mo-pink), #c83860); color: #fff;
+  background: linear-gradient(135deg, var(--mo-pink), #ec4899); color: #fff;
   font-size: 13px; font-weight: 700;
 }
 
@@ -259,7 +259,7 @@ body {
 
 .mo-char-remove {
   position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
-  border-radius: 50%; background: rgba(216,59,101,0.9); color: #fff;
+  border-radius: 50%; background: rgba(244,114,182,0.9); color: #fff;
   font-size: 14px; line-height: 20px; text-align: center; cursor: pointer;
   z-index: 2; font-family: sans-serif;
 }
@@ -285,7 +285,7 @@ body {
 }
 
 .mo-match-side.winner {
-  background: rgba(216,59,101,0.04); border: 2px solid var(--mo-pink);
+  background: rgba(244,114,182,0.04); border: 2px solid var(--mo-pink);
 }
 
 .mo-match-side.loser { opacity: 0.4; border: 1px solid var(--mo-border-light); }
@@ -369,15 +369,15 @@ body {
 body.mo-select-mode .mo-char-item:not(.mo-char-item--mine) { opacity: 0.28; pointer-events: none; }
 
 .mo-char-item--checked .mo-char-avatar {
-  border: 2px solid var(--mo-pink); box-shadow: 0 0 10px rgba(216,59,101,0.3);
+  border: 2px solid var(--mo-pink); box-shadow: 0 0 10px rgba(244,114,182,0.3);
 }
 .mo-char-item--checked .mo-char-check { display: flex; background: var(--mo-pink); }
 
 /* === Hover (desktop only) === */
 @media (hover: hover) {
-  .mo-card:hover { border-color: rgba(200,56,96,0.15); }
+  .mo-card:hover { border-color: rgba(244,114,182,0.15); }
   .mo-chip:not(.active):hover { background: rgba(180,160,200,0.14); }
-  .mo-match-side:not(.winner):not(.loser):hover { border-color: rgba(200,56,96,0.2); }
+  .mo-match-side:not(.winner):not(.loser):hover { border-color: rgba(244,114,182,0.2); }
 }
 
 /* === Responsive: Desktop (>=768px) === */

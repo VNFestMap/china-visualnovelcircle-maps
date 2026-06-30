@@ -66,6 +66,20 @@ voteFlowSettleMatch($db, $finalMatches[0], (int)$finalMatches[0]['slot_a_entry_i
 voteFlowSettleMatch($db, $finalMatches[1], (int)$finalMatches[1]['slot_b_entry_id']);
 $finalRanks = $db->query("SELECT rank_no FROM vote_flow_results WHERE pool_id = ".(int)$finalPoolResult['pool']['id']." ORDER BY rank_no ASC")->fetchAll(PDO::FETCH_COLUMN);
 
+$db->exec("INSERT INTO vote_projects (id, project_type, club_id, country, title, year_label, status) VALUES (5, 'moe', 1, 'china', 'moe qualifier low', '2026', 'running')");
+$db->exec("INSERT INTO vote_stages (id, project_id, stage_type, title, status, sort_order, vote_mode, group_count, max_select, advance_count, config_json) VALUES (41, 5, 'nomination', '提名', 'open', 1, 'nomination', 1, 1, 0, '{}')");
+$db->exec("INSERT INTO vote_stages (id, project_id, stage_type, title, status, sort_order, vote_mode, group_count, max_select, advance_count, config_json) VALUES (42, 5, 'qualifier', '海选', 'pending', 2, 'multi_select', 2, 8, 32, '{}')");
+for ($i = 1; $i <= 5; $i++) {
+    $db->prepare("INSERT INTO vote_entries (project_id, source_type, source_id, title, identity_key, entry_status) VALUES (5, 'manual', ?, ?, ?, 'approved')")
+        ->execute([$i, 'moe候选'.$i, 'moe_low:'.$i]);
+}
+$moeLowFirst = voteFlowRebuildFromNominationAndOpen($db, ['id' => 5], 1);
+$db->prepare("INSERT INTO vote_entries (project_id, source_type, source_id, title, identity_key, entry_status) VALUES (5, 'manual', ?, ?, ?, 'approved')")
+    ->execute([6, 'moe候选6', 'moe_low:6']);
+$moeLowSecond = voteFlowRebuildFromNominationAndOpen($db, ['id' => 5], 1);
+$moeLowQualifierStatus = $db->query("SELECT status FROM vote_stages WHERE id = 42")->fetchColumn();
+$moeLowNominationStatus = $db->query("SELECT status FROM vote_stages WHERE id = 41")->fetchColumn();
+
 $db->exec("INSERT INTO vote_projects (id, project_type, club_id, country, title, year_label, status) VALUES (3, 'twelve', 1, 'china', 'score', '2026', 'running')");
 $db->exec("INSERT INTO vote_stages (id, project_id, stage_type, title, status, sort_order, vote_mode, group_count, max_select, advance_count, score_min, score_max, config_json) VALUES (31, 3, 'final', '评分', 'open', 1, 'score', 1, 3, 2, 1, 10, '{}')");
 for ($i = 1; $i <= 3; $i++) {
@@ -109,6 +123,10 @@ $out = [
     'moe_final_seeded' => (int)$finalPoolResult['seeded_count'],
     'moe_final_match_count' => count($finalMatches),
     'moe_final_ranks' => array_map('intval', $finalRanks),
+    'moe_low_first_seeded' => (int)$moeLowFirst['seeded_count'],
+    'moe_low_second_seeded' => (int)$moeLowSecond['seeded_count'],
+    'moe_low_qualifier_status' => (string)$moeLowQualifierStatus,
+    'moe_low_nomination_status' => (string)$moeLowNominationStatus,
     'score_order' => $scoreOrder,
     'score_avgs' => $scoreAvgs,
     'score_advanced_count' => (int)$scoreSettle['advanced_count'],
@@ -141,6 +159,10 @@ assert.deepEqual(data.group_advance_rows, { G1: 2, G2: 2 }, 'two-group qualifier
 assert.equal(data.moe_final_seeded, 4, 'moe final pool should include champion and third-place candidates');
 assert.equal(data.moe_final_match_count, 2, 'moe final should generate champion and third-place matches');
 assert.deepEqual(data.moe_final_ranks, [1, 2, 3, 4], 'moe final should settle champion, runner-up, third, and fourth places');
+assert.equal(data.moe_low_first_seeded, 5, 'moe qualifier with default 32 advance count should seed all 5 nominations');
+assert.equal(data.moe_low_second_seeded, 6, 'moe qualifier should re-seed with the new nomination when no votes exist');
+assert.equal(data.moe_low_qualifier_status, 'open', 'moe qualifier stage should be open after rebuild');
+assert.equal(data.moe_low_nomination_status, 'locked', 'moe nomination stage should be locked after rebuild');
 assert.deepEqual(data.score_avgs, [10, 9, 8], 'score stages should rank by average score before vote count');
 assert.equal(data.score_advanced_count, 2, 'score stages should advance the configured top count');
 

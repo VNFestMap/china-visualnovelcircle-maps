@@ -22,7 +22,7 @@
 <style>
 /* ── Theme Variables ── */
 :root {
-  --login-wallpaper: url("./images/fd912ee18f271bb0cb042bda8ca85d8c.jpeg");
+  --login-wallpaper: url("./images/a9b7bf991c6688102abd0059eba3c3f8.jpeg");
   --bg: #090909;
   --surface: #141313;
   --surface2: #1f1d1c;
@@ -840,7 +840,7 @@ function setWallpaperPreference(value) {
 
 async function initWallpapers() {
   if (!wallpaperSelect) return;
-  var images = [{ name: '默认壁纸', file: 'fd912ee18f271bb0cb042bda8ca85d8c.jpeg', url: 'images/fd912ee18f271bb0cb042bda8ca85d8c.jpeg' }];
+  var images = [{ name: '默认壁纸', file: 'a9b7bf991c6688102abd0059eba3c3f8.jpeg', url: 'images/a9b7bf991c6688102abd0059eba3c3f8.jpeg' }];
   try {
     var resp = await fetch('api/backgrounds.php', { credentials: 'same-origin' });
     var data = await resp.json();

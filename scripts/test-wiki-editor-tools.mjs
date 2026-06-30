@@ -30,5 +30,8 @@ assertContains('wikiLangZhBtn', 'Chinese wiki content tab');
 assertContains('wikiLangJaBtn', 'Japanese wiki content tab');
 assertContains('activeWikiLang', 'active wiki language editor state');
 assertContains('i18n: { ja:', 'Japanese wiki content serialization');
+assertContains('readWikiResponse', 'shared wiki API response parser');
+assertContains('接口返回异常（HTTP ', 'non-JSON wiki API error visibility');
+assertContains('await resp.text()', 'wiki API responses parsed from text before JSON');
 
 console.log('wiki editor tool contract ok');

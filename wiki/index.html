@@ -5,109 +5,176 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VNFest WIKI</title>
   <link rel="stylesheet" href="./wiki.css">
-  <style>
-    .wiki-empty-search { display: none; text-align: center; padding: 40px 20px; color: var(--wiki-muted); font-size: 14px; }
-    .wiki-empty-search.is-visible { display: block; }
-    .wiki-index-region { transition: opacity 0.15s; }
-    .wiki-index-region.is-hidden { display: none; }
-    .wiki-index-country.is-hidden { display: none; }
-    .wiki-stat { transition: opacity 0.25s; }
-    .wiki-nav a { transition: color 0.15s; }
-    .wiki-index-section-heading { scroll-margin-top: 80px; }
-  </style>
 </head>
-<body>
-  <header class="wiki-header">
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
+    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
+      <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
+      <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
+    </nav>
   </header>
 
-  <main class="wiki-index-page">
-
-    <!-- Hero -->
-    <section class="wiki-index-hero">
-      <div>
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="站点目录">
+      <div class="wiki-sidebar-card">
         <p class="wiki-index-kicker">VNFest WIKI</p>
-        <h1>高校同好会与资料文档库</h1>
-        <p>集中索引已填写并生成的高校 Wiki 页面，同时预留文档库用于整理编写规范、运营资料、活动资料和公开教程。</p>
+        <h1>高校同好会百科</h1>
+        <p>集中整理高校视觉小说、Galgame 与相关同好会资料。</p>
       </div>
-      <div class="wiki-index-stats" aria-label="统计">
-        <div><strong id="statWiki">-</strong><span>高校 Wiki</span></div>
-        <div><strong id="statLib">-</strong><span>文档条目</span></div>
-      </div>
-    </section>
-
-    <!-- Search + Nav -->
-    <section class="wiki-index-tools" aria-label="检索">
-      <input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档" autocomplete="off">
-      <nav class="wiki-nav">
+      <nav class="wiki-nav wiki-index-toc" aria-label="首页目录">
+        <a href="#recent-updates">最近更新</a>
         <a href="#country-china">中国</a>
         <a href="#country-japan">日本</a>
+        <a href="#all-pages">全部页面</a>
         <a href="#wiki-library">文档库</a>
+        <a href="#publication-library">资料公开库</a>
+        <a href="#maintenance">维护中心</a>
       </nav>
-      <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
-        <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
-        <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
-      </nav>
-    </section>
+    </aside>
 
-    <!-- Notice -->
-    <section class="wiki-index-notice">
-      <strong>索引规则</strong>
-      <span>本页从 wiki/index.json、wiki/library/index.json、wiki/feature-slots.json 读取数据后渲染。新增 Wiki 页面后刷新即可同步。</span>
-    </section>
+    <section class="wiki-index-main">
+      <section class="wiki-index-hero wiki-article-shell">
+        <div>
+          <p class="wiki-index-kicker">百科索引</p>
+          <h2>VNFest WIKI 首页</h2>
+          <p>按地区、学校、文档和维护状态浏览同好会 Wiki。新增页面后，首页会从 JSON 索引自动同步。</p>
+        </div>
+        <div class="wiki-index-stats" aria-label="统计">
+          <div><strong id="statWiki">-</strong><span>高校 Wiki</span></div>
+          <div><strong id="statLib">-</strong><span>文档条目</span></div>
+        </div>
+      </section>
 
-    <!-- Extensions -->
-    <section class="wiki-index-country" id="wiki-extensions">
-      <div class="wiki-index-section-heading">
-        <h2>后续功能预留</h2>
-        <span id="statExt">- 个扩展位</span>
+      <section class="wiki-index-tools wiki-article-shell" aria-label="检索">
+        <label class="wiki-search-label" for="wikiIndexSearch">搜索条目</label>
+        <input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档" autocomplete="off">
+        <p>搜索会同时过滤地区索引、全部页面和文档库。地图主页中的条目仍是资料来源，Wiki 页面用于整理可公开阅读的长文本资料。</p>
+      </section>
+
+      <section class="wiki-index-notice wiki-article-shell">
+        <strong>索引规则</strong>
+        <span>本页从 wiki/index.json、wiki/library/index.json、wiki/feature-slots.json 读取数据后渲染；如果读取失败，会保留静态兜底索引。</span>
+      </section>
+
+      <section class="wiki-index-country wiki-article-shell" id="publication-library">
+        <div class="wiki-index-section-heading">
+          <h2>资料公开库</h2>
+          <span>3D 翻页预览</span>
+        </div>
+        <div class="wiki-entry-list">
+          <article class="wiki-library-card wiki-entry" data-search="刊物 资料库 同好会 3d 翻页 预览 阅读 pdf">
+            <div class="wiki-index-card-meta">资料库补充 · 即时发布</div>
+            <h3><a href="./publications.html">资料公开库</a></h3>
+            <p>为同好会提供 PDF 或页面图片上传、实时生成 3D 翻页阅读入口的公开资料库。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="wiki-index-country wiki-article-shell" id="recent-updates">
+        <div class="wiki-index-section-heading">
+          <h2>最近更新</h2>
+          <span>按更新时间排序</span>
+        </div>
+        <div class="wiki-entry-list" id="recentUpdates">
+          <article class="wiki-index-card wiki-entry" data-search="江苏大学 玄唐 galgame 交流会 江苏">
+            <div class="wiki-index-card-meta">江苏大学 · 江苏 · 2026-05-15</div>
+            <h3><a href="./pages/china-94.html">江苏大学·玄唐Galgame交流会</a></h3>
+            <p>欢迎来到玄唐 Galgame 交流会。</p>
+          </article>
+        </div>
+      </section>
+
+      <div id="wikiCountries">
+        <section class="wiki-index-country wiki-article-shell" id="country-china">
+          <div class="wiki-index-section-heading"><h2>中国</h2><span>5 个页面</span></div>
+          <section class="wiki-index-region"><h3>甘肃 <span>1</span></h3><div class="wiki-entry-list">
+            <article class="wiki-index-card wiki-entry" data-search="西北民族大学 民大galgame同好会 甘肃">
+              <div class="wiki-index-card-meta">西北民族大学 · 甘肃 · 2026-05-15</div>
+              <h3><a href="./pages/china-26.html">西北民族大学_民大Galgame同好会</a></h3>
+              <p>由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会。</p>
+            </article>
+          </div></section>
+          <section class="wiki-index-region"><h3>湖北 <span>1</span></h3><div class="wiki-entry-list">
+            <article class="wiki-index-card wiki-entry" data-search="华中科技大学 风蓝galgame交流群 湖北">
+              <div class="wiki-index-card-meta">华中科技大学 · 湖北 · 2026-05-15</div>
+              <h3><a href="./pages/china-79.html">华中科技大学_风蓝galgame交流群</a></h3>
+              <p>登记在 Galgame 同好会地图中的高校同好会之一。</p>
+            </article>
+          </div></section>
+          <section class="wiki-index-region"><h3>江苏 <span>3</span></h3><div class="wiki-entry-list">
+            <article class="wiki-index-card wiki-entry" data-search="江苏大学 玄唐galgame交流会 江苏">
+              <div class="wiki-index-card-meta">江苏大学 · 江苏 · 2026-05-15</div>
+              <h3><a href="./pages/china-94.html">江苏大学·玄唐Galgame交流会</a></h3>
+              <p>欢迎来到玄唐 Galgame 交流会。</p>
+            </article>
+            <article class="wiki-index-card wiki-entry" data-search="淮安大学 巡樱阁视觉小说同好会 江苏">
+              <div class="wiki-index-card-meta">淮安大学 · 江苏 · 2026-05-15</div>
+              <h3><a href="./pages/china-117.html">淮安大学_HAU丨巡樱阁视觉小说同好会</a></h3>
+              <p>登记在 Galgame 同好会地图中的高校同好会之一。</p>
+            </article>
+            <article class="wiki-index-card wiki-entry" data-search="盐城工学院 盐工橘柚视觉小说同好会 江苏">
+              <div class="wiki-index-card-meta">盐城工学院 · 江苏 · 2026-05-15</div>
+              <h3><a href="./pages/china-114.html">盐工橘柚视觉小说同好会</a></h3>
+              <p>登记在 Galgame 同好会地图中的高校同好会之一。</p>
+            </article>
+          </div></section>
+        </section>
+        <section class="wiki-index-country wiki-article-shell" id="country-japan">
+          <div class="wiki-index-section-heading"><h2>日本</h2><span>0 个页面</span></div>
+          <p class="wiki-index-empty">暂无已生成的日本 Wiki 页面。</p>
+        </section>
       </div>
-      <div class="wiki-extension-grid" id="extensionsGrid">
-        <p class="wiki-index-empty">加载中...</p>
+
+      <section class="wiki-index-country wiki-article-shell" id="all-pages">
+        <div class="wiki-index-section-heading">
+          <h2>全部页面索引</h2>
+          <span id="allPagesCount">静态兜底</span>
+        </div>
+        <div class="wiki-page-index" id="allPagesList">
+          <a class="wiki-page-index-item wiki-index-card" href="./pages/china-26.html" data-search="西北民族大学 民大galgame同好会 甘肃">西北民族大学_民大Galgame同好会</a>
+          <a class="wiki-page-index-item wiki-index-card" href="./pages/china-94.html" data-search="江苏大学 玄唐galgame交流会 江苏">江苏大学·玄唐Galgame交流会</a>
+        </div>
+      </section>
+
+      <div id="wikiLibrary">
+        <section class="wiki-index-country wiki-article-shell" id="wiki-library">
+          <div class="wiki-index-section-heading"><h2>文档库</h2><span>1 个文档</span></div>
+          <div class="wiki-entry-list">
+            <article class="wiki-library-card wiki-entry" data-search="vnfest wiki 编写说明 编写规范">
+              <div class="wiki-index-card-meta">编写规范 · 2026-05-15</div>
+              <h3><a href="./library/wiki-writing-guide.html">VNFest WIKI 编写说明</a></h3>
+              <p>说明学校 Wiki 页面适合填写哪些内容、如何组织资料、如何处理图片与参考资料。</p>
+            </article>
+          </div>
+        </section>
       </div>
+
+      <div class="wiki-empty-search" id="emptySearch">没有找到匹配的结果，试试其他关键词。</div>
     </section>
 
-    <!-- Static content: visible by default, replaced by JS when fetch succeeds -->
-    <div id="wikiCountries">
-      <section class="wiki-index-country" id="country-china">
-        <div class="wiki-index-section-heading"><h2>中国</h2><span>5 个页面</span></div>
-        <section class="wiki-index-region"><h3>甘肃省 <span>1</span></h3><div class="wiki-index-grid">
-          <article class="wiki-index-card" data-search="西北民族大学_民大galgame同好会 西北民族大学_民大galgame同好会 西北民族大学 甘肃省 由英国高地与群岛大学联合创建的西北民大galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用。"><div class="wiki-index-card-meta">西北民族大学 · 2026-05-15</div><h3>西北民族大学_民大Galgame同好会</h3><p>由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用。</p><a href="./pages/china-26.html">进入页面</a></article>
-        </div></section>
-        <section class="wiki-index-region"><h3>湖北省 <span>1</span></h3><div class="wiki-index-grid">
-          <article class="wiki-index-card" data-search="华中科技大学_风蓝galgame交流群 华中科技大学_风蓝galgame交流群 华中科技大学 湖北省 华中科技大学_风蓝galgame交流群 是登记在 galgame 同好会地图中的高校同好会之一。"><div class="wiki-index-card-meta">华中科技大学 · 2026-05-15</div><h3>华中科技大学_风蓝galgame交流群</h3><p>华中科技大学_风蓝galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。</p><a href="./pages/china-79.html">进入页面</a></article>
-        </div></section>
-        <section class="wiki-index-region"><h3>江苏省 <span>3</span></h3><div class="wiki-index-grid">
-          <article class="wiki-index-card" data-search="江苏大学·玄唐galgame交流会 江苏大学·玄唐galgame交流会 江苏大学 江苏省 欢迎来到玄唐 galgame 交流会"><div class="wiki-index-card-meta">江苏大学 · 2026-05-15</div><h3>江苏大学·玄唐Galgame交流会</h3><p>欢迎来到玄唐 Galgame 交流会</p><a href="./pages/china-94.html">进入页面</a></article>
-          <article class="wiki-index-card" data-search="淮安大学_hau丨巡樱阁视觉小说同好会 淮安大学_hau丨巡樱阁视觉小说同好会 淮安大学 江苏省 淮安大学_hau丨巡樱阁视觉小说同好会 是登记在 galgame 同好会地图中的高校同好会之一。"><div class="wiki-index-card-meta">淮安大学 · 2026-05-15</div><h3>淮安大学_HAU丨巡樱阁视觉小说同好会</h3><p>淮安大学_HAU丨巡樱阁视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。</p><a href="./pages/china-117.html">进入页面</a></article>
-          <article class="wiki-index-card" data-search="盐工橘柚视觉小说同好会 盐工橘柚视觉小说同好会 盐城工学院 江苏省 盐城工学院_盐工橘柚视觉小说同好会 是登记在 galgame 同好会地图中的高校同好会之一。"><div class="wiki-index-card-meta">盐城工学院 · 2026-05-15</div><h3>盐工橘柚视觉小说同好会</h3><p>盐城工学院_盐工橘柚视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。</p><a href="./pages/china-114.html">进入页面</a></article>
-        </div></section></section>
-      <section class="wiki-index-country" id="country-japan">
-        <div class="wiki-index-section-heading"><h2>日本</h2><span>0 个页面</span></div>
-        <p class="wiki-index-empty">暂无已生成的 日本 Wiki 页面。</p></section>
-    </div>
-    <div id="wikiLibrary">
-      <section class="wiki-index-country" id="wiki-library">
-        <div class="wiki-index-section-heading"><h2>文档库</h2><span>1 个文档</span></div>
-        <div class="wiki-index-grid">
-          <article class="wiki-library-card" data-search="vnfest wiki 编写说明 编写规范 用于说明学校 wiki 页面适合填写哪些内容、如何组织资料、如何处理图片与参考资料。"><div class="wiki-index-card-meta">编写规范 · 2026-05-15</div><h3>VNFest WIKI 编写说明</h3><p>用于说明学校 Wiki 页面适合填写哪些内容、如何组织资料、如何处理图片与参考资料。</p><a href="./library/wiki-writing-guide.html">查看文档</a></article>
-        </div></section>
-    </div>
-
-    <!-- Empty search message -->
-    <div class="wiki-empty-search" id="emptySearch">没有找到匹配的结果，试试其他关键词。</div>
-
+    <aside class="wiki-index-aside" aria-label="维护与编写">
+      <section class="wiki-sidebar-card" id="maintenance">
+        <div class="wiki-index-section-heading">
+          <h2>维护中心</h2>
+          <span id="statExt">- 个扩展位</span>
+        </div>
+        <div class="wiki-maintenance-list" id="extensionsGrid">
+          <p class="wiki-index-empty">加载中...</p>
+        </div>
+      </section>
+      <section class="wiki-sidebar-card">
+        <h2>编写指南</h2>
+        <p>建议优先补充简介、发展沿革、活动记录、公开链接和参考资料。图片请使用 Wiki 编辑器上传，并保留必要说明。</p>
+        <a class="wiki-text-link" href="./library/wiki-writing-guide.html">查看编写说明</a>
+      </section>
+    </aside>
   </main>
 
   <script>
   (function () {
-    var DATA = {
-      index: null,
-      features: null,
-      library: null
-    };
-
+    var DATA = { index: null, features: null, library: null };
     var elSearch = document.getElementById('wikiIndexSearch');
     var elCountries = document.getElementById('wikiCountries');
     var elLibrary = document.getElementById('wikiLibrary');
@@ -116,10 +183,22 @@
     var elStatExt = document.getElementById('statExt');
     var elExtensions = document.getElementById('extensionsGrid');
     var elEmpty = document.getElementById('emptySearch');
+    var elRecent = document.getElementById('recentUpdates');
+    var elAllPages = document.getElementById('allPagesList');
+    var elAllPagesCount = document.getElementById('allPagesCount');
     var currentWikiLang = (new URLSearchParams(window.location.search).get('lang') || localStorage.getItem('language') || 'zh') === 'ja' ? 'ja' : 'zh';
-
     var COUNTRIES = { china: '中国', japan: '日本' };
     document.documentElement.lang = currentWikiLang === 'ja' ? 'ja' : 'zh-CN';
+
+    function esc(s) {
+      var d = document.createElement('div');
+      d.textContent = s == null ? '' : String(s);
+      return d.innerHTML;
+    }
+
+    function firstParagraph(text) {
+      return String(text || '该页面已建立，内容可继续补充。').split(/\r?\n/).filter(Boolean)[0] || '该页面已建立，内容可继续补充。';
+    }
 
     function localizedItem(item) {
       if (currentWikiLang !== 'ja') return item;
@@ -133,225 +212,183 @@
       return copy;
     }
 
-    function esc(s) {
-      var d = document.createElement('div');
-      d.textContent = s;
-      return d.innerHTML;
+    function searchable(parts) {
+      return esc(parts.filter(Boolean).join(' ').toLowerCase());
     }
 
-    function renderCard(item) {
+    function renderEntry(item) {
       item = localizedItem(item);
-      return '<article class="wiki-index-card" data-search="' +
-        esc([item.title, item.club_name, item.school, item.region, item.summary].join(' ').toLowerCase()) +
+      return '<article class="wiki-index-card wiki-entry" data-search="' +
+        searchable([item.title, item.club_name, item.school, item.region, item.summary]) +
         '"><div class="wiki-index-card-meta">' +
         esc(item.school || '未标注学校') + ' · ' +
+        esc(item.region || '未标注地区') + ' · ' +
         esc(item.updated_at || '未记录更新') +
-        '</div><h3>' + esc(item.title || '未命名页面') +
-        '</h3><p>' + esc(item.summary || '该页面已建立，内容可继续补充。') +
-        '</p><a href="' + esc(item.url || '#') + '">进入页面</a></article>';
+        '</div><h3><a href="' + esc(item.url || '#') + '">' + esc(item.title || '未命名页面') +
+        '</a></h3><p>' + esc(firstParagraph(item.summary)) + '</p></article>';
+    }
+
+    function renderIndexLink(item) {
+      item = localizedItem(item);
+      return '<a class="wiki-page-index-item wiki-index-card" href="' + esc(item.url || '#') +
+        '" data-search="' + searchable([item.title, item.club_name, item.school, item.region, item.summary]) + '">' +
+        esc(item.title || '未命名页面') + '<span>' + esc(item.school || item.region || '未标注') + '</span></a>';
     }
 
     function renderExtension(slot) {
       var enabled = slot.status === 'active' && !!slot.url;
-      return '<article class="wiki-extension-card' + (enabled ? '' : ' is-disabled') +
-        '"><div class="wiki-index-card-meta">' +
-        (enabled ? '已启用' : '预留模块') + ' · ' + esc(slot.key) +
-        '</div><h3>' + esc(slot.title) +
-        '</h3><p>' + esc(slot.description) +
-        '</p><a href="' + esc(slot.url || '#') + '">' +
-        (enabled ? '进入模块' : '等待后续开发') + '</a></article>';
+      return '<article class="wiki-extension-card wiki-maintenance-item' + (enabled ? '' : ' is-disabled') +
+        '"><div class="wiki-index-card-meta">' + (enabled ? '已启用' : '预留模块') + ' · ' + esc(slot.key) +
+        '</div><h3>' + esc(slot.title) + '</h3><p>' + esc(slot.description) +
+        '</p><a href="' + esc(slot.url || '#') + '">' + (enabled ? '进入模块' : '等待后续开发') + '</a></article>';
     }
 
     function renderLibDoc(doc) {
-      return '<article class="wiki-library-card" data-search="' +
-        esc([doc.title, doc.category, doc.description].join(' ').toLowerCase()) +
-        '"><div class="wiki-index-card-meta">' +
-        esc(doc.category) + ' · ' +
-        esc(doc.updated_at || '未记录更新') +
-        '</div><h3>' + esc(doc.title) +
-        '</h3><p>' + esc(doc.description || '文档库条目') +
-        '</p><a href="' + esc(doc.url) + '">查看文档</a></article>';
+      return '<article class="wiki-library-card wiki-entry" data-search="' +
+        searchable([doc.title, doc.category, doc.description]) +
+        '"><div class="wiki-index-card-meta">' + esc(doc.category || '文档') + ' · ' +
+        esc(doc.updated_at || '未记录更新') + '</div><h3><a href="' + esc(doc.url || '#') + '">' +
+        esc(doc.title || '未命名文档') + '</a></h3><p>' + esc(doc.description || '文档库条目') + '</p></article>';
+    }
+
+    function getItems(index) {
+      return Object.keys(index || {}).map(function (key) { return index[key]; }).filter(Boolean);
     }
 
     function buildCountries(index) {
-      if (!index || !Object.keys(index).length) {
-        return '<p class="wiki-index-empty">暂无已生成的高校 Wiki 页面。</p>';
-      }
-
+      var items = getItems(index);
+      if (!items.length) return '<p class="wiki-index-empty">暂无已生成的高校 Wiki 页面。</p>';
       var groups = {};
-      Object.keys(index).forEach(function (key) {
-        var item = localizedItem(index[key]);
+      items.forEach(function (raw) {
+        var item = localizedItem(raw);
         var country = item.country || '';
         var region = item.region || '未标注地区';
         if (!groups[country]) groups[country] = {};
         if (!groups[country][region]) groups[country][region] = [];
-        groups[country][region].push(item);
+        groups[country][region].push(raw);
       });
 
-      Object.keys(groups).forEach(function (c) {
-        var sorted = {};
-        Object.keys(groups[c]).sort().forEach(function (r) {
-          sorted[r] = groups[c][r];
-        });
-        groups[c] = sorted;
-      });
-
-      var html = '';
-      Object.keys(COUNTRIES).forEach(function (country) {
+      return Object.keys(COUNTRIES).map(function (country) {
         var label = COUNTRIES[country];
-        var regions = groups[country];
-        var count = 0;
-        if (regions) {
-          Object.keys(regions).forEach(function (r) { count += regions[r].length; });
-        }
-
-        html += '<section class="wiki-index-country" id="country-' + country + '">' +
+        var regions = groups[country] || {};
+        var regionNames = Object.keys(regions).sort();
+        var count = regionNames.reduce(function (sum, name) { return sum + regions[name].length; }, 0);
+        var html = '<section class="wiki-index-country wiki-article-shell" id="country-' + country + '">' +
           '<div class="wiki-index-section-heading"><h2>' + label + '</h2><span>' + count + ' 个页面</span></div>';
-
-        if (!regions) {
-          html += '<p class="wiki-index-empty">暂无已生成的 ' + label + ' Wiki 页面。</p>';
+        if (!regionNames.length) {
+          html += '<p class="wiki-index-empty">暂无已生成的' + label + ' Wiki 页面。</p>';
         } else {
-          Object.keys(regions).forEach(function (region) {
-            var rows = regions[region];
-            html += '<section class="wiki-index-region"><h3>' + esc(region) + ' <span>' + rows.length + '</span></h3>' +
-              '<div class="wiki-index-grid">' +
-              rows.map(renderCard).join('') +
-              '</div></section>';
+          regionNames.forEach(function (region) {
+            html += '<section class="wiki-index-region"><h3>' + esc(region) + ' <span>' + regions[region].length + '</span></h3>' +
+              '<div class="wiki-entry-list">' + regions[region].map(renderEntry).join('') + '</div></section>';
           });
         }
-        html += '</section>';
-      });
-
-      return html;
+        return html + '</section>';
+      }).join('');
     }
 
-    function updateStats() {
-      if (DATA.index) {
-        elStatWiki.textContent = Object.keys(DATA.index).length;
+    function updateDynamicSections() {
+      var items = getItems(DATA.index);
+      if (items.length) {
+        items.sort(function (a, b) {
+          return String(b.updated_at || '').localeCompare(String(a.updated_at || '')) ||
+            String(a.title || '').localeCompare(String(b.title || ''));
+        });
+        elRecent.innerHTML = items.slice(0, 6).map(renderEntry).join('');
+        elAllPages.innerHTML = items.slice().sort(function (a, b) {
+          return String(a.title || '').localeCompare(String(b.title || ''));
+        }).map(renderIndexLink).join('');
+        elAllPagesCount.textContent = items.length + ' 个页面';
+        elCountries.innerHTML = buildCountries(DATA.index);
+        elStatWiki.textContent = items.length;
+      } else {
+        var staticCards = elCountries.querySelectorAll('.wiki-index-card');
+        if (staticCards.length) elStatWiki.textContent = staticCards.length;
       }
-      if (DATA.library) {
+
+      if (DATA.library && DATA.library.length) {
+        elLibrary.innerHTML = '<section class="wiki-index-country wiki-article-shell" id="wiki-library">' +
+          '<div class="wiki-index-section-heading"><h2>文档库</h2><span>' + DATA.library.length + ' 个文档</span></div>' +
+          '<div class="wiki-entry-list">' + DATA.library.map(renderLibDoc).join('') + '</div></section>';
         elStatLib.textContent = DATA.library.length;
       }
-      if (DATA.features) {
+
+      if (DATA.features && DATA.features.length) {
+        elExtensions.innerHTML = DATA.features.map(renderExtension).join('');
         elStatExt.textContent = DATA.features.length + ' 个扩展位';
+      } else {
+        elExtensions.innerHTML = '<p class="wiki-index-empty">暂无扩展预留。</p>';
+        elStatExt.textContent = '0 个扩展位';
       }
     }
 
     function onSearch() {
       var keyword = (elSearch.value || '').trim().toLowerCase();
-      var allCards = document.querySelectorAll('.wiki-index-card, .wiki-library-card');
-
-      allCards.forEach(function (card) {
+      var searchableCards = document.querySelectorAll('.wiki-index-card, .wiki-library-card');
+      var anyVisible = false;
+      searchableCards.forEach(function (card) {
         var visible = !keyword || (card.getAttribute('data-search') || '').indexOf(keyword) !== -1;
         card.style.display = visible ? '' : 'none';
+        if (visible && card.closest('#wikiCountries, #wikiLibrary, #all-pages')) anyVisible = true;
       });
-
-      var regions = document.querySelectorAll('.wiki-index-region');
-      regions.forEach(function (region) {
-        var hasVisible = Array.prototype.some.call(
-          region.querySelectorAll('.wiki-index-card'),
-          function (c) { return c.style.display !== 'none'; }
-        );
+      document.querySelectorAll('.wiki-index-region').forEach(function (region) {
+        var hasVisible = Array.prototype.some.call(region.querySelectorAll('.wiki-index-card'), function (card) {
+          return card.style.display !== 'none';
+        });
         region.classList.toggle('is-hidden', !hasVisible);
       });
-
-      var countries = document.querySelectorAll('.wiki-index-country');
-      var anyVisibleCountry = false;
-      countries.forEach(function (country) {
-        var hasVisible = Array.prototype.some.call(
-          country.querySelectorAll('.wiki-index-card'),
-          function (c) { return c.style.display !== 'none'; }
-        );
+      document.querySelectorAll('#wikiCountries .wiki-index-country').forEach(function (country) {
+        var hasVisible = Array.prototype.some.call(country.querySelectorAll('.wiki-index-card'), function (card) {
+          return card.style.display !== 'none';
+        });
         country.classList.toggle('is-hidden', !hasVisible);
-        if (hasVisible) anyVisibleCountry = true;
       });
-
       if (elLibrary) {
-        var libHasVisible = Array.prototype.some.call(
-          elLibrary.querySelectorAll('.wiki-library-card'),
-          function (c) { return c.style.display !== 'none'; }
-        );
-        elLibrary.style.display = (!keyword || libHasVisible) ? '' : 'none';
+        var libVisible = Array.prototype.some.call(elLibrary.querySelectorAll('.wiki-library-card'), function (card) {
+          return card.style.display !== 'none';
+        });
+        elLibrary.style.display = (!keyword || libVisible) ? '' : 'none';
       }
-
-      elEmpty.classList.toggle('is-visible', keyword && !anyVisibleCountry);
+      elEmpty.classList.toggle('is-visible', !!keyword && !anyVisible);
     }
 
-    function initSearch() {
-      if (!elSearch) return;
-      elSearch.addEventListener('input', onSearch);
-    }
-
-    function initNav() {
+    function initInteractions() {
+      if (elSearch) elSearch.addEventListener('input', onSearch);
       document.querySelectorAll('[data-wiki-index-lang]').forEach(function (link) {
         link.classList.toggle('active', link.getAttribute('data-wiki-index-lang') === currentWikiLang);
       });
-      var navLinks = document.querySelectorAll('.wiki-nav a');
-      navLinks.forEach(function (a) {
-        a.addEventListener('click', function (e) {
-          var target = document.querySelector(a.getAttribute('href'));
-          if (target) {
-            e.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth' });
-          }
+      document.querySelectorAll('.wiki-nav a').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+          var target = document.querySelector(link.getAttribute('href'));
+          if (!target) return;
+          event.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
       });
     }
 
-    function loadAll() {
-      var base = './';
-
-      fetch(base + 'index.json')
-        .then(function (r) { return r.json(); })
-        .then(function (data) { DATA.index = data; })
-        .catch(function () {})
-        .then(function () {
-          return fetch(base + 'feature-slots.json')
-            .then(function (r) { return r.json(); })
-            .catch(function () { return null; });
-        })
-        .then(function (data) {
-          DATA.features = data ? (data.slots || []) : [];
-          return fetch(base + 'library/index.json')
-            .then(function (r) { return r.json(); })
-            .catch(function () { return null; });
-        })
-        .then(function (data) {
-          DATA.library = data ? (data.docs || []) : [];
-        })
-        .then(function () {
-          if (DATA.features && DATA.features.length) {
-            elExtensions.innerHTML = DATA.features.map(renderExtension).join('');
-          } else {
-            elExtensions.innerHTML = '<p class="wiki-index-empty">暂无扩展预留。</p>';
-          }
-
-          if (DATA.index && Object.keys(DATA.index).length) {
-            elCountries.innerHTML = buildCountries(DATA.index);
-          } else if (!DATA.index) {
-            var staticCards = elCountries.querySelectorAll('.wiki-index-card');
-            if (staticCards.length) {
-              elStatWiki.textContent = staticCards.length;
-            }
-          }
-
-          if (DATA.library && DATA.library.length) {
-            elLibrary.innerHTML = '<section class="wiki-index-country" id="wiki-library">' +
-              '<div class="wiki-index-section-heading"><h2>文档库</h2><span>' + DATA.library.length + ' 个文档</span></div>' +
-              '<div class="wiki-index-grid">' +
-              DATA.library.map(renderLibDoc).join('') +
-              '</div></section>';
-          }
-
-          updateStats();
-        })
-        .then(function () {
-          initSearch();
-          initNav();
-        });
+    function loadJson(path, fallback) {
+      return fetch(path).then(function (response) {
+        if (!response.ok) throw new Error('HTTP ' + response.status);
+        return response.json();
+      }).catch(function () { return fallback; });
     }
 
-    loadAll();
+    Promise.resolve()
+      .then(function () { return loadJson('./index.json', null); })
+      .then(function (index) {
+        DATA.index = index;
+        return loadJson('./feature-slots.json', { slots: [] });
+      })
+      .then(function (features) {
+        DATA.features = features && features.slots ? features.slots : [];
+        return loadJson('./library/index.json', { docs: [] });
+      })
+      .then(function (library) {
+        DATA.library = library && library.docs ? library.docs : [];
+        updateDynamicSections();
+        initInteractions();
+      });
   })();
   </script>
 </body>

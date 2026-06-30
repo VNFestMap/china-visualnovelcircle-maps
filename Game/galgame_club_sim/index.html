@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Galgame 同好会模拟器 - 校园同好会经营策略游戏" />
+  <meta name="theme-color" content="#F08FA8" />
+  <title>Galgame 同好会模拟器 v7</title>
+  <script type="module" crossorigin src="./assets/index-Ts5nTbyL.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BqnKdicY.css">
+</head>
+<body>
+<a class="skip-link" href="#viewContent">跳到游戏内容</a>
+
+<div class="app game-shell">
+  <header class="game-hud panel">
+    <div class="game-hud__brand">
+      <div class="brand-mark" aria-hidden="true">G</div>
+      <div>
+        <div class="version">GALGAME CLUB SIM · v7</div>
+        <h1>同好会作战室</h1>
+      </div>
+      <div class="brand-actions">
+        <span class="route-badge" id="clubRoute">路线倾向：校内成长</span>
+        <a class="club-square-back" href="../../club_square.html" aria-label="返回同好会广场">
+          <span data-icon="back" aria-hidden="true"></span>
+          <span>返回同好会广场</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="hud-strip" id="hudStrip">
+      <div class="hud-box hud-box--week">
+        <span>当前周数</span><b id="hudWeek">1</b><small id="hudSeason">春学期</small>
+      </div>
+      <div class="hud-box">
+        <span>经费</span><b id="hudFunds">0</b><small>行动与企划预算</small>
+      </div>
+      <div class="hud-box">
+        <span>知名度</span><b id="hudFame">0</b><small>招新与邀请</small>
+      </div>
+      <div class="hud-box">
+        <span>活跃成员</span><b id="hudActiveMembers">0</b><small id="hudMemberStage">萌芽期</small>
+      </div>
+      <div class="hud-box" id="hudPressureBox">
+        <span>同好会压力</span><b id="hudPressure">0</b><small id="hudPressureNote">过高会导致燃尽</small>
+      </div>
+      <div class="hud-box hud-box--progress">
+        <span>学年进度</span><b id="hudYear">0%</b><small>共 48 周</small>
+        <div class="hud-progress" aria-hidden="true"><span id="hudYearBar"></span></div>
+      </div>
+    </div>
+
+    <div class="toolbar" aria-label="游戏控制">
+      <button class="icon-btn" id="saveBtn" type="button" aria-label="保存进度" title="保存进度">
+        <span data-icon="save" aria-hidden="true"></span>
+      </button>
+      <button class="icon-btn" id="resetBtn" type="button" aria-label="重新开局" title="重新开局">
+        <span data-icon="restart" aria-hidden="true"></span>
+      </button>
+      <button class="icon-btn" id="clearLegacyBtn" type="button" aria-label="清除继承" title="清除继承">
+        <span data-icon="archive-x" aria-hidden="true"></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="game-nav panel" aria-label="游戏主菜单">
+    <button class="game-nav__item" type="button" data-route="command">
+      <span data-icon="command" aria-hidden="true"></span><span>指挥台</span>
+    </button>
+    <button class="game-nav__item" type="button" data-route="members">
+      <span data-icon="users" aria-hidden="true"></span><span>成员</span>
+    </button>
+    <button class="game-nav__item" type="button" data-route="archive">
+      <span data-icon="archive" aria-hidden="true"></span><span>同好会档案</span>
+    </button>
+    <button class="game-nav__item" type="button" data-route="projects">
+      <span data-icon="projects" aria-hidden="true"></span><span>企划报告</span>
+    </button>
+    <button class="game-nav__item" type="button" data-route="achievements">
+      <span data-icon="trophy" aria-hidden="true"></span><span>成就</span>
+    </button>
+  </nav>
+
+  <main class="game-stage" id="viewContent" tabindex="-1">
+    <section class="game-view" data-view="command" aria-labelledby="commandTitle">
+      <div class="command-layout">
+        <div class="command-stack">
+          <div class="panel card command-panel">
+            <div class="card-h command-heading">
+              <div>
+                <div class="eyebrow">WEEKLY COMMAND</div>
+                <h2 id="commandTitle">本周行动指挥台</h2>
+              </div>
+              <div class="command-heading__meta">
+                <span class="season-pill" id="seasonPill">春学期</span>
+                <span class="badge" id="actionCountBadge">可选行动 0</span>
+              </div>
+            </div>
+            <div class="card-b command-body">
+              <div class="week-brief">
+                <div>
+                  <span class="tiny">当前阶段</span>
+                  <strong id="weekNumber">第 1 周</strong>
+                </div>
+                <div>
+                  <span class="badge" id="weekHint">招新、破冰</span>
+                  <p id="seasonNote"></p>
+                </div>
+                <div class="progress week-progress" role="progressbar" aria-label="学期进度" id="termProgressBar">
+                  <div id="termProgress"></div>
+                </div>
+              </div>
+
+              <div class="control-bar">
+                <div class="policy-field">
+                  <span id="policyLabel">经营策略</span>
+                  <div class="policy-options" id="policySelect" role="radiogroup" aria-labelledby="policyLabel">
+                    <button type="button" data-policy="balanced" role="radio" aria-checked="true">平衡经营</button>
+                    <button type="button" data-policy="aggressive" role="radio" aria-checked="false">冲刺推进</button>
+                    <button type="button" data-policy="safe" role="radio" aria-checked="false">稳健运营</button>
+                  </div>
+                </div>
+                <button class="btn execute" id="doBtn" type="button">
+                  <span data-icon="play" aria-hidden="true"></span>
+                  执行本周
+                </button>
+              </div>
+
+              <div class="tabs" id="tabs" role="tablist" aria-label="行动分类"></div>
+              <div class="actions" id="actions" role="listbox" aria-label="可选行动"></div>
+
+              <div class="decision-deck">
+                <div class="mission-board" id="missionBoard"></div>
+                <div class="leader-deck">
+                  <div class="section-label">核心成员快捷指派</div>
+                  <div class="member-select" id="memberQuickSelect" aria-label="选择核心成员"></div>
+                </div>
+              </div>
+
+              <div id="eventBox"></div>
+              <div id="resultBox" class="result-box" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="panel card project-preview">
+            <div class="card-h">
+              <div><div class="eyebrow">ACTIVE PROJECTS</div><h3>当前企划</h3></div>
+              <button class="text-btn" type="button" data-route="projects">查看全部</button>
+            </div>
+            <div class="card-b"><div class="project-list project-list--preview" id="projectList"></div></div>
+          </div>
+        </div>
+
+        <aside class="panel card log-panel" aria-labelledby="logTitle">
+          <div class="card-h log-panel__header">
+            <div><div class="eyebrow">STORY TIMELINE</div><h3 id="logTitle">同好会剧情日志</h3></div>
+            <span class="live-dot">记录中</span>
+          </div>
+          <div class="card-b log-body">
+            <div class="log-list" id="logList" role="log" aria-live="polite"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="game-view secondary-view" data-view="members" aria-labelledby="membersTitle" hidden>
+      <div class="view-header panel">
+        <div>
+          <div class="eyebrow">ROSTER & COMMUNITY</div>
+          <h2 id="membersTitle">成员管理</h2>
+          <p>核心成员负责行动，普通成员决定社群规模、活跃度与承载力。</p>
+        </div>
+        <button class="btn ghost view-back" type="button" data-route="command">
+          <span data-icon="back" aria-hidden="true"></span>返回指挥台
+        </button>
+      </div>
+      <div class="members-layout">
+        <div class="panel card community-panel">
+          <div class="card-h"><h3>普通成员成长</h3><span class="badge">社群生态</span></div>
+          <div class="card-b"><div id="commonPanel"></div></div>
+        </div>
+        <div class="panel card roster-panel">
+          <div class="card-h"><h3>核心成员</h3><span class="badge" id="coreMemberCount">0 / 10</span></div>
+          <div class="card-b roster-panel__body">
+            <div class="member-focus" id="memberDetail"></div>
+            <div class="member-list" id="memberList" aria-label="核心成员列表"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-view secondary-view" data-view="archive" aria-labelledby="archiveTitle" hidden>
+      <div class="view-header panel">
+        <div>
+          <div class="eyebrow">CLUB ARCHIVE</div>
+          <h2 id="archiveTitle">同好会档案</h2>
+          <p>查看资源流动、组织能力和文化积累，理解行动为什么产生当前结果。</p>
+        </div>
+        <button class="btn ghost view-back" type="button" data-route="command">
+          <span data-icon="back" aria-hidden="true"></span>返回指挥台
+        </button>
+      </div>
+
+      <div class="archive-dashboard">
+        <div class="archive-primary">
+          <div class="panel card archive-overview">
+            <div class="card-h"><h3>六维能力</h3><span class="season-pill">组织画像</span></div>
+            <div class="card-b archive-overview__body">
+              <div class="radar-wrap"><canvas id="radar" width="330" height="250" aria-label="同好会六维雷达图" role="img"></canvas></div>
+              <div class="stats" id="statList"></div>
+            </div>
+          </div>
+
+          <div class="panel card archive-rules">
+            <div class="card-h"><h3>资源与经营诊断</h3><span class="badge">规则层</span></div>
+            <div class="card-b">
+              <div class="res-grid" id="resGrid"></div>
+              <div class="diag-grid" id="diagGrid"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="archive-secondary">
+          <div class="panel card archive-culture">
+            <div class="card-h"><h3>文化倾向</h3><span class="badge">长期积累</span></div>
+            <div class="card-b"><div class="culture-list" id="cultureList"></div></div>
+          </div>
+
+          <div class="panel card archive-refs">
+            <div class="card-h"><h3>历史灵感</h3><span class="badge">本周参考</span></div>
+            <div class="card-b"><div class="ref-list" id="refList"></div></div>
+          </div>
+
+          <div class="panel card legacy-panel">
+            <div class="card-h"><h3>周目继承</h3><span class="badge">永久档案</span></div>
+            <div class="card-b"><div id="legacyPanel"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-view secondary-view projects-view" data-view="projects" aria-labelledby="projectsTitle" hidden>
+      <div class="view-header panel">
+        <div>
+          <div class="eyebrow">PROJECT OPERATIONS</div>
+          <h2 id="projectsTitle">企划与阶段报告</h2>
+          <p>行动投入形成企划进度，质量、负荷和风险共同决定最终反馈。</p>
+        </div>
+        <button class="btn ghost view-back" type="button" data-route="command">
+          <span data-icon="back" aria-hidden="true"></span>返回指挥台
+        </button>
+      </div>
+      <div class="project-cycle" aria-label="企划经营循环">
+        <div class="project-cycle__step">
+          <span class="project-cycle__icon" data-icon="play" aria-hidden="true"></span>
+          <div><small>STEP 01</small><strong>选择企划行动</strong><p>确认经费、负责人和本周投入。</p></div>
+        </div>
+        <div class="project-cycle__step">
+          <span class="project-cycle__icon" data-icon="projects" aria-hidden="true"></span>
+          <div><small>STEP 02</small><strong>跨周推进</strong><p>平衡进度、质量、负荷与风险。</p></div>
+        </div>
+        <div class="project-cycle__step">
+          <span class="project-cycle__icon" data-icon="archive" aria-hidden="true"></span>
+          <div><small>STEP 03</small><strong>结算与复盘</strong><p>阶段报告会转化为下一阶段目标。</p></div>
+        </div>
+      </div>
+      <div class="projects-layout">
+        <div class="panel card projects-board">
+          <div class="card-h"><h3>企划进度</h3><span class="badge">行动 → 反馈</span></div>
+          <div class="card-b"><div class="project-list" id="projectArchiveList"></div></div>
+        </div>
+        <div class="panel card reports-board">
+          <div class="card-h"><h3>学期报告</h3><span class="badge">状态 → 新目标</span></div>
+          <div class="card-b"><div class="report-list" id="reportList"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-view secondary-view" data-view="achievements" aria-labelledby="achievementsTitle" hidden>
+      <div class="view-header panel">
+        <div>
+          <div class="eyebrow">COLLECTION & GOALS</div>
+          <h2 id="achievementsTitle">成就收藏室</h2>
+          <p>本学年目标提供短期方向，永久成就记录跨周目的同好会故事。</p>
+        </div>
+        <button class="btn ghost view-back" type="button" data-route="command">
+          <span data-icon="back" aria-hidden="true"></span>返回指挥台
+        </button>
+      </div>
+      <div class="panel card achievement-panel">
+        <div class="card-h"><h3>收藏与追踪目标</h3><span class="badge" id="achievementCount">0/0</span></div>
+        <div class="card-b"><div id="achievementList" aria-label="成就列表"></div></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="game-footer">
+    <span>Galgame 同好会模拟器 v7</span>
+    <span>资源规则 · 角色行动 · 状态循环</span>
+  </footer>
+</div>
+
+<div class="modal-mask" id="modalMask" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <div class="modal">
+    <div class="modal-h">
+      <div><div class="eyebrow">IMPORTANT EVENT</div><h3 id="modalTitle">阶段总结</h3></div>
+      <button class="icon-btn" id="closeModal" type="button" aria-label="关闭弹窗">
+        <span data-icon="close" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="modal-b" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="../../js/page-background.js?v=20260612-club-sim" data-picker="compact"></script>
+</body>
+</html>

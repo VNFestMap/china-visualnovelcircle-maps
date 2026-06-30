@@ -34,7 +34,7 @@ function postVote(url, body) {
 }
 function typeLabelVote(type) { return type === 'moe' ? '萌战' : '十二器'; }
 function sourceLabelVote(type) {
-  return ({ bangumi_subject: 'Bangumi 作品', bangumi_character: 'Bangumi 角色', vndb_vn: 'VNDB', manual: '手动' })[type] || type || '来源';
+  return ({ bangumi_subject: 'Bangumi 作品', bangumi_character: 'Bangumi 角色', vndb_vn: 'VNDB', vndb_character: 'VNDB', manual: '手动' })[type] || type || '来源';
 }
 function statusLabelVote(status) {
   return ({ draft: '草稿', published: '已发布', running: '进行中', ended: '已结束', archived: '已归档', suspended: '已暂停' })[status] || status || '未知';
@@ -81,3 +81,23 @@ function parseConfigVote(s) {
     MQ.addListener(handleChange);
   }
 })();
+
+function initVoteThemeToggle(buttonId) {
+  var btn = document.getElementById(buttonId);
+  if (!btn) return;
+  var html = document.documentElement;
+  var sun = btn.querySelector('.icon-sun');
+  var moon = btn.querySelector('.icon-moon');
+  function updateIcon() {
+    var isDark = html.getAttribute('data-theme') === 'dark';
+    if (sun) sun.style.display = isDark ? 'none' : '';
+    if (moon) moon.style.display = isDark ? '' : 'none';
+  }
+  updateIcon();
+  btn.addEventListener('click', function () {
+    var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    html.setAttribute('data-theme', next);
+    try { localStorage.setItem('themePreference', next); } catch (e) {}
+    updateIcon();
+  });
+}

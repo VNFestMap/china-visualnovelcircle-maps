@@ -41,7 +41,7 @@
         "club_name": "江苏科技大学_星奏视觉小说同好会",
         "region": "江苏",
         "summary": "江苏科技大学星奏视觉小说同好会是登记在 Galgame 同好会地图中的高校同好会之一。\n星奏视觉小说同好会（Seisou Visual Novel Circle）是由本校学生为核心以 Galgame \/ 视觉小说为兴趣的同好团体。旨在为校内校外视觉小说爱好者提供一个轻松的交流平台。",
-        "updated_at": "2026-05-27",
+        "updated_at": "2026-06-16",
         "i18n": {
             "ja": {
                 "title": "江蘇科技大学 | 星奏ビジュアルノベル同好会",
@@ -94,6 +94,28 @@
         "summary": "华北电力大学_花店物语社北京分社 是登记在 Galgame 同好会地图中的高校同好会之一。",
         "updated_at": "2026-05-15"
     },
+    "china-233": {
+        "title": "VNF视觉小说学园祭",
+        "url": ".\/pages\/china-233.html",
+        "country": "china",
+        "country_label": "中国",
+        "school": "VNFest视觉小说学园祭·CN",
+        "club_name": "VNF视觉小说学园祭",
+        "region": "上海",
+        "summary": "VNF视觉小说学园祭 是登记在 Galgame 同好会地图中的高校同好会之一。",
+        "updated_at": "2026-06-14"
+    },
+    "china-241": {
+        "title": "浙江药科薮春结社",
+        "url": ".\/pages\/china-241.html",
+        "country": "china",
+        "country_label": "中国",
+        "school": "浙江药科职业大学",
+        "club_name": "浙江药科视觉小说同好会",
+        "region": "浙江",
+        "summary": "浙江药科视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
+        "updated_at": "2026-06-11"
+    },
     "china-26": {
         "title": "西北民族大学_民大Galgame同好会",
         "url": ".\/pages\/china-26.html",
@@ -104,6 +126,28 @@
         "region": "甘肃",
         "summary": "University of the Highlands and Islands, Perth College\n由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用\n\n官方网站：xbmu.mygalgame.top\n总会邮件:yyddtj@yyddtj.top\n英国高地与群岛大学分会电话：+1 4028821169",
         "updated_at": "2026-05-15"
+    },
+    "china-268": {
+        "title": "周口师范学院ACGN超自研gal社",
+        "url": ".\/pages\/china-268.html",
+        "country": "china",
+        "country_label": "中国",
+        "school": "周口师范学院ACGN超自研gal社",
+        "club_name": "周口师范学院ACGN超自研gal社",
+        "region": "河南",
+        "summary": "周口师范学院ACGN超自研gal社 是登记在 Galgame 同好会地图中的高校同好会之一。",
+        "updated_at": "2026-05-28"
+    },
+    "china-6": {
+        "title": "中国科学技术大学_中科大galgame交流群",
+        "url": ".\/pages\/china-6.html",
+        "country": "china",
+        "country_label": "中国",
+        "school": "中国科学技术大学",
+        "club_name": "中国科学技术大学_中科大galgame交流群",
+        "region": "安徽",
+        "summary": "中国科学技术大学_中科大galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
+        "updated_at": "2026-05-30"
     },
     "china-79": {
         "title": "华中科技大学_风蓝galgame交流群",

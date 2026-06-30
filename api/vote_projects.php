@@ -11,6 +11,14 @@ $action = trim((string)($_GET['action'] ?? ''));
 $typeFilter = isset($_GET['project_type']) ? voteNormalize((string)$_GET['project_type'], VOTE_PROJECT_TYPES, '') : '';
 $db = getDB();
 
+function voteProjectEligibilityInput(array $input, array $base = []): string {
+    $eligibility = voteNormalize((string)($input['eligibility_mode'] ?? ($base['eligibility_mode'] ?? 'club_member')), VOTE_ELIGIBILITY_MODES, 'club_member');
+    if (in_array($eligibility, ['invite_code', 'whitelist'], true)) {
+        voteRespond(['success' => false, 'message' => '邀请码/白名单参与资格尚未开放，请先选择同好会成员或登录用户'], 400);
+    }
+    return $eligibility;
+}
+
 switch ($action) {
     case 'list':
         $country = strtolower(trim((string)($_GET['country'] ?? 'all')));
@@ -44,13 +52,25 @@ switch ($action) {
             $ids = array_map(function ($r) { return $r['id']; }, $result);
             $idPlaceholders = implode(',', array_fill(0, count($ids), '?'));
             $stageStmt = $db->prepare(
-                "SELECT project_id, stage_type, title, status
+                "SELECT project_id, stage_type, title, status, ends_at, ends_at AS end_time,
+                        vote_mode, max_select, advance_count, group_count, result_visibility, config_json
                  FROM vote_stages
                  WHERE project_id IN ($idPlaceholders) AND status IN ('open', 'locked', 'pending')
                  ORDER BY CASE status WHEN 'open' THEN 0 WHEN 'pending' THEN 1 WHEN 'locked' THEN 2 ELSE 3 END, sort_order ASC"
             );
             $stageStmt->execute(array_map('intval', $ids));
             $stageRows = $stageStmt->fetchAll(PDO::FETCH_ASSOC);
+            $countStmt = $db->prepare(
+                "SELECT project_id, COUNT(*) AS entry_count
+                 FROM vote_entries
+                 WHERE project_id IN ($idPlaceholders) AND entry_status = 'approved'
+                 GROUP BY project_id"
+            );
+            $countStmt->execute(array_map('intval', $ids));
+            $entryCounts = [];
+            foreach ($countStmt->fetchAll(PDO::FETCH_ASSOC) as $countRow) {
+                $entryCounts[(int)$countRow['project_id']] = (int)$countRow['entry_count'];
+            }
             $stageIndex = [];
             foreach ($stageRows as $sr) {
                 $pid = (int)$sr['project_id'];
@@ -58,6 +78,7 @@ switch ($action) {
             }
             foreach ($result as &$r) {
                 $pid = $r['id'];
+                $r['entry_count'] = $entryCounts[$pid] ?? 0;
                 $r['current_stage'] = $stageIndex[$pid] ?? null;
             }
         }
@@ -125,7 +146,7 @@ switch ($action) {
         if ($clubId <= 0 || $title === '') voteRespond(['success' => false, 'message' => '请填写同好会和企划标题'], 400);
         if (!canManageClubInCountry($user, $clubId, $country)) voteRespond(['success' => false, 'message' => '只有负责人/管理员可创建本会企划'], 403);
         $visibility = voteNormalize((string)($input['visibility'] ?? 'public'), VOTE_VISIBILITIES, 'public');
-        $eligibility = voteNormalize((string)($input['eligibility_mode'] ?? 'club_member'), VOTE_ELIGIBILITY_MODES, 'club_member');
+        $eligibility = voteProjectEligibilityInput($input);
         $resultVisibility = voteNormalize((string)($input['result_visibility'] ?? 'live_rank_only'), VOTE_RESULT_VISIBILITIES, 'live_rank_only');
         $stmt = $db->prepare(
             "INSERT INTO vote_projects
@@ -147,7 +168,7 @@ switch ($action) {
             (int)$user['id'],
         ]);
         $id = (int)$db->lastInsertId();
-        voteDefaultStages($db, $id, $projectType);
+        voteDefaultStages($db, $id, $projectType, $resultVisibility);
         logAction('vote_project.create', 'vote_projects', $id, ['project_type' => $projectType, 'club_id' => $clubId, 'country' => $country]);
         voteRespond(['success' => true, 'id' => $id, 'project_type' => $projectType]);
 
@@ -166,7 +187,7 @@ switch ($action) {
             trim((string)($input['description'] ?? ($project['description'] ?? ''))),
             trim((string)($input['cover_url'] ?? ($project['cover_url'] ?? ''))),
             voteNormalize((string)($input['visibility'] ?? ($project['visibility'] ?? 'public')), VOTE_VISIBILITIES, 'public'),
-            voteNormalize((string)($input['eligibility_mode'] ?? ($project['eligibility_mode'] ?? 'club_member')), VOTE_ELIGIBILITY_MODES, 'club_member'),
+            voteProjectEligibilityInput($input, $project),
             voteNormalize((string)($input['result_visibility'] ?? ($project['result_visibility'] ?? 'live_rank_only')), VOTE_RESULT_VISIBILITIES, 'live_rank_only'),
             voteJson($input['config'] ?? voteDecode($project['config_json'] ?? '{}')),
             (int)$project['id'],

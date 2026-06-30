@@ -20,9 +20,28 @@ $indexFile = $rootDir . '/wiki/index.json';
 $homeFile = $rootDir . '/wiki/index.html';
 $uploadsDir = $rootDir . '/wiki/uploads';
 
-function wikiJsonResponse(array $payload): void {
+function wikiJsonResponse(array $payload, int $statusCode = 200): void {
+    http_response_code($statusCode);
     echo json_encode($payload, JSON_UNESCAPED_UNICODE);
     exit();
+}
+
+function wikiServerError(Throwable $error): void {
+    error_log('[wiki] ' . $error->getMessage() . "\n" . $error->getTraceAsString());
+    wikiJsonResponse([
+        'success' => false,
+        'message' => '维基保存服务异常，请稍后重试或联系管理员查看服务器日志',
+    ], 500);
+}
+
+function wikiEnsureDir(string $dir): bool {
+    return is_dir($dir) || @mkdir($dir, 0755, true);
+}
+
+function wikiWriteFile(string $file, string $contents): bool {
+    $dir = dirname($file);
+    if (!wikiEnsureDir($dir)) return false;
+    return @file_put_contents($file, $contents, LOCK_EX) !== false;
 }
 
 function wikiParseClubKey(string $clubKey): array {
@@ -39,9 +58,7 @@ function wikiReadJson(string $file, array $fallback): array {
 }
 
 function wikiWriteJson(string $file, array $data): bool {
-    $dir = dirname($file);
-    if (!is_dir($dir)) mkdir($dir, 0755, true);
-    return file_put_contents($file, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT), LOCK_EX) !== false;
+    return wikiWriteFile($file, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
 }
 
 function wikiEscape(string $value): string {
@@ -431,42 +448,62 @@ function wikiReadFeatureSlots(string $rootDir): array {
 }
 
 function wikiRenderIndexHome(array $manifest, array $libraryDocs, array $featureSlots): string {
-    uasort($manifest, function ($a, $b) {
+    $countries = ['china' => '中国', 'japan' => '日本'];
+    $items = array_values($manifest);
+    usort($items, function ($a, $b) {
         $left = (string)($a['country'] ?? '') . (string)($a['region'] ?? '') . (string)($a['title'] ?? '');
         $right = (string)($b['country'] ?? '') . (string)($b['region'] ?? '') . (string)($b['title'] ?? '');
         return strcmp($left, $right);
     });
-    $countries = ['china' => '中国', 'japan' => '日本'];
+
+    $renderEntry = function (array $item): string {
+        $summary = trim((string)($item['summary'] ?? '该页面已建立，内容可继续补充。'));
+        $summary = preg_split('/\r\n|\r|\n/', $summary)[0] ?? $summary;
+        $search = strtolower(implode(' ', [$item['title'] ?? '', $item['club_name'] ?? '', $item['school'] ?? '', $item['region'] ?? '', $item['summary'] ?? '']));
+        return '<article class="wiki-index-card wiki-entry" data-search="' . wikiEscape($search) . '">' .
+            '<div class="wiki-index-card-meta">' . wikiEscape((string)($item['school'] ?? '未标注学校')) . ' · ' . wikiEscape((string)($item['region'] ?? '未标注地区')) . ' · ' . wikiEscape((string)($item['updated_at'] ?? '未记录更新')) . '</div>' .
+            '<h3><a href="' . wikiEscape((string)($item['url'] ?? '#')) . '">' . wikiEscape((string)($item['title'] ?? '未命名页面')) . '</a></h3>' .
+            '<p>' . wikiEscape($summary ?: '该页面已建立，内容可继续补充。') . '</p>' .
+            '</article>';
+    };
+
+    $recentItems = $items;
+    usort($recentItems, function ($a, $b) {
+        $date = strcmp((string)($b['updated_at'] ?? ''), (string)($a['updated_at'] ?? ''));
+        return $date !== 0 ? $date : strcmp((string)($a['title'] ?? ''), (string)($b['title'] ?? ''));
+    });
+    $recentHtml = '';
+    foreach (array_slice($recentItems, 0, 6) as $item) {
+        if (is_array($item)) $recentHtml .= $renderEntry($item);
+    }
+    if ($recentHtml === '') {
+        $recentHtml = '<p class="wiki-index-empty">暂无最近更新。</p>';
+    }
+
     $countryHtml = '';
     foreach ($countries as $country => $label) {
-        $items = array_filter($manifest, function ($item) use ($country) {
+        $countryItems = array_filter($items, function ($item) use ($country) {
             return ($item['country'] ?? '') === $country;
         });
         $regions = [];
-        foreach ($items as $item) {
+        foreach ($countryItems as $item) {
             $regions[(string)($item['region'] ?? '未标注地区')][] = $item;
         }
         $regionHtml = '';
         foreach ($regions as $region => $rows) {
             $cards = '';
             foreach ($rows as $item) {
-                $search = strtolower(implode(' ', [$item['title'] ?? '', $item['club_name'] ?? '', $item['school'] ?? '', $item['region'] ?? '', $item['summary'] ?? '']));
-                $cards .= '<article class="wiki-index-card" data-search="' . wikiEscape($search) . '">' .
-                    '<div class="wiki-index-card-meta">' . wikiEscape((string)($item['school'] ?? '未标注学校')) . ' · ' . wikiEscape((string)($item['updated_at'] ?? '未记录更新')) . '</div>' .
-                    '<h3>' . wikiEscape((string)($item['title'] ?? '未命名页面')) . '</h3>' .
-                    '<p>' . wikiEscape((string)($item['summary'] ?? '该页面已建立，内容可继续补充。')) . '</p>' .
-                    '<a href="' . wikiEscape((string)($item['url'] ?? '#')) . '">进入页面</a>' .
-                    '</article>';
+                $cards .= $renderEntry($item);
             }
-            $regionHtml .= '<section class="wiki-index-region"><h3>' . wikiEscape($region) . ' <span>' . count($rows) . '</span></h3><div class="wiki-index-grid">' . $cards . '</div></section>';
+            $regionHtml .= '<section class="wiki-index-region"><h3>' . wikiEscape($region) . ' <span>' . count($rows) . '</span></h3><div class="wiki-entry-list">' . $cards . '</div></section>';
         }
-        $countryHtml .= '<section class="wiki-index-country" id="country-' . $country . '"><div class="wiki-index-section-heading"><h2>' . $label . '</h2><span>' . count($items) . ' 个页面</span></div>' . ($regionHtml ?: '<p class="wiki-index-empty">暂无已生成的高校 Wiki 页面。</p>') . '</section>';
+        $countryHtml .= '<section class="wiki-index-country wiki-article-shell" id="country-' . $country . '"><div class="wiki-index-section-heading"><h2>' . $label . '</h2><span>' . count($countryItems) . ' 个页面</span></div>' . ($regionHtml ?: '<p class="wiki-index-empty">暂无已生成的' . $label . ' Wiki 页面。</p>') . '</section>';
     }
 
     $slotHtml = '';
     foreach ($featureSlots as $slot) {
         $enabled = ($slot['status'] ?? '') === 'active' && !empty($slot['url']);
-        $slotHtml .= '<article class="wiki-extension-card' . ($enabled ? '' : ' is-disabled') . '">' .
+        $slotHtml .= '<article class="wiki-extension-card wiki-maintenance-item' . ($enabled ? '' : ' is-disabled') . '">' .
             '<div class="wiki-index-card-meta">' . ($enabled ? '已启用' : '预留模块') . ' · ' . wikiEscape((string)$slot['key']) . '</div>' .
             '<h3>' . wikiEscape((string)$slot['title']) . '</h3>' .
             '<p>' . wikiEscape((string)$slot['description']) . '</p>' .
@@ -477,12 +514,23 @@ function wikiRenderIndexHome(array $manifest, array $libraryDocs, array $feature
     $libraryHtml = '';
     foreach ($libraryDocs as $doc) {
         $search = strtolower(implode(' ', [$doc['title'], $doc['category'], $doc['description']]));
-        $libraryHtml .= '<article class="wiki-library-card" data-search="' . wikiEscape($search) . '">' .
+        $libraryHtml .= '<article class="wiki-library-card wiki-entry" data-search="' . wikiEscape($search) . '">' .
             '<div class="wiki-index-card-meta">' . wikiEscape($doc['category']) . ' · ' . wikiEscape($doc['updated_at'] ?: '未记录更新') . '</div>' .
-            '<h3>' . wikiEscape($doc['title']) . '</h3>' .
+            '<h3><a href="' . wikiEscape($doc['url']) . '">' . wikiEscape($doc['title']) . '</a></h3>' .
             '<p>' . wikiEscape($doc['description'] ?: '文档库条目') . '</p>' .
-            '<a href="' . wikiEscape($doc['url']) . '">查看文档</a>' .
             '</article>';
+    }
+
+    $allPagesHtml = '';
+    foreach ($items as $item) {
+        if (!is_array($item)) continue;
+        $search = strtolower(implode(' ', [$item['title'] ?? '', $item['club_name'] ?? '', $item['school'] ?? '', $item['region'] ?? '', $item['summary'] ?? '']));
+        $allPagesHtml .= '<a class="wiki-page-index-item wiki-index-card" href="' . wikiEscape((string)($item['url'] ?? '#')) . '" data-search="' . wikiEscape($search) . '">' .
+            wikiEscape((string)($item['title'] ?? '未命名页面')) .
+            '<span>' . wikiEscape((string)($item['school'] ?? ($item['region'] ?? '未标注'))) . '</span></a>';
+    }
+    if ($allPagesHtml === '') {
+        $allPagesHtml = '<p class="wiki-index-empty">暂无已生成的高校 Wiki 页面。</p>';
     }
 
     return '<!DOCTYPE html>
@@ -493,31 +541,47 @@ function wikiRenderIndexHome(array $manifest, array $libraryDocs, array $feature
   <title>VNFest WIKI</title>
   <link rel="stylesheet" href="./wiki.css">
 </head>
-<body>
-  <header class="wiki-header">
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
+    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language"><a href="?lang=zh" data-wiki-index-lang="zh" class="active">中文</a><a href="?lang=ja" data-wiki-index-lang="ja">日本語</a></nav>
   </header>
-  <main class="wiki-index-page">
-    <section class="wiki-index-hero">
-      <div><p class="wiki-index-kicker">VNFest WIKI</p><h1>高校同好会与资料文档库</h1><p>集中索引已填写并生成的高校 Wiki 页面，同时预留文档库用于整理编写规范、运营资料、活动资料和公开教程。</p></div>
-      <div class="wiki-index-stats"><div><strong>' . count($manifest) . '</strong><span>高校 Wiki</span></div><div><strong>' . count($libraryDocs) . '</strong><span>文档条目</span></div></div>
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="站点目录">
+      <div class="wiki-sidebar-card"><p class="wiki-index-kicker">VNFest WIKI</p><h1>高校同好会百科</h1><p>集中整理高校视觉小说、Galgame 与相关同好会资料。</p></div>
+      <nav class="wiki-nav wiki-index-toc" aria-label="首页目录"><a href="#recent-updates">最近更新</a><a href="#country-china">中国</a><a href="#country-japan">日本</a><a href="#all-pages">全部页面</a><a href="#wiki-library">文档库</a><a href="#maintenance">维护中心</a></nav>
+    </aside>
+    <section class="wiki-index-main">
+    <section class="wiki-index-hero wiki-article-shell">
+      <div><p class="wiki-index-kicker">百科索引</p><h2>VNFest WIKI 首页</h2><p>按地区、学校、文档和维护状态浏览同好会 Wiki。新增页面后，首页会从 JSON 索引自动同步。</p></div>
+      <div class="wiki-index-stats"><div><strong id="statWiki">' . count($manifest) . '</strong><span>高校 Wiki</span></div><div><strong id="statLib">' . count($libraryDocs) . '</strong><span>文档条目</span></div></div>
     </section>
-    <section class="wiki-index-tools"><input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档"><nav><a href="#country-china">中国</a><a href="#country-japan">日本</a><a href="#wiki-library">文档库</a></nav></section>
-    <section class="wiki-index-notice"><strong>索引规则</strong><span>本页由后台保存或生成器检测 wiki/content 中已填写的高校 Wiki 内容后生成。</span></section>
-    <section class="wiki-index-country" id="wiki-extensions"><div class="wiki-index-section-heading"><h2>后续功能预留</h2><span>' . count($featureSlots) . ' 个扩展位</span></div><div class="wiki-extension-grid">' . $slotHtml . '</div></section>
+    <section class="wiki-index-tools wiki-article-shell"><label class="wiki-search-label" for="wikiIndexSearch">搜索条目</label><input id="wikiIndexSearch" type="search" placeholder="搜索学校、同好会、地区或文档"><p>搜索会同时过滤地区索引、全部页面和文档库。</p></section>
+    <section class="wiki-index-notice wiki-article-shell"><strong>索引规则</strong><span>本页由后台保存或生成器检测 wiki/content 中已填写的高校 Wiki 内容后生成。</span></section>
+    <section class="wiki-index-country wiki-article-shell" id="recent-updates"><div class="wiki-index-section-heading"><h2>最近更新</h2><span>按更新时间排序</span></div><div class="wiki-entry-list" id="recentUpdates">' . $recentHtml . '</div></section>
+    <div id="wikiCountries">
     ' . $countryHtml . '
-    <section class="wiki-index-country" id="wiki-library"><div class="wiki-index-section-heading"><h2>文档库</h2><span>' . count($libraryDocs) . ' 个文档</span></div><div class="wiki-index-grid">' . ($libraryHtml ?: '<p class="wiki-index-empty">暂无文档。可以在 wiki/library/index.json 中添加文档条目。</p>') . '</div></section>
+    </div>
+    <section class="wiki-index-country wiki-article-shell" id="all-pages"><div class="wiki-index-section-heading"><h2>全部页面索引</h2><span id="allPagesCount">' . count($manifest) . ' 个页面</span></div><div class="wiki-page-index" id="allPagesList">' . $allPagesHtml . '</div></section>
+    <div id="wikiLibrary"><section class="wiki-index-country wiki-article-shell" id="wiki-library"><div class="wiki-index-section-heading"><h2>文档库</h2><span>' . count($libraryDocs) . ' 个文档</span></div><div class="wiki-entry-list">' . ($libraryHtml ?: '<p class="wiki-index-empty">暂无文档。可以在 wiki/library/index.json 中添加文档条目。</p>') . '</div></section></div>
+    <div class="wiki-empty-search" id="emptySearch">没有找到匹配的结果，试试其他关键词。</div>
+    </section>
+    <aside class="wiki-index-aside" aria-label="维护与编写">
+      <section class="wiki-sidebar-card" id="maintenance"><div class="wiki-index-section-heading"><h2>维护中心</h2><span id="statExt">' . count($featureSlots) . ' 个扩展位</span></div><div class="wiki-maintenance-list" id="extensionsGrid">' . ($slotHtml ?: '<p class="wiki-index-empty">暂无扩展预留。</p>') . '</div></section>
+      <section class="wiki-sidebar-card"><h2>编写指南</h2><p>建议优先补充简介、发展沿革、活动记录、公开链接和参考资料。</p><a class="wiki-text-link" href="./library/wiki-writing-guide.html">查看编写说明</a></section>
+    </aside>
   </main>
-  <script>(function(){var input=document.getElementById("wikiIndexSearch");var cards=Array.prototype.slice.call(document.querySelectorAll(".wiki-index-card,.wiki-library-card"));if(!input)return;input.addEventListener("input",function(){var keyword=input.value.trim().toLowerCase();cards.forEach(function(card){card.style.display=!keyword||card.getAttribute("data-search").indexOf(keyword)!==-1?"":"none";});});})();</script>
+  <script>(function(){var input=document.getElementById("wikiIndexSearch");var empty=document.getElementById("emptySearch");var navLinks=document.querySelectorAll(".wiki-nav a");function search(){var keyword=(input.value||"").trim().toLowerCase();var cards=document.querySelectorAll(".wiki-index-card,.wiki-library-card");var visible=false;cards.forEach(function(card){var hit=!keyword||(card.getAttribute("data-search")||"").indexOf(keyword)!==-1;card.style.display=hit?"":"none";if(hit&&card.closest("#wikiCountries,#wikiLibrary,#all-pages"))visible=true;});document.querySelectorAll(".wiki-index-region").forEach(function(region){var has=Array.prototype.some.call(region.querySelectorAll(".wiki-index-card"),function(card){return card.style.display!=="none";});region.classList.toggle("is-hidden",!has);});if(empty)empty.classList.toggle("is-visible",!!keyword&&!visible);}if(input)input.addEventListener("input",search);navLinks.forEach(function(link){link.addEventListener("click",function(event){var target=document.querySelector(link.getAttribute("href"));if(!target)return;event.preventDefault();target.scrollIntoView({behavior:"smooth",block:"start"});});});})();</script>
 </body>
 </html>';
 }
 
 function wikiGeneratePageAndIndex(string $clubKey, array $content, array $club, string $rootDir, string $contentDir, string $pagesDir, string $indexFile, string $homeFile): array {
-    if (!is_dir($pagesDir)) mkdir($pagesDir, 0755, true);
     $pageName = wikiPageName($clubKey);
-    file_put_contents($pagesDir . '/' . $pageName, wikiRenderPage($content, $club), LOCK_EX);
+    if (!wikiWriteFile($pagesDir . '/' . $pageName, wikiRenderPage($content, $club))) {
+        throw new RuntimeException('wiki page write failed: ' . $pageName);
+    }
 
     $manifest = [];
     if (is_dir($contentDir)) {
@@ -550,9 +614,13 @@ function wikiGeneratePageAndIndex(string $clubKey, array $content, array $club, 
             $manifest[$row['club_key']] = $rowManifest;
         }
     }
-    wikiWriteJson($indexFile, $manifest);
+    if (!wikiWriteJson($indexFile, $manifest)) {
+        throw new RuntimeException('wiki index write failed');
+    }
     if (!file_exists($homeFile)) {
-        file_put_contents($homeFile, wikiRenderIndexHome($manifest, wikiReadLibraryDocs($rootDir), wikiReadFeatureSlots($rootDir)), LOCK_EX);
+        if (!wikiWriteFile($homeFile, wikiRenderIndexHome($manifest, wikiReadLibraryDocs($rootDir), wikiReadFeatureSlots($rootDir)))) {
+            throw new RuntimeException('wiki home write failed');
+        }
     }
 
     return ['page_url' => './wiki/pages/' . $pageName, 'manifest' => $manifest];
@@ -599,13 +667,13 @@ function wikiUploadImage(string $clubKey, string $uploadsDir): void {
     ];
     $ext = $extMap[$detectedType];
     $dir = $uploadsDir . '/' . $clubKey;
-    if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
+    if (!wikiEnsureDir($dir)) {
+        wikiJsonResponse(['success' => false, 'message' => '图片目录不可写，请联系管理员检查 wiki/uploads 权限']);
     }
 
     $fileBase = date('YmdHis') . '_' . bin2hex(random_bytes(4));
     $destPath = $dir . '/' . $fileBase . '.' . $ext;
-    if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+    if (!@move_uploaded_file($file['tmp_name'], $destPath)) {
         wikiJsonResponse(['success' => false, 'message' => '图片保存失败']);
     }
 
@@ -617,55 +685,58 @@ function wikiUploadImage(string $clubKey, string $uploadsDir): void {
     ]);
 }
 
-$action = $_GET['action'] ?? '';
-$clubKey = trim((string)($_GET['club_key'] ?? ''));
-if ($clubKey === '') {
-    $inputForKey = json_decode(file_get_contents('php://input'), true);
-    if (is_array($inputForKey)) $clubKey = trim((string)($inputForKey['club_key'] ?? ''));
-}
-[$country, $clubId] = wikiParseClubKey($clubKey);
-
-$user = requireLogin();
-if (!canManageClubInCountry($user, $clubId, $country)) {
-    http_response_code(403);
-    wikiJsonResponse(['success' => false, 'message' => '无权编辑该同好会维基']);
-}
-
-$club = wikiGetClub($country, $clubId);
-$contentFile = $contentDir . '/' . $clubKey . '.json';
-
-if ($action === 'get' && $_SERVER['REQUEST_METHOD'] === 'GET') {
-    $exists = file_exists($contentFile);
-    $content = $exists ? wikiReadJson($contentFile, []) : wikiDefaultContent($clubKey, $club);
-    wikiJsonResponse([
-        'success' => true,
-        'exists' => $exists,
-        'club' => $club,
-        'content' => $content,
-        'page_url' => './wiki/pages/' . wikiPageName($clubKey),
-    ]);
-}
-
-if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    wikiUploadImage($clubKey, $uploadsDir);
-}
-
-if ($action === 'save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-    $input = json_decode(file_get_contents('php://input'), true);
-    if (!is_array($input)) {
-        wikiJsonResponse(['success' => false, 'message' => '无效数据']);
+try {
+    $action = $_GET['action'] ?? '';
+    $clubKey = trim((string)($_GET['club_key'] ?? ''));
+    if ($clubKey === '') {
+        $inputForKey = json_decode(file_get_contents('php://input'), true);
+        if (is_array($inputForKey)) $clubKey = trim((string)($inputForKey['club_key'] ?? ''));
     }
-    $content = wikiNormalizeContent($input, $clubKey, $club);
-    if (!wikiWriteJson($contentFile, $content)) {
-        wikiJsonResponse(['success' => false, 'message' => '保存内容失败']);
-    }
-    $generated = wikiGeneratePageAndIndex($clubKey, $content, $club, $rootDir, $contentDir, $pagesDir, $indexFile, $homeFile);
-    wikiJsonResponse([
-        'success' => true,
-        'message' => '维基内容已保存',
-        'content' => $content,
-        'page_url' => $generated['page_url'],
-    ]);
-}
+    [$country, $clubId] = wikiParseClubKey($clubKey);
 
-wikiJsonResponse(['success' => false, 'message' => '不支持的操作']);
+    $user = requireLogin();
+    if (!canManageClubInCountry($user, $clubId, $country)) {
+        wikiJsonResponse(['success' => false, 'message' => '无权编辑该同好会维基'], 403);
+    }
+
+    $club = wikiGetClub($country, $clubId);
+    $contentFile = $contentDir . '/' . $clubKey . '.json';
+
+    if ($action === 'get' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $exists = file_exists($contentFile);
+        $content = $exists ? wikiReadJson($contentFile, []) : wikiDefaultContent($clubKey, $club);
+        wikiJsonResponse([
+            'success' => true,
+            'exists' => $exists,
+            'club' => $club,
+            'content' => $content,
+            'page_url' => './wiki/pages/' . wikiPageName($clubKey),
+        ]);
+    }
+
+    if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        wikiUploadImage($clubKey, $uploadsDir);
+    }
+
+    if ($action === 'save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($input)) {
+            wikiJsonResponse(['success' => false, 'message' => '无效数据']);
+        }
+        $content = wikiNormalizeContent($input, $clubKey, $club);
+        if (!wikiWriteJson($contentFile, $content)) {
+            wikiJsonResponse(['success' => false, 'message' => '保存内容失败，请联系管理员检查 wiki/content 权限']);
+        }
+        $generated = wikiGeneratePageAndIndex($clubKey, $content, $club, $rootDir, $contentDir, $pagesDir, $indexFile, $homeFile);
+        wikiJsonResponse([
+            'success' => true,
+            'message' => '维基内容已保存',
+            'content' => $content,
+            'page_url' => $generated['page_url'],
+        ]);
+    }
+
+    wikiJsonResponse(['success' => false, 'message' => '不支持的操作']);
+} catch (Throwable $error) {
+    wikiServerError($error);
+}

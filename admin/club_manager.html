@@ -230,6 +230,9 @@ body::after {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .tab-btn:hover {
   color: var(--text-primary);
@@ -264,6 +267,65 @@ body::after {
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+}
+
+.svg-icon {
+  width: 1em;
+  height: 1em;
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: -0.15em;
+  color: currentColor;
+}
+
+.svg-icon.lg {
+  width: 1.15em;
+  height: 1.15em;
+}
+
+.header h1 .svg-icon {
+  color: #f0e6ff;
+  -webkit-text-fill-color: currentColor;
+}
+
+.empty .svg-icon.empty-icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  margin: 0 auto 14px;
+  color: var(--text-muted);
+  opacity: 0.78;
+}
+
+.setting-hero-icon {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 16px;
+  color: var(--accent-pink);
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toast .svg-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.user-search-bar .svg-icon.search-prefix {
+  align-self: center;
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+}
+
+.thumb .svg-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--text-muted);
 }
 .btn:hover {
   background: rgba(255,255,255,0.1);
@@ -1422,6 +1484,7 @@ body::after {
 .tab-btn {
   position: relative;
   min-height: 42px;
+  justify-content: flex-start;
   border-radius: 13px;
   text-align: left;
   color: var(--vn-muted);
@@ -2963,10 +3026,10 @@ body::after {
 <div class="container">
   <!-- Header -->
   <div class="header">
-    <h1>🎮 同好会管理</h1>
+    <h1><svg class="svg-icon lg" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12h4m-2-2v4"/><path d="M15 13h.01"/><path d="M18 11h.01"/><path d="M7 8h10a4 4 0 0 1 3.9 3.2l.7 3.8a3 3 0 0 1-5 2.7L15 16H9l-1.6 1.7a3 3 0 0 1-5-2.7l.7-3.8A4 4 0 0 1 7 8Z"/></svg> 同好会管理</h1>
     <div class="header-actions">
       <a href="#projects" class="header-link" onclick="event.preventDefault(); switchTab('projects');">企划枢纽</a>
-      <a href="../admin/reviews.html" class="header-link">📋 审核中心 <small style="font-size:10px;opacity:0.6;font-weight:400;">(仅超级管理员可用)</small></a>
+      <a href="../admin/reviews.html" class="header-link"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3"/></svg> 审核中心 <small style="font-size:10px;opacity:0.6;font-weight:400;">(仅超级管理员可用)</small></a>
       <a href="../index.html" class="header-link">← 返回地图</a>
       <button id="themeToggle" title="切换明亮/暗色模式" aria-label="切换明亮/暗色模式" style="background:none;border:none;cursor:pointer;padding:0 8px;color:inherit;font-size:16px;">
         <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -2991,23 +3054,23 @@ body::after {
     </div>
 
     <div class="tabs" id="tabBar">
-      <button class="tab-btn active" data-tab="pending">⏳ 待审核</button>
-      <button class="tab-btn" data-tab="diplomatic">🌐 外交申请</button>
-      <button class="tab-btn" data-tab="approved">✅ 已通过</button>
-      <button class="tab-btn" data-tab="members">👥 成员</button>
-      <button class="tab-btn" data-tab="settings">⚙️ 设置</button>
-      <button class="tab-btn" data-tab="codes">🔑 绑定码</button>
-      <button class="tab-btn" data-tab="bot_tokens">🤖 Bot 接入</button>
-      <button class="tab-btn" data-tab="recommendations">⭐ 神器榜</button>
+      <button class="tab-btn active" data-tab="pending"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 待审核</button>
+      <button class="tab-btn" data-tab="diplomatic"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg> 外交申请</button>
+      <button class="tab-btn" data-tab="approved"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> 已通过</button>
+      <button class="tab-btn" data-tab="members"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg> 成员</button>
+      <button class="tab-btn" data-tab="settings"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6.9h.1a2 2 0 0 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg> 设置</button>
+      <button class="tab-btn" data-tab="codes"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="14.5" r="4.5"/><path d="M11 11 21 1"/><path d="m16 6 2 2"/><path d="m18 4 2 2"/></svg> 绑定码</button>
+      <button class="tab-btn" data-tab="bot_tokens"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4"/><path d="M8 13h.01"/><path d="M16 13h.01"/><path d="M9 17h6"/></svg> Bot 接入</button>
+      <button class="tab-btn" data-tab="recommendations"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg> 神器榜</button>
       <button class="tab-btn" data-tab="projects">企划枢纽</button>
-      <button class="tab-btn" data-tab="users" id="usersTabBtn" style="display:none;">👥 用户管理</button>
+      <button class="tab-btn" data-tab="users" id="usersTabBtn" style="display:none;"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg> 用户管理</button>
     </div>
   </div>
 
   <!-- Right Content -->
   <div class="admin-content">
     <div class="toolbar">
-      <button class="btn btn-glass" onclick="loadData()">🔄 刷新</button>
+      <button class="btn btn-glass" onclick="loadData()"><svg class="svg-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 0 0-14.8-4"/><path d="M4 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4"/><path d="M20 19v-5h-5"/></svg> 刷新</button>
     </div>
     <div id="listContainer" class="list"><div class="empty">加载中...</div></div>
   </div>
@@ -3096,6 +3159,45 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : '&quot;');
 }
 
+const ICONS = {
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+  ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m5.7 5.7 12.6 12.6"/></svg>',
+  bot: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="8" width="14" height="11" rx="3"/><path d="M12 4v4"/><path d="M8 13h.01"/><path d="M16 13h.01"/><path d="M9 17h6"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>',
+  clipboard: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M9 5H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  crown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 8 4 9h10l4-9-5 3-4-6-4 6-5-3Z"/><path d="M7 21h10"/></svg>',
+  edit: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  empty: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M4 10h5l2 3h2l2-3h5"/></svg>',
+  gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 12h4m-2-2v4"/><path d="M15 13h.01"/><path d="M18 11h.01"/><path d="M7 8h10a4 4 0 0 1 3.9 3.2l.7 3.8a3 3 0 0 1-5 2.7L15 16H9l-1.6 1.7a3 3 0 0 1-5-2.7l.7-3.8A4 4 0 0 1 7 8Z"/></svg>',
+  globe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18"/><path d="M12 3a14 14 0 0 0 0 18"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>',
+  key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7.5" cy="14.5" r="4.5"/><path d="M11 11 21 1"/><path d="m16 6 2 2"/><path d="m18 4 2 2"/></svg>',
+  lightbulb: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M8 14a6 6 0 1 1 8 0c-1 1-1 2-1 4H9c0-2 0-3-1-4Z"/></svg>',
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
+  map: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>',
+  noEntry: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>',
+  paperclip: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.4 11.6-8.5 8.5a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>',
+  pointer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 4v9l-2-2a2 2 0 0 0-3 3l5 6h8l1-6-1-5a2 2 0 0 0-4 0V7a2 2 0 0 0-4 0"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11a8 8 0 0 0-14.8-4"/><path d="M4 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4"/><path d="M20 19v-5h-5"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  settings: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 0 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21a2 2 0 0 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1A2 2 0 0 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3a2 2 0 0 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1A2 2 0 0 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3h.1A1.7 1.7 0 0 0 10 3V3a2 2 0 0 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1A2 2 0 0 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.6.9h.1a2 2 0 0 1 0 4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>',
+  star: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></svg>',
+  users: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+  xCircle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>'
+};
+
+function icon(name, className = '') {
+  const svg = ICONS[name] || ICONS.info;
+  const cls = ('svg-icon ' + className).trim();
+  return svg.replace('<svg ', '<svg class="' + cls + '" aria-hidden="true" focusable="false" ');
+}
+
+function emptyHtml(iconName, contentHtml) {
+  return '<div class="empty">' + icon(iconName, 'empty-icon') + contentHtml + '</div>';
+}
+
 function formatDate(dateStr) {
   if (!dateStr) return '未知';
   try {
@@ -3105,10 +3207,11 @@ function formatDate(dateStr) {
   } catch { return dateStr; }
 }
 
-function showToast(msg, type) {
+function showToast(msg, type, iconName) {
   const el = document.getElementById('toast');
   if (!el) return;
-  el.textContent = msg;
+  const resolvedIcon = iconName || (type === 'error' ? 'xCircle' : type === 'success' ? 'check' : 'info');
+  el.innerHTML = icon(resolvedIcon) + '<span>' + escapeHtml(msg) + '</span>';
   el.style.background = type === 'error' ? 'rgba(239,83,80,0.15)' : type === 'success' ? 'rgba(76,175,80,0.15)' : '';
   el.style.borderColor = type === 'error' ? 'rgba(239,83,80,0.3)' : type === 'success' ? 'rgba(76,175,80,0.3)' : '';
   el.classList.add('show');
@@ -3162,17 +3265,17 @@ async function init() {
     const r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
     const data = await r.json();
     if (!data.logged_in) {
-      container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+      container.innerHTML = emptyHtml('lock', '请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a>');
       return;
     }
     currentUser = data;
     const effLevel = getEffectiveLevel(data);
     if (effLevel < ROLE_LEVEL.manager) {
-      container.innerHTML = '<div class="empty">⛔ 你没有管理权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+      container.innerHTML = emptyHtml('noEntry', '你没有管理权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a>');
       return;
     }
   } catch {
-    container.innerHTML = '<div class="empty">🔒 请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+    container.innerHTML = emptyHtml('lock', '请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a>');
     return;
   }
 
@@ -3234,7 +3337,7 @@ async function loadManagedClubs() {
     const opt = document.createElement('option');
     opt.value = m.club_id + '|' + (m.country || 'china');
     const name = getClubName(m.club_id, m.country);
-    const countryTag = m.country === 'japan' ? '🇯🇵 ' : '';
+    const countryTag = m.country === 'japan' ? '日本 · ' : '';
     opt.textContent = countryTag + name + ' · ' + (ROLE_NAMES[m.role] || m.role);
     sel.appendChild(opt);
   });
@@ -3246,7 +3349,7 @@ async function loadManagedClubs() {
     // Add "all" option for multi-managers
     const allOpt = document.createElement('option');
     allOpt.value = '-1';
-    allOpt.textContent = '📋 所有同好会';
+    allOpt.textContent = '所有同好会';
     sel.insertBefore(allOpt, sel.firstChild);
     sel.selectedIndex = 0;
     selectedClubId = -1;
@@ -3344,7 +3447,7 @@ function renderList(tab) {
   const container = document.getElementById('listContainer');
 
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
+    container.innerHTML = emptyHtml('empty', '暂无记录');
     return;
   }
 
@@ -3366,12 +3469,12 @@ function renderList(tab) {
           ${isExternal ? `<div class="row"><span class="label">所属同好会</span>${escapeHtml(item.external_club_name || '未填写')}</div>
           <div class="row"><span class="label">外校身份</span>${escapeHtml(item.external_club_role || '未填写')}</div>
           <div class="row"><span class="label">申请理由</span>${escapeHtml(item.apply_reason || '未填写')}</div>` : ''}
-          <div class="row"><span class="label">⏰ 申请时间</span>${formatDate(item.joined_at)}</div>
+          <div class="row"><span class="label">${icon('clock')} 申请时间</span>${formatDate(item.joined_at)}</div>
         </div>
         ${isPending ? `
         <div class="card-actions">
-          <button class="btn btn-approve btn-sm" onclick="approveMembership(${item.id})">✓ 批准</button>
-          <button class="btn btn-reject btn-sm" onclick="rejectMembership(${item.id})">✗ 拒绝</button>
+          <button class="btn btn-approve btn-sm" onclick="approveMembership(${item.id})">${icon('check')} 批准</button>
+          <button class="btn btn-reject btn-sm" onclick="rejectMembership(${item.id})">${icon('xCircle')} 拒绝</button>
         </div>` : ''}
       </div>`;
   }).join('');
@@ -3381,7 +3484,7 @@ function renderMembers() {
   const container = document.getElementById('listContainer');
 
   if (!selectedClubId || selectedClubId <= 0) {
-    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    container.innerHTML = emptyHtml('pointer', '请先在上方选择一个同好会');
     return;
   }
 
@@ -3400,7 +3503,7 @@ function renderMembers() {
     .then(data => {
       const members = data.success ? (data.members || []) : [];
       if (members.length === 0) {
-        container.innerHTML = '<div class="empty">👥 暂无成员</div>';
+        container.innerHTML = emptyHtml('users', '暂无成员');
         return;
       }
       container.innerHTML = members.map(m => {
@@ -3439,7 +3542,7 @@ function renderMembers() {
             <div style="display:flex;gap:4px;flex-shrink:0;margin-left:8px;">
               ${showRoleUp ? `<button class="btn btn-glass btn-sm" onclick="changeMemberRole(${m.id},'manager')">升为管理</button>` : ''}
               ${showRoleDown ? `<button class="btn btn-glass btn-sm" onclick="changeMemberRole(${m.id},'member')">设为成员</button>` : ''}
-              ${showTransfer ? `<button class="btn btn-pink btn-sm" onclick="transferRepresentative(${m.id},${selectedClubId},'${escapeHtml(m.username)}')">👑 转让</button>` : ''}
+              ${showTransfer ? `<button class="btn btn-pink btn-sm" onclick="transferRepresentative(${m.id},${selectedClubId},'${escapeHtml(m.username)}')">${icon('crown')} 转让</button>` : ''}
               ${showKick ? `<button class="btn btn-reject btn-sm" onclick="kickMember(${m.id},'${escapeHtml(m.username)}')">踢出</button>` : ''}
             </div>
           </div>
@@ -3447,26 +3550,26 @@ function renderMembers() {
       }).join('');
     })
     .catch(() => {
-      container.innerHTML = '<div class="empty">❌ 加载失败</div>';
+      container.innerHTML = emptyHtml('xCircle', '加载失败');
     });
 }
 
 function renderSettings() {
   const container = document.getElementById('listContainer');
   if (!selectedClubId || selectedClubId <= 0) {
-    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    container.innerHTML = emptyHtml('pointer', '请先在上方选择一个同好会');
     return;
   }
   const clubName = getClubName(selectedClubId, selectedCountry);
-  const countryTag = selectedCountry === 'japan' ? '🇯🇵 ' : '';
+  const countryTag = selectedCountry === 'japan' ? '日本 · ' : '';
   container.innerHTML = `
     <div class="card" style="text-align:center;padding:32px;">
-      <div style="font-size:40px;margin-bottom:16px;">📝</div>
+      <div>${icon('edit', 'setting-hero-icon')}</div>
       <div style="font-size:18px;font-weight:600;margin-bottom:8px;">${countryTag}${escapeHtml(clubName)}</div>
       <div style="color:var(--text-secondary);font-size:14px;margin-bottom:24px;">编辑同好会资料、管理成员角色</div>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-        <button class="btn btn-pink" onclick="openClubEdit()">✏️ 编辑同好会信息</button>
-        <a class="btn btn-glass" href="../index.html" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;">🗺️ 在地图中查看</a>
+        <button class="btn btn-pink" onclick="openClubEdit()">${icon('edit')} 编辑同好会信息</button>
+        <a class="btn btn-glass" href="../index.html" target="_blank" style="text-decoration:none;display:inline-flex;align-items:center;">${icon('map')} 在地图中查看</a>
       </div>
     </div>
   `;
@@ -3495,7 +3598,7 @@ async function renderUsers() {
   const isSuperAdmin = isSuperAdminUser();
 
   if (!isSuperAdmin) {
-    container.innerHTML = '<div class="empty">⛔ 无权限访问</div>';
+    container.innerHTML = emptyHtml('noEntry', '无权限访问');
     return;
   }
 
@@ -3514,13 +3617,13 @@ async function renderUsers() {
     const r = await fetch('../api/users.php?' + params.toString(), { credentials: 'same-origin' });
     if (!r.ok) {
       const text = await r.text();
-      container.innerHTML = '<div class="empty">❌ HTTP ' + r.status + ': ' + escapeHtml(text.substring(0,200)) + '</div>';
+      container.innerHTML = emptyHtml('xCircle', 'HTTP ' + r.status + ': ' + escapeHtml(text.substring(0,200)));
       return;
     }
     const data = await r.json();
 
     if (!data.success) {
-      container.innerHTML = '<div class="empty">❌ ' + escapeHtml(data.message || '加载失败') + (data.error ? '<br><small style="opacity:0.6">' + escapeHtml(data.error) + '</small>' : '') + '</div>';
+      container.innerHTML = emptyHtml('xCircle', escapeHtml(data.message || '加载失败') + (data.error ? '<br><small style="opacity:0.6">' + escapeHtml(data.error) + '</small>' : ''));
       return;
     }
 
@@ -3531,7 +3634,8 @@ async function renderUsers() {
 
     // Search bar (always render)
     html += '<div class="user-search-bar">';
-    html += '<input type="text" class="search-input" id="usersSearchInput" placeholder="🔍 搜索用户名、昵称、邮箱..." value="' + escapeHtml(usersSearch) + '" onkeydown="if(event.key===\'Enter\'){ usersSearch=this.value; usersPage=1; renderUsers(); }">';
+    html += icon('search', 'search-prefix');
+    html += '<input type="text" class="search-input" id="usersSearchInput" placeholder="搜索用户名、昵称、邮箱..." value="' + escapeHtml(usersSearch) + '" onkeydown="if(event.key===\'Enter\'){ usersSearch=this.value; usersPage=1; renderUsers(); }">';
     html += '<select class="search-input" style="flex:0 0 auto;min-width:140px;" onchange="usersRoleFilter=this.value; usersPage=1; renderUsers();">';
     html += '<option value="">所有角色</option>';
     html += '<option value="visitor"' + (usersRoleFilter === 'visitor' ? ' selected' : '') + '>访客(无俱乐部)</option>';
@@ -3550,9 +3654,9 @@ async function renderUsers() {
     html += '</div>';
 
     if (usersData.length === 0) {
-      let emptyMsg = '<div class="empty">📭 暂无用户';
+      let emptyMsg = '<div class="empty">' + icon('empty', 'empty-icon') + '暂无用户';
       if (usersSearch || usersRoleFilter || usersStatusFilter) {
-        emptyMsg += '<br><br><button class="btn btn-glass" onclick="resetUserFilters()">🔄 清除所有筛选条件</button>';
+        emptyMsg += '<br><br><button class="btn btn-glass" onclick="resetUserFilters()">' + icon('refresh') + ' 清除所有筛选条件</button>';
       }
       emptyMsg += '</div>';
       html += emptyMsg;
@@ -3589,9 +3693,9 @@ async function renderUsers() {
         html += '<div class="club-tags">' + clubsHtml + '</div>';
       }
       html += '<div class="actions">';
-      html += '<button class="act-btn edit" onclick="openUserEditModal(' + u.id + ')">✏️ 编辑</button>';
+      html += '<button class="act-btn edit" onclick="openUserEditModal(' + u.id + ')">' + icon('edit') + ' 编辑</button>';
       if (u.status !== 'banned') {
-        html += '<button class="act-btn ban" onclick="banUser(' + u.id + ',\'' + escapeHtml(u.username) + '\')">🚫 封禁</button>';
+        html += '<button class="act-btn ban" onclick="banUser(' + u.id + ',\'' + escapeHtml(u.username) + '\')">' + icon('ban') + ' 封禁</button>';
       }
       html += '</div>';
       html += '</div>';
@@ -3610,7 +3714,7 @@ async function renderUsers() {
     container.innerHTML = html;
 
   } catch (e) {
-    container.innerHTML = '<div class="empty">❌ 网络错误：' + escapeHtml(String(e)) + '</div>';
+    container.innerHTML = emptyHtml('xCircle', '网络错误：' + escapeHtml(String(e)));
   }
 }
 
@@ -3652,7 +3756,7 @@ async function openUserEditModal(userId) {
       section.style.display = '';
       list.innerHTML = memberships.map(m => {
         const clubName = getClubName(m.club_id, m.country);
-        const countryTag = m.country === 'japan' ? '🇯🇵' : '🇨🇳';
+        const countryTag = m.country === 'japan' ? '日本' : '中国';
         const isActive = m.status === 'active';
         return '<div class="membership-card">' +
           '<div class="mc-header">' +
@@ -3712,7 +3816,7 @@ async function saveUserEdit() {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 用户信息已更新', 'success');
+      showToast('用户信息已更新', 'success');
       closeUserEditModal();
       renderUsers();
     } else {
@@ -3734,7 +3838,7 @@ function resetUserFilters() {
 }
 
 async function banUser(userId, username) {
-  if (!confirm('⚠️ 确定要封禁用户「' + username + '」吗？\n\n该用户将无法登录系统。')) return;
+  if (!confirm('警告：确定要封禁用户「' + username + '」吗？\n\n该用户将无法登录系统。')) return;
   try {
     const r = await fetch('../api/users.php?action=delete', {
       method: 'POST',
@@ -3744,7 +3848,7 @@ async function banUser(userId, username) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 用户已封禁', 'success');
+      showToast('用户已封禁', 'success');
       renderUsers();
     } else {
       showToast(data.message || '操作失败', 'error');
@@ -3769,7 +3873,7 @@ async function updateUserClubRole(membershipId) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 角色已更新', 'success');
+      showToast('角色已更新', 'success');
       // 刷新模态框数据
       const userId = document.getElementById('editUserId').value;
       if (userId) openUserEditModal(parseInt(userId));
@@ -3783,7 +3887,7 @@ async function updateUserClubRole(membershipId) {
 }
 
 async function kickUserFromClub(membershipId, clubName) {
-  if (!confirm('⚠️ 确定将该用户从「' + clubName + '」踢出吗？')) return;
+  if (!confirm('警告：确定将该用户从「' + clubName + '」踢出吗？')) return;
   try {
     const r = await fetch('../api/membership.php?action=kick', {
       method: 'POST',
@@ -3793,7 +3897,7 @@ async function kickUserFromClub(membershipId, clubName) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 已踢出', 'success');
+      showToast('已踢出', 'success');
       // 刷新模态框数据
       const userId = document.getElementById('editUserId').value;
       if (userId) openUserEditModal(parseInt(userId));
@@ -3840,7 +3944,7 @@ async function approveMembership(id) {
       body: JSON.stringify({ membership_id: id })
     });
     const data = await r.json();
-    if (data.success) { showToast('✅ 已批准绑定', 'success'); loadData(); }
+    if (data.success) { showToast('已批准绑定', 'success'); loadData(); }
     else { showToast(data.message || '审批失败', 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
@@ -3869,7 +3973,7 @@ async function changeMemberRole(membershipId, newRole) {
       body: JSON.stringify({ membership_id: membershipId, role: newRole })
     });
     const data = await r.json();
-    if (data.success) { showToast('✅ 角色已更新', 'success'); renderMembers(); }
+    if (data.success) { showToast('角色已更新', 'success'); renderMembers(); }
     else { showToast(data.message || '操作失败', 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
@@ -3883,13 +3987,13 @@ async function kickMember(membershipId, username) {
       body: JSON.stringify({ membership_id: membershipId })
     });
     const data = await r.json();
-    if (data.success) { showToast('✅ 已踢出', 'success'); renderMembers(); }
+    if (data.success) { showToast('已踢出', 'success'); renderMembers(); }
     else { showToast(data.message || '操作失败', 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
 
 async function transferRepresentative(membershipId, clubId, targetName) {
-  if (!confirm('⚠️ 确定将负责人身份转让给「' + targetName + '」吗？\n\n转让后你将变为管理员。此操作不可撤销！')) return;
+  if (!confirm('警告：确定将负责人身份转让给「' + targetName + '」吗？\n\n转让后你将变为管理员。此操作不可撤销！')) return;
   try {
     const r = await fetch('../api/membership.php?action=transfer', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -3898,7 +4002,7 @@ async function transferRepresentative(membershipId, clubId, targetName) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 负责人已成功转让给 ' + targetName, 'success');
+      showToast('负责人已成功转让给 ' + targetName, 'success');
       renderMembers();
     } else {
       showToast(data.message || '操作失败', 'error');
@@ -4231,7 +4335,7 @@ function renderProjectReviewRow(row, canManage) {
   const status = row.status || 'submitted';
   const attachments = row.attachments && Array.isArray(row.attachments) ? row.attachments : [];
   const attachHtml = attachments.length ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">${attachments.map(f =>
-    `<a href="${escapeHtml(projectMediaUrl(f.download_url || f.url || ''))}" target="_blank" class="file-download-link">📎 ${escapeHtml(f.name || '下载文件')}</a>`
+    `<a href="${escapeHtml(projectMediaUrl(f.download_url || f.url || ''))}" target="_blank" class="file-download-link">${icon('paperclip')} ${escapeHtml(f.name || '下载文件')}</a>`
   ).join('')}</div>` : '';
   return `<div class="project-review-row">
     <div>
@@ -4668,7 +4772,7 @@ async function reviewProjectParticipation(id, status) {
 async function renderCodes() {
   const container = document.getElementById('listContainer');
   if (!selectedClubId || selectedClubId <= 0) {
-    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    container.innerHTML = emptyHtml('pointer', '请先在上方选择一个同好会');
     return;
   }
 
@@ -4683,7 +4787,7 @@ async function renderCodes() {
 
   // Generate form
   html += `<div class="section-card">
-    <div class="section-title">🔑 生成新绑定码</div>
+    <div class="section-title">${icon('key')} 生成新绑定码</div>
     <div class="section-sub">生成后可将此码分享给想要加入同好会的成员，他们输入码即可直接加入</div>
     <div class="form-row">
       <div class="form-group" style="max-width:160px;">
@@ -4702,7 +4806,7 @@ async function renderCodes() {
 
   // Codes list
   html += `<div class="section-card">
-    <div class="section-title">📋 已生成绑定码 (${codes.length})</div>`;
+    <div class="section-title">${icon('clipboard')} 已生成绑定码 (${codes.length})</div>`;
 
   if (codes.length === 0) {
     html += '<div style="text-align:center;padding:32px;color:var(--text-secondary);font-size:14px;">暂无绑定码</div>';
@@ -4718,7 +4822,7 @@ async function renderCodes() {
         <div class="col col-sm"><span class="item-meta">过期</span><span style="font-size:12px;">${c.expires_at ? formatDate(c.expires_at) : '—'}</span></div>
         <div class="col col-xs"><span class="badge ${badgeClass}">● ${statusLabels[status]}</span></div>
         <div class="col col-actions">
-          <button class="btn btn-sm btn-ghost" onclick="copyCode('${c.code}')" title="复制">📋</button>
+          <button class="btn btn-sm btn-ghost" onclick="copyCode('${c.code}')" title="复制">${icon('clipboard')}</button>
           ${status === 'active' ? `<button class="btn btn-sm btn-danger" onclick="revokeCode(${c.id})">禁用</button>` : ''}
         </div>
       </div>`;
@@ -4726,7 +4830,7 @@ async function renderCodes() {
     html += '</div>';
   }
 
-  html += `<div class="section-sub" style="margin-top:12px;margin-bottom:0;">💡 绑定码区分大小写，生成后请妥善保管</div>`;
+  html += `<div class="section-sub" style="margin-top:12px;margin-bottom:0;">${icon('lightbulb')} 绑定码区分大小写，生成后请妥善保管</div>`;
   html += '</div>';
 
   container.innerHTML = html;
@@ -4756,7 +4860,7 @@ async function generateCode() {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 绑定码已生成: ' + data.code.code, 'success');
+      showToast('绑定码已生成: ' + data.code.code, 'success', 'key');
       renderCodes();
     } else {
       showToast(data.message || '生成失败', 'error');
@@ -4775,7 +4879,7 @@ async function revokeCode(codeId) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 已禁用', 'success');
+      showToast('已禁用', 'success');
       renderCodes();
     } else {
       showToast(data.message || '操作失败', 'error');
@@ -4786,7 +4890,7 @@ async function revokeCode(codeId) {
 function copyCode(code) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(code).then(() => {
-      showToast('📋 已复制: ' + code, 'success');
+      showToast('已复制: ' + code, 'success', 'clipboard');
     }).catch(() => {
       showToast('复制失败，请手动复制', 'error');
     });
@@ -4799,7 +4903,7 @@ function copyCode(code) {
     ta.select();
     document.execCommand('copy');
     document.body.removeChild(ta);
-    showToast('📋 已复制: ' + code, 'success');
+    showToast('已复制: ' + code, 'success', 'clipboard');
   }
 }
 
@@ -4808,7 +4912,7 @@ function copyCode(code) {
 async function renderBotTokens() {
   const container = document.getElementById('listContainer');
   if (!selectedClubId || selectedClubId <= 0) {
-    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    container.innerHTML = emptyHtml('pointer', '请先在上方选择一个同好会');
     return;
   }
 
@@ -4824,7 +4928,7 @@ async function renderBotTokens() {
 
   const clubName = getClubName(selectedClubId, selectedCountry);
   let html = `<div class="section-card">
-    <div class="section-title">🤖 创建 Bot 接入 token</div>
+    <div class="section-title">${icon('bot')} 创建 Bot 接入 token</div>
     <div class="section-sub">用于 AstrBot 插件公开接入「${escapeHtml(clubName)}」。token 明文只会在创建成功后显示一次，请立即复制保存。</div>
     <div class="form-row">
       <div class="form-group" style="min-width:220px;max-width:320px;">
@@ -4842,7 +4946,7 @@ async function renderBotTokens() {
   </div>`;
 
   html += `<div class="section-card">
-    <div class="section-title">📋 已创建 Bot token (${tokens.length})</div>`;
+    <div class="section-title">${icon('clipboard')} 已创建 Bot token (${tokens.length})</div>`;
 
   if (tokens.length === 0) {
     html += '<div style="text-align:center;padding:32px;color:var(--text-secondary);font-size:14px;">暂无 Bot token</div>';
@@ -4867,7 +4971,7 @@ async function renderBotTokens() {
     html += '</div>';
   }
 
-  html += `<div class="section-sub" style="margin-top:12px;margin-bottom:0;">💡 同好会 Bot token 只能读取本同好会信息和申请；全站超管能力仍需站点私有 BOT_API_KEY。</div>`;
+  html += `<div class="section-sub" style="margin-top:12px;margin-bottom:0;">${icon('lightbulb')} 同好会 Bot token 只能读取本同好会信息和申请；全站超管能力仍需站点私有 BOT_API_KEY。</div>`;
   html += '</div>';
   container.innerHTML = html;
 }
@@ -4902,7 +5006,7 @@ async function generateBotToken() {
       box.innerHTML = `新 token：<code style="font-family:monospace;color:var(--accent-gold);word-break:break-all;">${escapeHtml(data.token)}</code>
         <button class="btn btn-sm btn-ghost" onclick="copyBotToken('${escapeHtml(data.token)}')" style="margin-left:8px;">复制</button>`;
     }
-    showToast('✅ Bot token 已创建，请立即复制保存', 'success');
+    showToast('Bot token 已创建，请立即复制保存', 'success', 'bot');
   } catch {
     showToast('网络错误', 'error');
   }
@@ -4919,7 +5023,7 @@ async function revokeBotToken(tokenId) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ Bot token 已吊销', 'success');
+      showToast('Bot token 已吊销', 'success');
       renderBotTokens();
     } else {
       showToast(data.error || '操作失败', 'error');
@@ -4945,7 +5049,7 @@ let moeKingHasSearched = false;
 async function renderRecommendations() {
   const container = document.getElementById('listContainer');
   if (!selectedClubId || selectedClubId <= 0) {
-    container.innerHTML = '<div class="empty">👆 请先在上方选择一个同好会</div>';
+    container.innerHTML = emptyHtml('pointer', '请先在上方选择一个同好会');
     return;
   }
 
@@ -4967,7 +5071,7 @@ async function renderRecommendations() {
 
   // Left: Search panel
   html += `<div class="section-card">
-    <div class="section-title">🔍 搜索 Bangumi</div>
+    <div class="section-title">${icon('search')} 搜索 Bangumi</div>
     <div class="search-area">
       <div class="search-input-wrap">
         <input type="text" id="recSearchInput" class="form-input" placeholder="搜索游戏名称…" style="min-width:0;flex:1;max-width:200px;" onkeydown="if(event.key==='Enter') searchBangumi()">
@@ -4986,7 +5090,7 @@ async function renderRecommendations() {
       const rating = item.rating ? '评分 ' + item.rating : '';
       const date = item.air_date || item.date || '';
       html += `<div class="search-item">
-        <div class="thumb">${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="" onerror="this.style.display='none'">` : '🎮'}</div>
+        <div class="thumb">${item.image_url ? `<img src="${escapeHtml(item.image_url)}" alt="" onerror="this.style.display='none'">` : icon('gamepad')}</div>
         <div class="item-info">
           <div class="item-title">${escapeHtml(title)}</div>
           <div class="item-sub">${rating}${rating && date ? ' · ' : ''}${escapeHtml(date)}</div>
@@ -5005,7 +5109,7 @@ async function renderRecommendations() {
   // Right: Current 12-slot recommendation list
   const filledCount = recData.length;
   html += `<div class="section-card">
-    <div class="section-title">⭐ 当前推荐榜 <span style="font-size:12px;color:var(--text-muted);font-weight:400;">(${filledCount} / 12)</span></div>
+    <div class="section-title">${icon('star')} 当前推荐榜 <span style="font-size:12px;color:var(--text-muted);font-weight:400;">(${filledCount} / 12)</span></div>
     <div class="section-sub">点击右上角 × 移除条目</div>
     <div class="rec-list">`;
 
@@ -5016,7 +5120,7 @@ async function renderRecommendations() {
       </div>
       <div class="info">
         <div class="title">${escapeHtml(rec.title)}</div>
-        ${rec.rating ? `<div class="rating">⭐ ${rec.rating}</div>` : ''}
+        ${rec.rating ? `<div class="rating">${icon('star')} ${rec.rating}</div>` : ''}
       </div>
       <button class="remove-btn" onclick="removeRecommendation(${rec.id})" title="移除">×</button>
     </div>`;
@@ -5203,7 +5307,7 @@ async function addRecommendation(bangumiId) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 已添加到推荐榜', 'success');
+      showToast('已添加到推荐榜', 'success', 'star');
       await renderRecommendations();
     } else {
       showToast(data.message || '添加失败', 'error');
@@ -5222,7 +5326,7 @@ async function removeRecommendation(id) {
     });
     const data = await r.json();
     if (data.success) {
-      showToast('✅ 已移除', 'success');
+      showToast('已移除', 'success');
       await renderRecommendations();
     } else {
       showToast(data.message || '移除失败', 'error');
@@ -5245,7 +5349,11 @@ function switchTab(tab) {
 
 // ====== Utilities ======
 function statusText(status) {
-  return status === 'active' || status === 'approved' ? '✅ 已通过' : status === 'rejected' ? '❌ 已拒绝' : '⏳ 待审核';
+  return status === 'active' || status === 'approved'
+    ? icon('check') + ' 已通过'
+    : status === 'rejected'
+      ? icon('xCircle') + ' 已拒绝'
+      : icon('clock') + ' 待审核';
 }
 
 function applyRoleText(role) {

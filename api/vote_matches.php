@@ -94,7 +94,26 @@ switch ($action) {
             $stmt->execute([(int)$_GET['project_id']]);
             $stageId = (int)$stmt->fetchColumn();
         }
-        voteRespond(['success' => true, 'data' => $stageId > 0 ? voteMatchRows($db, $stageId) : []]);
+        $rows = $stageId > 0 ? voteMatchRows($db, $stageId) : [];
+        $includeVotes = false;
+        if ($stageId > 0) {
+            $stage = voteFetchStage($stageId);
+            if ($stage) {
+                $user = getCurrentUser();
+                $project = voteGetProject((int)$stage['project_id']);
+                $includeVotes = $project && $user && voteCanManageProject($user, $project);
+            }
+        }
+        if ($includeVotes) {
+            $flowPool = voteFlowPoolForStage($db, $stageId);
+            foreach ($rows as &$row) {
+                $counts = $flowPool ? voteFlowMatchVoteCounts($db, $row) : voteMatchVoteCounts($db, $row);
+                $row['slot_a_votes'] = (int)($counts[(int)($row['slot_a_entry_id'] ?? 0)] ?? 0);
+                $row['slot_b_votes'] = (int)($counts[(int)($row['slot_b_entry_id'] ?? 0)] ?? 0);
+            }
+            unset($row);
+        }
+        voteRespond(['success' => true, 'data' => $rows]);
 
     case 'generate':
         $input = voteReadJson();

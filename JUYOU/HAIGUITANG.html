@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#050505">
+  <title>第一届橘柚海龟汤推理大赛</title>
+  <style>
+    @font-face {
+      font-family: "Poster Xingkai";
+      src: local("华文行楷"), local("STXingkai");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Poster Shuti";
+      src: local("方正舒体"), local("FZShuTi");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Poster Lishu";
+      src: local("华文隶书"), local("STLiti");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Poster ZhongSong";
+      src: local("华文中宋"), local("STZhongsong");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Poster Mincho";
+      src: local("Yu Mincho"), local("游明朝");
+      font-display: swap;
+    }
+
+    :root {
+      --black: #050505;
+      --ink: #161616;
+      --paper: #f8f8f6;
+      --paper-deep: #ecebe7;
+      --red: #ad101d;
+      --red-bright: #df182b;
+      --blue: #4578c5;
+      --blue-light: #9cc3ff;
+      --gold: #b89948;
+      --line: #b9b9b5;
+      --sheet: 1040px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: dark;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        linear-gradient(rgb(0 0 0 / 78%), rgb(0 0 0 / 78%)),
+        repeating-conic-gradient(#111 0 25%, #3a3a3a 0 50%) 0 / 132px 132px;
+      font-family: "Noto Serif SC", "Poster Mincho", "Poster ZhongSong", SimSun, serif;
+      font-synthesis: none;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background:
+        radial-gradient(ellipse at 50% 8%, rgb(89 16 22 / 25%), transparent 38%),
+        linear-gradient(90deg, #000 0 7%, transparent 18% 82%, #000 93% 100%);
+      pointer-events: none;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .site-mark {
+      position: fixed;
+      top: 17px;
+      left: 22px;
+      z-index: 20;
+      color: #fff;
+      font-family: "Segoe Print", "Comic Sans MS", cursive;
+      font-size: 19px;
+      line-height: .85;
+      letter-spacing: -.08em;
+      transform: rotate(-2deg);
+      text-shadow: 0 0 10px #000;
+    }
+
+    .site-mark small {
+      display: block;
+      margin: 7px 0 0 54px;
+      font: 700 7px/1 Arial, sans-serif;
+      letter-spacing: .08em;
+    }
+
+    .side-emblem {
+      position: fixed;
+      left: 11px;
+      top: 48%;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      width: 72px;
+      aspect-ratio: 1;
+      border: 3px solid #e6e6e6;
+      border-radius: 50%;
+      color: var(--red);
+      background:
+        radial-gradient(circle, #fff 0 39%, transparent 40%),
+        conic-gradient(from 8deg, #b90f28, #e9e9e9, #4578c5, #e9e9e9, #b90f28);
+      box-shadow: 0 0 0 2px #171717, 0 8px 20px #000;
+      font: 900 25px/1 Georgia, serif;
+    }
+
+    .side-emblem::after {
+      content: "FAN EVENT";
+      position: absolute;
+      bottom: -16px;
+      color: #fff;
+      font: 700 7px/1 Arial, sans-serif;
+      letter-spacing: .16em;
+      white-space: nowrap;
+    }
+
+    .sheet {
+      position: relative;
+      width: min(var(--sheet), calc(100% - 116px));
+      min-height: 100vh;
+      margin: 48px auto 64px;
+      overflow: hidden;
+      color: var(--ink);
+      background:
+        linear-gradient(rgb(255 255 255 / 91%), rgb(250 250 248 / 94%)),
+        url("assets/rules-reference.jpg") center top / cover fixed;
+      border: 1px solid #616161;
+      border-radius: 5px;
+      box-shadow:
+        0 0 0 1px #111,
+        0 12px 34px rgb(0 0 0 / 88%),
+        inset 0 0 45px rgb(0 0 0 / 12%);
+      isolation: isolate;
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: .23;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 3px, rgb(10 10 10 / 11%) 4px),
+        radial-gradient(circle at 40% 10%, #fff 0 1px, transparent 1.5px);
+      background-size: auto, 8px 8px;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+
+    .corner-ribbon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-top: 42px solid var(--red-bright);
+      border-left: 42px solid transparent;
+      filter: drop-shadow(-2px 2px 0 rgb(0 0 0 / 20%));
+    }
+
+    .hero {
+      position: relative;
+      min-height: 600px;
+      padding: 0;
+      text-align: center;
+      background: #09080c;
+    }
+
+    .eyebrow {
+      position: absolute;
+      z-index: 8;
+      top: 24px;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      width: min(620px, 76%);
+      margin: 0;
+      transform: translateX(-50%);
+      color: #f1d78f;
+      font: 700 10px/1.2 Georgia, serif;
+      letter-spacing: .27em;
+      text-transform: uppercase;
+      text-shadow: 0 2px 8px #000;
+    }
+
+    .eyebrow::before,
+    .eyebrow::after {
+      content: "";
+      width: 74px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, currentColor);
+    }
+
+    .eyebrow::after {
+      transform: scaleX(-1);
+    }
+
+    .cover-frame {
+      position: relative;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: #09080c;
+      border: 0;
+      box-shadow: none;
+    }
+
+    .cover {
+      position: relative;
+      height: 600px;
+      overflow: hidden;
+      border: 0;
+      background: #09080c;
+    }
+
+    .cover-image {
+      position: absolute;
+      inset: -14px;
+      background:
+        linear-gradient(180deg, rgb(0 0 0 / 11%), rgb(0 0 0 / 16%) 46%, #08060a 100%),
+        url("assets/event-banner.jpg") center / cover no-repeat;
+      filter: saturate(.72) contrast(1.12) brightness(.72);
+      transform: scale(1.06);
+      transition: transform 1.2s cubic-bezier(.2, .75, .2, 1);
+    }
+
+    .cover:hover .cover-image {
+      transform: scale(1.085);
+    }
+
+    .cover::before,
+    .cover::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .cover::before {
+      background:
+        linear-gradient(90deg, rgb(102 0 20 / 32%), transparent 30% 70%, rgb(13 49 102 / 34%)),
+        linear-gradient(180deg, transparent 35%, rgb(4 3 7 / 27%) 58%, rgb(4 3 7 / 92%) 100%),
+        radial-gradient(circle at 50% 42%, transparent 0 24%, rgb(0 0 0 / 52%) 100%);
+    }
+
+    .cover::after {
+      inset: 28px;
+      border: 1px solid rgb(255 255 255 / 18%);
+      box-shadow: inset 0 0 48px #000;
+    }
+
+    .vertical-call {
+      position: absolute;
+      z-index: 5;
+      top: 78px;
+      display: flex;
+      align-items: center;
+      min-height: 305px;
+      padding: 22px 12px;
+      color: #fff;
+      font-family: "Poster ZhongSong", "Noto Serif SC", SimSun, serif;
+      font-size: 25px;
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: .16em;
+      writing-mode: vertical-rl;
+      background: linear-gradient(180deg, transparent, rgb(0 0 0 / 48%) 14% 86%, transparent);
+      border-right: 1px solid rgb(255 255 255 / 25%);
+      border-left: 1px solid rgb(255 255 255 / 25%);
+    }
+
+    .vertical-call.left {
+      left: 38px;
+      text-shadow: 2px 0 0 #790916, 0 2px 11px #000, 0 0 9px rgb(190 20 44 / 55%);
+    }
+
+    .vertical-call.right {
+      right: 38px;
+      text-shadow: -2px 0 0 #174d8b, 0 2px 11px #000, 0 0 9px rgb(57 118 193 / 58%);
+    }
+
+    .vertical-call::before,
+    .vertical-call::after {
+      content: "";
+      width: 1px;
+      height: 38px;
+      margin: 0 0 12px;
+      background: linear-gradient(transparent, #e7c86f);
+    }
+
+    .vertical-call::after {
+      margin: 12px 0 0;
+      transform: scaleY(-1);
+    }
+
+    .hero-title {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      bottom: 94px;
+      width: min(720px, 72%);
+      padding: 20px 28px 22px;
+      transform: translateX(-50%);
+      color: #fff;
+      font-family: "Poster ZhongSong", "Noto Serif SC", SimSun, serif;
+      text-shadow: 0 4px 5px #000, 0 0 18px #000;
+      background: linear-gradient(90deg, transparent, rgb(3 3 6 / 74%) 12% 88%, transparent);
+      border-top: 1px solid rgb(232 203 117 / 30%);
+      border-bottom: 1px solid rgb(232 203 117 / 30%);
+    }
+
+    .hero-title small {
+      display: block;
+      margin-bottom: 12px;
+      color: #eacb75;
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: .26em;
+      text-shadow: 0 2px 7px #000;
+    }
+
+    h1 {
+      margin: 0;
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: .06em;
+    }
+
+    .title-line {
+      display: block;
+      color: #f6f1e8;
+      font-size: clamp(42px, 5.8vw, 64px);
+      -webkit-text-stroke: .5px rgb(0 0 0 / 72%);
+      text-shadow: 0 4px 3px #000, 0 0 16px #000;
+    }
+
+    .title-gold {
+      color: #edce79;
+      text-shadow: 0 4px 3px #000, 0 0 14px rgb(211 169 67 / 20%);
+    }
+
+    .date-ticket {
+      display: none;
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      bottom: 49px;
+      min-width: 265px;
+      padding: 8px 28px 7px;
+      transform: translateX(-50%);
+      color: #fff;
+      background: linear-gradient(#a31a27, #6e0710);
+      border: 1px solid #e06a73;
+      clip-path: polygon(7px 0, calc(100% - 7px) 0, 100% 50%, calc(100% - 7px) 100%, 7px 100%, 0 50%);
+      font: 700 16px/1.2 Georgia, "Times New Roman", serif;
+      letter-spacing: .08em;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px #000;
+    }
+
+    .cover-dots {
+      display: none;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .cover-dots i {
+      width: 8px;
+      height: 8px;
+      border: 1px solid #555;
+      border-radius: 50%;
+      background: #ddd;
+      box-shadow: 0 1px 3px rgb(0 0 0 / 28%);
+    }
+
+    .cover-dots i:nth-child(3) {
+      border-color: #740b13;
+      background: var(--red);
+    }
+
+    .section {
+      position: relative;
+      padding: 0 64px 42px;
+    }
+
+    .section-heading {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 68px;
+      margin: 0 -54px 28px;
+      color: #111;
+      font-family: "Poster ZhongSong", "Noto Serif SC", SimSun, serif;
+      font-size: 27px;
+      font-weight: 900;
+      letter-spacing: .12em;
+      text-align: center;
+      text-shadow: 0 1px 0 #fff, 1px 2px 0 rgb(0 0 0 / 18%);
+    }
+
+    .section-heading::before,
+    .section-heading::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--blue);
+      box-shadow: 0 0 3px var(--blue-light);
+    }
+
+    .section-heading::before {
+      top: 15px;
+    }
+
+    .section-heading::after {
+      bottom: 15px;
+    }
+
+    .section-heading span {
+      position: relative;
+      z-index: 1;
+      padding: 0 24px;
+      background: linear-gradient(90deg, transparent, rgb(255 255 255 / 96%) 18% 82%, transparent);
+    }
+
+    .section-heading small {
+      display: block;
+      margin-top: 5px;
+      color: #5a5a5a;
+      font: 700 8px/1 "Times New Roman", serif;
+      letter-spacing: .26em;
+      text-shadow: none;
+    }
+
+    .intro {
+      z-index: 9;
+      width: calc(100% - 96px);
+      margin: -38px auto 42px;
+      padding: 55px 66px 45px;
+      background:
+        linear-gradient(rgb(255 255 255 / 96%), rgb(250 248 241 / 97%)),
+        url("assets/rules-reference.jpg") center / cover;
+      border: 1px solid #cbb98b;
+      box-shadow:
+        0 14px 30px rgb(0 0 0 / 24%),
+        inset 0 0 0 7px rgb(184 153 75 / 5%);
+      text-align: center;
+    }
+
+    .intro::before,
+    .intro::after {
+      content: "◆";
+      position: absolute;
+      top: 20px;
+      color: #b99745;
+      font-size: 11px;
+    }
+
+    .intro::before {
+      left: 22px;
+    }
+
+    .intro::after {
+      right: 22px;
+    }
+
+    .intro .section-heading {
+      display: none;
+    }
+
+    .intro-date-seal {
+      position: absolute;
+      top: 22px;
+      right: 28px;
+      display: grid;
+      place-items: center;
+      width: 88px;
+      height: 88px;
+      transform: rotate(8deg);
+      color: var(--red);
+      background: #faf7ed;
+      border: 2px solid var(--red);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 5px rgb(173 16 29 / 12%), 0 7px 15px rgb(0 0 0 / 18%);
+      font-family: Georgia, "Times New Roman", serif;
+      text-align: center;
+    }
+
+    .intro-date-seal strong {
+      display: block;
+      font-size: 26px;
+      line-height: .9;
+    }
+
+    .intro-date-seal small {
+      display: block;
+      margin-top: 5px;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .06em;
+    }
+
+    .intro-lead {
+      width: min(650px, 100%);
+      margin: 0 auto;
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 2;
+    }
+
+    .incident-title {
+      margin: 28px 0 7px;
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-size: clamp(29px, 4.6vw, 48px);
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: .04em;
+    }
+
+    .incident-title .red {
+      color: var(--red);
+    }
+
+    .incident-date {
+      margin: 0 0 23px;
+      font-size: 17px;
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-weight: 700;
+    }
+
+    .opening-copy {
+      width: min(690px, 100%);
+      margin: 0 auto;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 2.05;
+      text-align: left;
+      text-indent: 2em;
+    }
+
+    .opening-copy + .opening-copy {
+      margin-top: 12px;
+    }
+
+    .witch-letter {
+      width: min(760px, 100%);
+      margin: 30px auto 0;
+      padding: 27px 45px 25px;
+      color: #f6f1e8;
+      background:
+        linear-gradient(rgb(31 1 5 / 91%), rgb(70 4 9 / 95%)),
+        url("assets/event-banner.jpg") center / cover;
+      border-top: 1px solid #f0757f;
+      border-bottom: 1px solid #f0757f;
+      box-shadow: inset 0 0 45px #000, 0 10px 24px rgb(0 0 0 / 18%);
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 2;
+      text-align: justify;
+      text-shadow: 0 1px 3px #000;
+    }
+
+    .witch-letter::before {
+      content: "THE GOLDEN WITCH'S DECLARATION";
+      display: block;
+      margin-bottom: 13px;
+      color: #efbd68;
+      font: 700 9px/1 Arial, sans-serif;
+      letter-spacing: .22em;
+      text-align: center;
+    }
+
+    .witch-letter strong {
+      color: #ff6672;
+    }
+
+    .duel-strip {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: stretch;
+      width: min(760px, 100%);
+      margin: 26px auto 0;
+      border-top: 1px solid #111;
+      border-bottom: 1px solid #111;
+    }
+
+    .duel-strip div {
+      padding: 17px 24px;
+      color: #fff;
+      font-family: "Poster Lishu", "Poster ZhongSong", serif;
+      font-size: 23px;
+      font-weight: 400;
+      letter-spacing: .13em;
+    }
+
+    .duel-strip div:first-child {
+      background: #6b080f;
+      text-align: right;
+    }
+
+    .duel-strip div:last-child {
+      background: #163a70;
+    }
+
+    .duel-strip b {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      color: #e9ce86;
+      background: #080808;
+      font: italic 900 18px/1 Georgia, serif;
+    }
+
+    .rules-list {
+      width: min(790px, 100%);
+      margin: 0 auto;
+      counter-reset: rule;
+    }
+
+    .rule {
+      position: relative;
+      padding: 24px 34px 25px 86px;
+      counter-increment: rule;
+      border-top: 1px solid var(--red-bright);
+      text-align: left;
+    }
+
+    .rule:last-child {
+      border-bottom: 1px solid var(--red-bright);
+    }
+
+    .rule::before {
+      content: counter(rule, decimal-leading-zero);
+      position: absolute;
+      top: 22px;
+      left: 18px;
+      color: var(--red);
+      font: 900 30px/1 Georgia, serif;
+    }
+
+    .rule::after {
+      content: "";
+      position: absolute;
+      top: 23px;
+      bottom: 23px;
+      left: 64px;
+      width: 1px;
+      background: #b6b6b2;
+    }
+
+    .rule h3 {
+      margin: 0 0 9px;
+      font-family: "Poster ZhongSong", "Noto Serif SC", serif;
+      font-size: 19px;
+      font-weight: 900;
+      line-height: 1.3;
+      letter-spacing: .08em;
+    }
+
+    .rule p {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.95;
+      text-align: justify;
+    }
+
+    .truth-red {
+      color: var(--red-bright);
+      font-weight: 900;
+    }
+
+    .truth-blue {
+      color: #1f63bf;
+      font-weight: 900;
+    }
+
+    .terms {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      width: min(790px, 100%);
+      margin: 30px auto 0;
+      border: 1px solid #bba269;
+      background: #fff3d8;
+    }
+
+    .term {
+      min-height: 115px;
+      padding: 22px 20px;
+      text-align: center;
+    }
+
+    .term + .term {
+      border-left: 1px solid #d4bd84;
+    }
+
+    .term b {
+      display: block;
+      margin-bottom: 9px;
+      color: #111;
+      font: 900 17px/1.2 Georgia, serif;
+    }
+
+    .term p {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.7;
+    }
+
+    .closing {
+      padding-bottom: 74px;
+      text-align: center;
+    }
+
+    .closing-line {
+      width: min(680px, 100%);
+      margin: 0 auto 25px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 2;
+    }
+
+    .closing-slogan {
+      margin: 0;
+      color: #111;
+      font-family: "Poster Xingkai", "Poster ZhongSong", serif;
+      font-size: clamp(31px, 4.7vw, 49px);
+      font-weight: 400;
+      line-height: 1.35;
+      letter-spacing: .08em;
+      -webkit-text-stroke: 1.1px #fff;
+      paint-order: stroke fill;
+      text-shadow: 2px 2px 0 rgb(0 0 0 / 24%);
+    }
+
+    .closing-slogan .red {
+      color: var(--red);
+    }
+
+    .closing-slogan .blue {
+      color: #245eaa;
+    }
+
+    .footer {
+      padding: 18px 20px 20px;
+      color: #777;
+      background: #050505;
+      font: 700 8px/1.5 Arial, sans-serif;
+      letter-spacing: .05em;
+      text-align: center;
+    }
+
+    .screen-actions {
+      position: fixed;
+      right: 20px;
+      bottom: 18px;
+      z-index: 40;
+      display: flex;
+      gap: 8px;
+    }
+
+    .screen-actions button {
+      min-height: 40px;
+      padding: 0 15px;
+      color: #fff;
+      background: rgb(9 9 9 / 90%);
+      border: 1px solid #777;
+      border-radius: 0;
+      font: 700 12px/1 "Microsoft YaHei", sans-serif;
+      cursor: pointer;
+      box-shadow: 0 4px 12px #000;
+    }
+
+    .screen-actions button:hover,
+    .screen-actions button:focus-visible {
+      color: #ffe9a8;
+      border-color: var(--gold);
+      outline: none;
+    }
+
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: filter .35s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (max-width: 1100px) and (min-width: 561px) {
+      .intro {
+        padding-top: 126px;
+      }
+    }
+
+    @media (max-width: 840px) {
+      .site-mark,
+      .side-emblem {
+        display: none;
+      }
+
+      .sheet {
+        width: calc(100% - 20px);
+        margin: 10px auto 26px;
+        border-radius: 2px;
+      }
+
+      .hero {
+        min-height: 500px;
+        padding: 0;
+      }
+
+      .cover {
+        height: clamp(500px, 70vw, 600px);
+        min-height: 500px;
+      }
+
+      .hero-title {
+        bottom: 78px;
+        width: 72%;
+        padding: 14px 16px 16px;
+      }
+
+      .vertical-call {
+        top: 80px;
+        min-height: 270px;
+        padding: 16px 8px;
+        font-size: 18px;
+      }
+
+      .vertical-call.left {
+        left: 17px;
+      }
+
+      .vertical-call.right {
+        right: 17px;
+      }
+
+      .title-line {
+        font-size: 38px;
+      }
+
+      .intro {
+        width: calc(100% - 42px);
+        margin-top: -28px;
+        padding: 126px 34px 40px;
+      }
+
+      .section {
+        padding-right: 27px;
+        padding-left: 27px;
+      }
+
+      .section-heading {
+        margin-right: -18px;
+        margin-left: -18px;
+      }
+
+      .duel-strip div {
+        padding: 14px 10px;
+        font-size: 14px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .eyebrow {
+        font-size: 7px;
+        letter-spacing: .14em;
+      }
+
+      .eyebrow::before,
+      .eyebrow::after {
+        width: 34px;
+      }
+
+      .cover {
+        height: 500px;
+        min-height: 500px;
+      }
+
+      .cover-frame {
+        padding: 0;
+      }
+
+      .hero-title small {
+        font-size: 9px;
+        letter-spacing: .14em;
+      }
+
+      .hero-title {
+        bottom: 86px;
+        width: 76%;
+        padding: 12px 8px 14px;
+      }
+
+      .title-line {
+        font-size: 29px;
+        letter-spacing: .035em;
+      }
+
+      .vertical-call {
+        top: 82px;
+        min-height: 242px;
+        padding: 12px 5px;
+        font-size: 14px;
+        letter-spacing: .12em;
+      }
+
+      .vertical-call.left {
+        left: 9px;
+      }
+
+      .vertical-call.right {
+        right: 9px;
+      }
+
+      .date-ticket {
+        min-width: 238px;
+        padding-right: 19px;
+        padding-left: 19px;
+        font-size: 11px;
+      }
+
+      .intro {
+        width: calc(100% - 24px);
+        margin-top: -24px;
+        padding: 124px 24px 38px;
+      }
+
+      .intro-date-seal {
+        top: 18px;
+        right: 50%;
+        transform: translateX(50%) rotate(8deg);
+      }
+
+      .section {
+        padding-right: 19px;
+        padding-left: 19px;
+      }
+
+      .section-heading {
+        font-size: 19px;
+      }
+
+      .incident-title {
+        font-size: 28px;
+      }
+
+      .witch-letter {
+        padding: 24px 21px;
+        font-size: 13px;
+      }
+
+      .rule {
+        padding: 22px 9px 23px 55px;
+      }
+
+      .rule::before {
+        left: 7px;
+        font-size: 25px;
+      }
+
+      .rule::after {
+        left: 43px;
+      }
+
+      .rule p {
+        font-size: 12px;
+      }
+
+      .terms {
+        grid-template-columns: 1fr;
+      }
+
+      .term + .term {
+        border-top: 1px solid #d4bd84;
+        border-left: 0;
+      }
+
+      .screen-actions {
+        right: 9px;
+        bottom: 9px;
+      }
+
+      .screen-actions button:first-child {
+        display: none;
+      }
+    }
+
+    @media print {
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+      }
+
+      .site-mark,
+      .side-emblem,
+      .screen-actions {
+        display: none;
+      }
+
+      .sheet {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        box-shadow: none;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+      }
+
+      .reveal {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="site-mark" aria-hidden="true">
+    07th Inspired
+    <small>FAN EVENT WEBSITE</small>
+  </div>
+  <div class="side-emblem" aria-hidden="true">07</div>
+
+  <main class="sheet">
+    <div class="corner-ribbon" aria-hidden="true"></div>
+
+    <header class="hero" id="top">
+      <p class="eyebrow">Orange Yuzu Island · Umineko Fan Mystery Event · 2026</p>
+
+      <div class="cover-frame">
+        <div class="cover">
+          <div class="cover-image" aria-hidden="true"></div>
+          <div class="vertical-call left">敬告所有的侦探</div>
+          <div class="vertical-call right">聆听黑色的呐喊</div>
+
+          <div class="hero-title">
+            <small>黄金魔女的棋盘现已开启</small>
+            <h1>
+              <span class="title-line">第一届<span class="title-gold">橘柚海龟汤</span></span>
+              <span class="title-line">推理大赛</span>
+            </h1>
+          </div>
+          <div class="date-ticket">2026年 6月19日 · 橘柚岛</div>
+        </div>
+      </div>
+
+      <div class="cover-dots" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+
+    </header>
+
+    <section class="section intro reveal" id="intro">
+      <div class="intro-date-seal" aria-label="六月十九日">
+        <div><strong>6.19</strong><small>魔女降临</small></div>
+      </div>
+      <h2 class="section-heading">
+        <span>『橘柚海龟汤推理大赛』介绍<small>INTRODUCTION OF THE GAMEBOARD</small></span>
+      </h2>
+
+      <p class="intro-lead">
+        黄金的魔女贝阿朵莉切即将降临橘柚岛。<br>
+        她为有能的侦探带来棋盘，也为无能的人类带来嘲笑。
+      </p>
+
+      <h3 class="incident-title">橘柚岛大量<span class="red">谜题</span>事件</h3>
+      <p class="incident-date">（2026年6月19日）</p>
+
+      <p class="opening-copy">
+        倍感无聊的黄金魔女，为了寻找能与之一较高下的侦探，带来了诸多棋盘。她以幻想编织故事，以红字封锁真相，并断言人类不可能解开这些错杂的谜题。
+      </p>
+      <p class="opening-copy">
+        于此，我们诚邀各位侦探、观剧的魔女与有能的群友参加此次活动。魔女对人类，幻想对真实。欢迎各位从棋盘中窥探真实，观测出猫箱中的真相。
+      </p>
+    </section>
+
+    <section class="section reveal" id="declaration">
+      <h2 class="section-heading">
+        <span>黄金魔女的宣言<small>THE GOLDEN WITCH'S DECLARATION</small></span>
+      </h2>
+
+      <blockquote class="witch-letter">
+        “汝等无能的人类不可能解出这些错杂的谜题。不过，妾身承诺，破解出谜题的人将会得到去往永恒的黄金之乡的资格。汝等在那里将坐拥无数的财富，<strong>破碎的爱意也将重回。</strong>”
+      </blockquote>
+
+      <div class="duel-strip" aria-label="魔女与人类的对决">
+        <div>魔女 · 幻想</div>
+        <b>VS</b>
+        <div>人类 · 真实</div>
+      </div>
+    </section>
+
+    <section class="section reveal" id="rules">
+      <h2 class="section-heading">
+        <span>棋盘游戏规则<small>RULES OF THE WITCH'S GAMEBOARD</small></span>
+      </h2>
+
+      <div class="rules-list">
+        <article class="rule">
+          <h3>游戏本质</h3>
+          <p>棋盘全部内容是魔女方所编织的故事，棋盘内容完全由魔女自己的表述方式进行叙述，<span class="truth-red">但叙述中可能存在魔法幻想的虚假叙述。</span>谨记这一点，自己探索真实吧。</p>
+        </article>
+
+        <article class="rule">
+          <h3>人类方获胜条件</h3>
+          <p>通常情况下，揭开魔女方叙述的诡计，还原案件真相，推测出 <b>Whodunit、Howdunit</b>（凶手、凶器、手法均要）即可。部分棋盘可能会要求推测出 <b>Whydunit</b>，届时就请侦探再加把劲吧。</p>
+        </article>
+
+        <article class="rule">
+          <h3>人类方失败原因</h3>
+          <p>所有参与棋盘游戏的玩家放弃思考与推理，承认自己无法还原真相，即为人类方的失败。</p>
+        </article>
+
+        <article class="rule">
+          <h3>人类方推理权限</h3>
+          <p>以“复述要求、定义、确认”开头，对魔女提出自己对具体内容的猜测与定义确认等，魔女方则可以红字真实复述确认，<span class="truth-red">但魔女方没有义务复述每个要求。</span></p>
+        </article>
+
+        <article class="rule" id="truth">
+          <h3 class="truth-blue">蓝色真实</h3>
+          <p>通过魔女叙述和红字进行有逻辑性的推理猜想。蓝字可以只针对某一段提出，但毫无依据的蓝字，魔女可能不会进行受理。</p>
+        </article>
+
+        <article class="rule">
+          <h3 class="truth-red">红色真实</h3>
+          <p>魔女方的红色真实，其文字字面意义上不会有错误，<span class="truth-red">但并不是不存在叙述性诡计或文字游戏。</span></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section reveal" id="terms">
+      <h2 class="section-heading">
+        <span>侦探的推理目标<small>THE THREE QUESTIONS FOR DETECTIVES</small></span>
+      </h2>
+
+      <div class="terms">
+        <article class="term">
+          <b>Whodunit</b>
+          <p>凶手是谁？<br>确定实施犯罪的人。</p>
+        </article>
+        <article class="term">
+          <b>Howdunit</b>
+          <p>如何完成？<br>还原凶器与犯罪手法。</p>
+        </article>
+        <article class="term">
+          <b>Whydunit</b>
+          <p>为何如此？<br>在指定棋盘中观测动机。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section closing reveal" id="closing">
+      <h2 class="section-heading">
+        <span>欢迎来到魔女的棋盘<small>WELCOME TO THE WITCH'S GAMEBOARD</small></span>
+      </h2>
+
+      <p class="closing-line">
+        从魔女编织的幻想中寻找裂隙，以问题、定义和推理逐步逼近真实。<br>
+        猫箱尚未开启，而你的观测将决定其中存在的真相。
+      </p>
+      <p class="closing-slogan">
+        <span class="red">拒绝幻想</span>，以推理撬开猫箱。<br>
+        <span class="blue">观测真实</span>，抵达黄金之乡。
+      </p>
+    </section>
+
+    <footer class="footer">
+      This page is an unofficial fan-created event layout inspired by the visual language of classic 07th Expansion websites.<br>
+      第一届橘柚海龟汤推理大赛 · Without love, it cannot be seen.
+    </footer>
+  </main>
+
+  <div class="screen-actions" aria-label="页面操作">
+    <button type="button" id="topButton">返回顶部</button>
+    <button type="button" onclick="window.print()">打印 / 导出 PDF</button>
+  </div>
+
+  <script>
+    const topButton = document.getElementById("topButton");
+    const revealItems = document.querySelectorAll(".reveal");
+
+    topButton.addEventListener("click", () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      }
+    }, { threshold: 0.08 });
+
+    for (const item of revealItems) {
+      observer.observe(item);
+    }
+  </script>
+</body>
+</html>

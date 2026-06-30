@@ -487,7 +487,7 @@
                         <div>
                             <span class="event-name">${escapeHtml(item.event)}</span>
                             ${item.offical ? '<span class="official-badge">🏛️ 官方活动</span>' : ''}
-                            ${item.status === 'approved' && item.event_id ? `<a href="./index.html" target="_blank" class="preview-link">🔗 查看日历</a>` : ''}
+                            ${item.status === 'approved' && item.event_id ? `<a href="../index.html" target="_blank" class="preview-link">🔗 查看日历</a>` : ''}
                         </div>
                         <span class="status-badge status-${item.status}">
                             ${item.status === 'pending' ? '⏳ 待审核' : (item.status === 'approved' ? '✅ 已通过' : '❌ 已拒绝')}

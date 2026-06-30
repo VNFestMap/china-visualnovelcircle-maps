@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>刊物管理 - VNFest WIKI</title>
+  <link rel="stylesheet" href="./wiki.css">
+  <style>
+    .publication-manage-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 180px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .publication-manage-toolbar input,
+    .publication-manage-toolbar select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-text);
+      font: inherit;
+      padding: 8px 10px;
+    }
+
+    .publication-manage-list {
+      display: grid;
+      gap: 0;
+    }
+
+    .publication-manage-row {
+      display: grid;
+      grid-template-columns: 86px minmax(0, 1fr) auto;
+      gap: 14px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--wiki-panel);
+    }
+
+    .publication-manage-row:last-child {
+      border-bottom: 0;
+    }
+
+    .publication-manage-cover {
+      width: 86px;
+      aspect-ratio: 3 / 4;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+      object-fit: cover;
+    }
+
+    .publication-manage-row h3 {
+      margin: 2px 0 6px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .publication-manage-row p {
+      margin: 0;
+      color: var(--wiki-muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .publication-manage-meta {
+      color: var(--wiki-muted);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .publication-manage-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .publication-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+      color: var(--wiki-muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .publication-status.is-active {
+      border-color: #2a6f3f;
+      background: #e7f4ea;
+      color: #2a6f3f;
+    }
+
+    .publication-status.is-uploading {
+      border-color: #a66b00;
+      background: #fff4d6;
+      color: #7a4d00;
+    }
+
+    .publication-status.is-failed,
+    .publication-status.is-deleted {
+      border-color: #b32424;
+      background: #ffe9e9;
+      color: #b32424;
+    }
+
+    .wiki-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-link);
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .wiki-button.primary {
+      border-color: var(--wiki-link);
+      background: #eaf2ff;
+      color: var(--wiki-link);
+      font-weight: 700;
+    }
+
+    .wiki-button.danger {
+      color: #b32424;
+    }
+
+    .wiki-button:disabled {
+      cursor: not-allowed;
+      color: var(--wiki-muted);
+      background: var(--wiki-bg);
+    }
+
+    .publication-empty {
+      margin: 0;
+      color: var(--wiki-muted);
+    }
+
+    @media (max-width: 760px) {
+      .publication-manage-toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .publication-manage-row {
+        grid-template-columns: 72px minmax(0, 1fr);
+      }
+
+      .publication-manage-cover {
+        width: 72px;
+      }
+
+      .publication-manage-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
+    <a href="../index.html">Galgame 同好会地图</a>
+    <a href="./index.html">VNFest WIKI</a>
+    <a href="./publications.html">资料公开库</a>
+    <span>刊物管理</span>
+  </header>
+
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="刊物管理目录">
+      <div class="wiki-sidebar-card">
+        <p class="wiki-index-kicker">Management</p>
+        <h1>刊物管理</h1>
+        <p>管理已上传到资料公开库的刊物预览。超级管理员可管理全部，同好会负责人/代表仅管理绑定到自己同好会的条目。</p>
+      </div>
+      <nav class="wiki-nav wiki-index-toc" aria-label="页面目录">
+        <a href="./publications.html">公开预览</a>
+        <a href="./publication-upload.html">发布预览</a>
+        <a href="#publication-manage">刊物管理</a>
+        <a href="./index.html">返回 Wiki 首页</a>
+      </nav>
+    </aside>
+
+    <section class="wiki-index-main">
+      <section class="wiki-index-hero wiki-article-shell">
+        <div>
+          <p class="wiki-index-kicker">资料公开库</p>
+          <h2>已上传刊物管理</h2>
+          <p>这里显示当前账号有权限管理的刊物预览。删除后条目不会再出现在公开预览和 3D 阅读入口中。</p>
+        </div>
+        <div class="wiki-index-stats" aria-label="统计">
+          <div><strong id="statManageCount">-</strong><span>可管理条目</span></div>
+          <div><strong id="statActiveCount">-</strong><span>公开中</span></div>
+        </div>
+      </section>
+
+      <section class="wiki-index-tools wiki-article-shell" aria-label="筛选">
+        <label class="wiki-search-label" for="publicationManageSearch">搜索刊物</label>
+        <div class="publication-manage-toolbar">
+          <input id="publicationManageSearch" type="search" placeholder="搜索标题、同好会、简介、创建人" autocomplete="off">
+          <select id="publicationManageStatus" aria-label="状态筛选">
+            <option value="">全部状态</option>
+            <option value="active">公开中</option>
+            <option value="uploading">上传中</option>
+            <option value="failed">失败</option>
+            <option value="deleted">已删除</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="wiki-index-country wiki-article-shell" id="publication-manage">
+        <div class="wiki-index-section-heading">
+          <h2>管理列表</h2>
+          <span id="publicationManageStatusText">加载中</span>
+        </div>
+        <div class="publication-manage-list" id="publicationManageList">
+          <p class="publication-empty">正在加载...</p>
+        </div>
+      </section>
+    </section>
+
+    <aside class="wiki-index-aside" aria-label="说明">
+      <section class="wiki-sidebar-card">
+        <h2>权限规则</h2>
+        <p>超级管理员可以管理全部刊物。同好会负责人/代表只能管理绑定到对应同好会的刊物。</p>
+      </section>
+      <section class="wiki-sidebar-card">
+        <h2>删除说明</h2>
+        <p>删除会让刊物退出公开列表，并清理已上传的页面图。已删除记录仅用于管理侧留痕。</p>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+  (function () {
+    var API = '../api/publication_previews.php';
+    var state = { previews: [] };
+    var elList = document.getElementById('publicationManageList');
+    var elSearch = document.getElementById('publicationManageSearch');
+    var elStatusFilter = document.getElementById('publicationManageStatus');
+    var elStatusText = document.getElementById('publicationManageStatusText');
+    var elStatManage = document.getElementById('statManageCount');
+    var elStatActive = document.getElementById('statActiveCount');
+
+    var statusLabels = {
+      active: '公开中',
+      uploading: '上传中',
+      failed: '失败',
+      deleted: '已删除'
+    };
+
+    function esc(value) {
+      var div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    function rootUrl(path) {
+      if (!path) return '';
+      if (/^(https?:)?\/\//i.test(path) || path.indexOf('data:') === 0) return path;
+      return '../' + path.replace(/^\/+/, '');
+    }
+
+    function clubLabel(club) {
+      return (club.country || 'china') + ' #' + club.id;
+    }
+
+    function apiGetManageList() {
+      return fetch(API + '?action=manage_list&_=' + Date.now(), { credentials: 'same-origin' })
+        .then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (json) {
+            if (!response.ok || !json.success) {
+              var error = new Error(json.message || '管理列表加载失败');
+              error.status = response.status;
+              throw error;
+            }
+            return json;
+          });
+        });
+    }
+
+    function apiDelete(previewId) {
+      return fetch(API + '?action=delete', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', preview_id: previewId })
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (json) {
+          if (!response.ok || !json.success) throw new Error(json.message || '删除失败');
+          return json;
+        });
+      });
+    }
+
+    function renderList() {
+      var keyword = (elSearch.value || '').trim().toLowerCase();
+      var status = elStatusFilter.value;
+      var previews = state.previews.filter(function (item) {
+        var clubs = (item.club_ids || []).map(clubLabel).join(' ');
+        var haystack = [item.title, item.description, item.created_by_name, clubs].join(' ').toLowerCase();
+        return (!keyword || haystack.indexOf(keyword) !== -1) && (!status || item.status === status);
+      });
+
+      elStatManage.textContent = state.previews.length;
+      elStatActive.textContent = state.previews.filter(function (item) { return item.status === 'active'; }).length;
+      elStatusText.textContent = previews.length + ' 个条目';
+
+      if (!previews.length) {
+        elList.innerHTML = '<p class="publication-empty">暂无匹配的可管理刊物。</p>';
+        return;
+      }
+
+      elList.innerHTML = previews.map(function (item) {
+        var readUrl = '../tools/pdf-reader/?preview_id=' + encodeURIComponent(item.id);
+        var cover = item.status !== 'deleted' && item.cover_path ? rootUrl(item.cover_path) : '';
+        var clubs = (item.club_ids || []).map(clubLabel).join('、') || '未绑定同好会';
+        var label = statusLabels[item.status] || item.status || '未知';
+        var meta = clubs + ' · ' + (item.page_count || 0) + ' 页 · 更新于 ' + (item.updated_at || item.created_at || '-');
+        var readAction = item.status === 'active'
+          ? '<a class="wiki-button primary" href="' + esc(readUrl) + '">打开阅读</a>'
+          : '<button class="wiki-button" type="button" disabled>未公开</button>';
+        var deleteAction = item.can_delete
+          ? '<button class="wiki-button danger" type="button" data-delete-id="' + esc(item.id) + '" data-title="' + esc(item.title) + '">删除</button>'
+          : '<button class="wiki-button" type="button" disabled>' + (item.status === 'deleted' ? '已删除' : '不可删除') + '</button>';
+
+        return '<article class="publication-manage-row" data-id="' + esc(item.id) + '">' +
+          (cover ? '<img class="publication-manage-cover" src="' + esc(cover) + '" alt="">' : '<div class="publication-manage-cover"></div>') +
+          '<div><div class="publication-manage-meta"><span class="publication-status is-' + esc(item.status || 'unknown') + '">' + esc(label) +
+          '</span> ' + esc(meta) + '</div><h3>' + esc(item.title || '未命名刊物') + '</h3><p>' +
+          esc(item.description || '暂无简介') + '</p><p class="publication-manage-meta">创建人：' +
+          esc(item.created_by_name || '-') + ' · 创建于 ' + esc(item.created_at || '-') + '</p></div><div class="publication-manage-actions">' +
+          readAction + deleteAction + '</div></article>';
+      }).join('');
+    }
+
+    async function loadManageList() {
+      elStatusText.textContent = '加载中';
+      try {
+        var json = await apiGetManageList();
+        state.previews = json.previews || [];
+        renderList();
+      } catch (error) {
+        state.previews = [];
+        elStatManage.textContent = '-';
+        elStatActive.textContent = '-';
+        elStatusText.textContent = error.status === 401 ? '需要登录' : '加载失败';
+        elList.innerHTML = '<p class="publication-empty">' + esc(error.message || '管理列表加载失败') + '</p>';
+      }
+    }
+
+    async function handleDelete(event) {
+      var button = event.target.closest('[data-delete-id]');
+      if (!button) return;
+      var previewId = button.getAttribute('data-delete-id');
+      var title = button.getAttribute('data-title') || '该刊物';
+      if (!window.confirm('确定删除《' + title + '》吗？删除后不会再公开展示。')) return;
+      button.disabled = true;
+      button.textContent = '删除中';
+      try {
+        await apiDelete(previewId);
+        await loadManageList();
+      } catch (error) {
+        alert(error.message || '删除失败');
+        button.disabled = false;
+        button.textContent = '删除';
+      }
+    }
+
+    elSearch.addEventListener('input', renderList);
+    elStatusFilter.addEventListener('change', renderList);
+    elList.addEventListener('click', handleDelete);
+    loadManageList();
+  }());
+  </script>
+</body>
+</html>

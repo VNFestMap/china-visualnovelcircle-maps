@@ -330,12 +330,65 @@ if ($isMysql) {
             application_id  INT NOT NULL,
             ip_address      VARCHAR(45) NOT NULL,
             created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(event_id, ip_address)
+            UNIQUE(event_id, ip_address, application_id)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     $tryIndex("CREATE INDEX idx_galonly_public_votes_event ON galonly_public_votes(event_id)");
     $tryIndex("CREATE INDEX idx_galonly_public_votes_app ON galonly_public_votes(application_id)");
     echo "[OK] galonly_public_votes 表已创建\n";
+
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_deadline DATETIME NULL");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_max_applicants INT DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_required_count INT NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_registration_open TINYINT(1) NOT NULL DEFAULT 1");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_roster_finalized TINYINT(1) NOT NULL DEFAULT 0");
+    echo "[OK] galonly_events Staff 配置列已添加\n";
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS galonly_staff_applications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            event_id INT NOT NULL,
+            user_id INT NOT NULL,
+            cn_name VARCHAR(255) NOT NULL DEFAULT '',
+            qq_number VARCHAR(32) NOT NULL DEFAULT '',
+            phone_number VARCHAR(32) NOT NULL DEFAULT '',
+            club_id INT NOT NULL DEFAULT 0,
+            club_country VARCHAR(50) NOT NULL DEFAULT 'china',
+            positions TEXT NOT NULL,
+            confirm_schedule TINYINT(1) NOT NULL DEFAULT 0,
+            is_cosplay TINYINT(1) NOT NULL DEFAULT 0,
+            self_intro TEXT,
+            status VARCHAR(20) NOT NULL DEFAULT 'pending',
+            voted_by INT DEFAULT NULL,
+            vote VARCHAR(20) DEFAULT NULL,
+            resubmitted TINYINT(1) NOT NULL DEFAULT 0,
+            has_update TINYINT(1) NOT NULL DEFAULT 0,
+            created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN event_id INT NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN user_id INT NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN cn_name VARCHAR(255) NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN qq_number VARCHAR(32) NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN phone_number VARCHAR(32) NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_id INT NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_country VARCHAR(50) NOT NULL DEFAULT 'china'");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN positions TEXT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN confirm_schedule TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN is_cosplay TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN self_intro TEXT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'pending'");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN voted_by INT DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN vote VARCHAR(20) DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN resubmitted TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN has_update TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN created_at DATETIME NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN updated_at DATETIME NULL");
+    $tryIndex("CREATE INDEX idx_staff_app_event ON galonly_staff_applications(event_id)");
+    $tryIndex("CREATE INDEX idx_staff_app_user ON galonly_staff_applications(user_id)");
+    $tryIndex("CREATE INDEX idx_staff_app_status ON galonly_staff_applications(status)");
+    echo "[OK] galonly_staff_applications 表已创建\n";
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS announcements (
@@ -400,6 +453,8 @@ if ($isMysql) {
     echo "[OK] galonly_applications.resubmitted 列已添加\n";
     $tryAlter("ALTER TABLE galonly_applications ADD COLUMN has_update TINYINT(1) NOT NULL DEFAULT 0");
     echo "[OK] galonly_applications.has_update 列已添加\n";
+    $tryAlter("ALTER TABLE galonly_applications ADD COLUMN display_image VARCHAR(500) DEFAULT NULL AFTER image_path");
+    echo "[OK] galonly_applications.display_image 列已添加\n";
 
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url VARCHAR(500) NOT NULL DEFAULT '' AFTER description");
     echo "[OK] galonly_events.image_url 列已添加\n";
@@ -729,12 +784,67 @@ if ($isMysql) {
             application_id  INTEGER NOT NULL,
             ip_address      TEXT NOT NULL,
             created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-            UNIQUE(event_id, ip_address)
+            UNIQUE(event_id, ip_address, application_id)
         )
     ");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_galonly_public_votes_event ON galonly_public_votes(event_id)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_galonly_public_votes_app ON galonly_public_votes(application_id)");
     echo "[OK] galonly_public_votes 表已创建\n";
+
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_deadline TEXT DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_max_applicants INTEGER DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_required_count INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_registration_open INTEGER NOT NULL DEFAULT 1");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_roster_finalized INTEGER NOT NULL DEFAULT 0");
+    echo "[OK] galonly_events Staff 配置列已添加\n";
+
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS galonly_staff_applications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER NOT NULL REFERENCES galonly_events(id),
+            user_id INTEGER NOT NULL REFERENCES users(id),
+            cn_name TEXT NOT NULL DEFAULT '',
+            qq_number TEXT NOT NULL DEFAULT '',
+            phone_number TEXT NOT NULL DEFAULT '',
+            club_id INTEGER NOT NULL DEFAULT 0,
+            club_country TEXT NOT NULL DEFAULT 'china',
+            positions TEXT NOT NULL DEFAULT '[]',
+            confirm_schedule INTEGER NOT NULL DEFAULT 0,
+            is_cosplay INTEGER NOT NULL DEFAULT 0,
+            self_intro TEXT,
+            status TEXT NOT NULL DEFAULT 'pending'
+                CHECK(status IN ('pending','pooled','rejected','confirmed')),
+            voted_by INTEGER DEFAULT NULL,
+            vote TEXT DEFAULT NULL,
+            resubmitted INTEGER NOT NULL DEFAULT 0,
+            has_update INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT (datetime('now')),
+            updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+    ");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN event_id INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN user_id INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN cn_name TEXT NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN qq_number TEXT NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN phone_number TEXT NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_id INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_country TEXT NOT NULL DEFAULT 'china'");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN positions TEXT NOT NULL DEFAULT '[]'");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN confirm_schedule INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN is_cosplay INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN self_intro TEXT");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN voted_by INTEGER DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN vote TEXT DEFAULT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN resubmitted INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN has_update INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN created_at TEXT");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN updated_at TEXT");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_staff_app_event ON galonly_staff_applications(event_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_staff_app_user ON galonly_staff_applications(user_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_staff_app_status ON galonly_staff_applications(status)");
+    $db->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_staff_app_active ON galonly_staff_applications(event_id, user_id) WHERE status IN ('pending','pooled')");
+    echo "[OK] galonly_staff_applications 表已创建\n";
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS star_unions (
@@ -782,6 +892,8 @@ if ($isMysql) {
     echo "[OK] galonly_applications.resubmitted 列已添加\n";
     $tryAlter("ALTER TABLE galonly_applications ADD COLUMN has_update INTEGER NOT NULL DEFAULT 0");
     echo "[OK] galonly_applications.has_update 列已添加\n";
+    $tryAlter("ALTER TABLE galonly_applications ADD COLUMN display_image TEXT DEFAULT NULL");
+    echo "[OK] galonly_applications.display_image 列已添加\n";
 
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url TEXT NOT NULL DEFAULT ''");
     echo "[OK] galonly_events.image_url 列已添加\n";

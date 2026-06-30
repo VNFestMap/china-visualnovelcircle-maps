@@ -17,7 +17,10 @@ function assert(condition, message) {
 const growthApi = read('api/growth.php');
 const growthLib = read('includes/growth.php');
 const sharePage = read('club_share.html');
-const userPage = read('user.html');
+const userPage = [
+  read('user.html'),
+  read('user-v2-react/src/App.jsx')
+].join('\n');
 const botApi = read('api/bot.php');
 const clubsApi = read('api/clubs.php');
 
@@ -35,10 +38,10 @@ assert(sharePage.includes('api/growth.php?action=club_summary'), 'club share pag
 assert(sharePage.includes('club_share_copy'), 'club share page records copy intent');
 assert(sharePage.includes('data-i18n-lang'), 'club share page keeps language controls');
 
-assert(userPage.includes('ownerGrowthPanel'), 'user center has owner growth panel');
-assert(userPage.includes('ownerGrowthList'), 'user center has owner growth list');
+assert(userPage.includes('ownerGrowthPanel') || userPage.includes('负责人工作台'), 'user center has owner growth panel');
+assert(userPage.includes('ownerGrowthList') || userPage.includes('ownerDashboard.clubs'), 'user center has owner growth list');
 assert(userPage.includes('owner_dashboard'), 'user center loads owner dashboard API');
-assert(userPage.includes('data-copy-share'), 'user center can copy share links');
+assert(userPage.includes('data-copy-share') || userPage.includes('onCopyShare(shareUrl'), 'user center can copy share links');
 
 assert(botApi.includes("'club_share'"), 'bot API exposes club_share action');
 assert(botApi.includes("'club_activity'"), 'bot API exposes club_activity action');

@@ -1,135 +1,379 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GalOnly 审核面板 - Galgame 同好会地图</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Jost:wght@400;500;600&display=swap');
+
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #2d0f1a 50%, #1a0a0a 100%);
-  --card-bg: rgba(255,255,255,0.06);
-  --card-border: rgba(255,255,255,0.08);
-  --card-hover-border: rgba(233,30,99,0.3);
-  --glass-blur: blur(16px);
-  --text-primary: rgba(255,255,255,0.9);
-  --text-secondary: rgba(255,255,255,0.5);
-  --text-muted: rgba(255,255,255,0.3);
-  --accent-pink: #e91e63;
-  --accent-green: #4caf50;
-  --accent-orange: #ff6b35;
-  --accent-red: #e74c3c;
-  --shadow-card: 0 8px 32px rgba(0,0,0,0.3);
-  --radius-card: 16px;
-  --radius-sm: 10px;
-  --radius-pill: 999px;
-  --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 100px;
+  --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+  --font-body: 'Jost', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --transition-theme: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+  --header-height: 56px;
+}
+
+[data-theme="dark"] {
+  --bg: oklch(18% 0.035 275);
+  --surface: oklch(24% 0.04 272);
+  --surface-raised: oklch(30% 0.045 270);
+  --fg: oklch(93% 0.003 80);
+  --fg-soft: oklch(84% 0.015 275);
+  --fg-muted: oklch(75% 0.03 270);
+  --fg-dim: oklch(65% 0.04 268);
+  --border: oklch(30% 0.045 270 / 0.35);
+  --border-light: oklch(38% 0.05 268 / 0.35);
+  --accent: oklch(72% 0.07 290);
+  --accent-fill: oklch(58% 0.08 290);
+  --accent-muted: oklch(72% 0.05 290 / 0.15);
+  --accent-ghost: oklch(72% 0.04 290 / 0.08);
+  --shell: oklch(18% 0.035 275 / 0.85);
+  --nav-hover-bg: rgba(236,234,233,0.06);
+  --success: oklch(72% 0.12 155);
+  --success-bg: oklch(72% 0.08 155 / 0.12);
+  --success-border: oklch(72% 0.08 155 / 0.2);
+  --warning: oklch(80% 0.12 85);
+  --warning-bg: oklch(80% 0.08 85 / 0.12);
+  --warning-border: oklch(80% 0.08 85 / 0.2);
+  --danger: oklch(70% 0.14 25);
+  --danger-bg: oklch(70% 0.10 25 / 0.12);
+  --danger-border: oklch(70% 0.10 25 / 0.2);
+  --pooled: oklch(72% 0.07 290);
+  --pooled-bg: oklch(72% 0.05 290 / 0.12);
+  --pooled-border: oklch(72% 0.05 290 / 0.2);
+  /* Backward-compatible aliases for JS inline styles */
+  --accent-blue: var(--accent);
+  --accent-blue-hover: var(--accent-fill);
+  --accent-blue-bg: var(--accent-muted);
+  --accent-green: var(--success);
+  --accent-green-bg: var(--success-bg);
+  --accent-orange: var(--warning);
+  --accent-orange-bg: var(--warning-bg);
+  --accent-red: var(--danger);
+  --accent-red-bg: var(--danger-bg);
+  --accent-purple: var(--pooled);
+  --accent-purple-bg: var(--pooled-bg);
+  --text-primary: var(--fg);
+  --text-secondary: var(--fg-soft);
+  --text-muted: var(--fg-dim);
+  --bg-page: var(--bg);
+  --bg-card: var(--surface);
+  --bg-hover: var(--nav-hover-bg);
+  --bg-table-header: var(--surface-raised);
+  --border-color: var(--border);
+  --border-raised: var(--border-light);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.25);
+  --radius-card: var(--radius-md);
+  --radius-pill: var(--radius-full);
+  --transition: all 0.2s ease;
+}
+
+[data-theme="light"] {
+  --bg: oklch(98% 0.005 270);
+  --surface: oklch(100% 0 0);
+  --surface-raised: oklch(97% 0.008 270);
+  --fg: oklch(18% 0.01 270);
+  --fg-soft: oklch(28% 0.015 270);
+  --fg-muted: oklch(43% 0.03 270);
+  --fg-dim: oklch(55% 0.03 270);
+  --border: oklch(88% 0.01 260);
+  --border-light: oklch(92% 0.01 260);
+  --accent: oklch(44% 0.14 42);
+  --accent-fill: oklch(78% 0.1 65);
+  --accent-muted: oklch(44% 0.10 42 / 0.12);
+  --accent-ghost: oklch(44% 0.08 42 / 0.06);
+  --shell: oklch(100% 0 0 / 0.88);
+  --nav-hover-bg: rgba(0,0,0,0.04);
+  --success: oklch(45% 0.12 155);
+  --success-bg: oklch(92% 0.06 155);
+  --success-border: oklch(82% 0.08 155);
+  --warning: oklch(55% 0.12 85);
+  --warning-bg: oklch(95% 0.06 85);
+  --warning-border: oklch(88% 0.08 85);
+  --danger: oklch(45% 0.14 25);
+  --danger-bg: oklch(95% 0.04 25);
+  --danger-border: oklch(85% 0.06 25);
+  --pooled: oklch(44% 0.12 290);
+  --pooled-bg: oklch(95% 0.04 290);
+  --pooled-border: oklch(85% 0.06 290);
+  /* Backward-compatible aliases for JS inline styles */
+  --accent-blue: var(--accent);
+  --accent-blue-hover: var(--accent-fill);
+  --accent-blue-bg: var(--accent-muted);
+  --accent-green: var(--success);
+  --accent-green-bg: var(--success-bg);
+  --accent-orange: var(--warning);
+  --accent-orange-bg: var(--warning-bg);
+  --accent-red: var(--danger);
+  --accent-red-bg: var(--danger-bg);
+  --accent-purple: var(--pooled);
+  --accent-purple-bg: var(--pooled-bg);
+  --text-primary: var(--fg);
+  --text-secondary: var(--fg-soft);
+  --text-muted: var(--fg-dim);
+  --bg-page: var(--bg);
+  --bg-card: var(--surface);
+  --bg-hover: var(--nav-hover-bg);
+  --bg-table-header: var(--surface-raised);
+  --border-color: var(--border);
+  --border-raised: var(--border-light);
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.12);
+  --radius-card: var(--radius-md);
+  --radius-pill: var(--radius-full);
+  --transition: all 0.2s ease;
 }
 
 body {
-  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg-gradient);
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--fg);
   min-height: 100vh;
-  color: var(--text-primary);
-  overflow-x: hidden;
-  transition: background 0.5s ease;
+  display: flex;
+  line-height: 1.6;
+  transition: var(--transition-theme);
 }
 
-/* Decorative background orbs */
-body::before {
-  content: '';
-  position: fixed;
-  width: 600px; height: 600px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(233,30,99,0.08) 0%, transparent 70%);
-  top: -200px; right: -200px;
-  pointer-events: none;
-  z-index: 0;
+body,
+.top-header,
+.card,
+.app-card,
+.stat-card,
+.mode-switch,
+.mode-btn,
+.tab-btn,
+.filter-select,
+.roster-panel,
+.preview-panel,
+.modal,
+.toast,
+.app-status-badge,
+.result-badge,
+.chip,
+.roster-table thead th,
+.roster-table tbody td,
+.preview-table thead th,
+.preview-table tbody td {
+  transition: var(--transition-theme);
 }
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 20px 16px;
-  position: relative;
-  z-index: 1;
+/* ── Main Area ── */
+.main-area {
+  flex: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Header ── */
-.header {
+/* ── Top Header ── */
+.top-header {
+  height: var(--header-height);
+  background: var(--shell);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-  gap: 12px;
+  padding: 0 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
 }
 
-.header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.main-area {
+  padding-top: var(--header-height);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--fg-dim);
+}
+
+.breadcrumb a {
+  color: var(--fg-dim);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.breadcrumb a:hover {
+  color: var(--accent);
+}
+
+.breadcrumb-sep {
+  color: var(--fg-dim);
+}
+
+.breadcrumb-current {
+  color: var(--fg);
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
 }
 
 .header-actions {
   display: flex;
-  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .header-link {
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  color: var(--text-secondary);
+  font-size: 13px;
+  color: var(--fg-soft);
   text-decoration: none;
   transition: var(--transition);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
 }
+
 .header-link:hover {
-  background: var(--card-bg);
-  color: var(--text-primary);
+  color: var(--accent);
+  background: var(--nav-hover-bg);
+}
+
+/* ── Content ── */
+.content {
+  padding: 24px;
+  flex: 1;
+}
+
+/* ── Page Title ── */
+.page-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 24px;
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+/* ── Mode Switch ── */
+.mode-switch {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  background: var(--surface);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  padding: 4px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--fg-soft);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.mode-btn:hover {
+  color: var(--fg);
+  background: var(--nav-hover-bg);
+}
+
+.mode-btn.active {
+  background: var(--accent-fill);
+  color: var(--bg);
+  box-shadow: none;
 }
 
 /* ── Stats Row ── */
 .stats-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
-  flex: 1;
-  min-width: 100px;
-  padding: 16px 20px;
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--card-border);
-  text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 20px;
   transition: var(--transition);
 }
-.stat-card:hover {
-  border-color: var(--card-hover-border);
-  transform: translateY(-2px);
-}
 
-.stat-card .num {
-  font-size: 30px;
-  font-weight: 800;
-  line-height: 1.2;
+.stat-card:hover {
+  border-color: var(--border-light);
+  background: var(--surface-raised);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .stat-card .label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 4px;
+  font-size: 13px;
+  color: var(--fg-dim);
+  margin-bottom: 8px;
+  letter-spacing: 0.04em;
+}
+
+.stat-card .num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Card Container ── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-body.collapsible {
+  display: none;
+}
+
+.card-body.collapsible.open {
+  display: block;
 }
 
 /* ── Filters ── */
@@ -138,73 +382,68 @@ body::before {
   gap: 12px;
   align-items: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
 }
 
 .filter-select {
-  padding: 10px 16px;
+  padding: 8px 36px 8px 12px;
   border-radius: var(--radius-sm);
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--card-border);
-  color: var(--text-primary);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg);
   font-size: 13px;
-  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   outline: none;
   transition: var(--transition);
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(240,230,255,0.5)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a8a5b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 16px center;
-  padding-right: 44px;
-  min-width: 180px;
+  background-position: right 12px center;
+  min-width: 160px;
 }
+
 .filter-select:focus {
-  border-color: var(--accent-orange);
-  box-shadow: 0 0 0 3px rgba(255,107,53,0.15);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-muted);
 }
+
 .filter-select option {
-  background: #1a0a2e;
-  color: #f0e6ff;
+  background: var(--surface);
+  color: var(--fg);
 }
 
 /* ── Tabs ── */
 .tabs {
   display: flex;
-  gap: 4px;
+  gap: 0;
   margin-bottom: 20px;
-  padding: 4px;
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--card-border);
-  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
 }
 
 .tab-btn {
-  flex: 1;
-  padding: 10px 14px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
   background: transparent;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  color: var(--fg-soft);
+  font-size: 14px;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: var(--transition);
   white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
 }
+
 .tab-btn:hover {
-  color: var(--text-primary);
-  background: rgba(255,255,255,0.04);
+  color: var(--accent);
 }
+
 .tab-btn.active {
-  background: var(--card-bg);
-  color: var(--text-primary);
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  font-weight: 600;
 }
 
 /* ── App List ── */
@@ -216,18 +455,18 @@ body::before {
 
 /* ── App Card ── */
 .app-card {
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-card);
-  padding: 20px 22px;
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 20px;
   transition: var(--transition);
 }
+
 .app-card:hover {
-  border-color: var(--card-hover-border);
-  transform: translateY(-1px);
+  border-color: var(--border-light);
+  background: var(--surface-raised);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .app-header {
@@ -253,133 +492,159 @@ body::before {
   align-items: center;
   justify-content: center;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent-orange), var(--accent-red));
-  color: #fff;
+  background: var(--accent-fill);
+  color: var(--bg);
 }
 
-.applicant-info {
-  min-width: 0;
-}
-.applicant-name {
-  font-size: 15px;
-  font-weight: 600;
-}
-.applicant-club {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-top: 2px;
-}
+.applicant-info { min-width: 0; }
+.applicant-name { font-size: 15px; font-weight: 600; color: var(--fg); }
+.applicant-club { font-size: 12px; color: var(--fg-dim); margin-top: 2px; letter-spacing: 0.04em; }
 
+/* ── Status Badges ── */
 .app-status-badge {
-  padding: 4px 14px;
-  border-radius: 20px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
 }
+
 .app-status-pending {
-  background: rgba(255,193,7,0.15);
-  color: #ffc107;
-  border: 1px solid rgba(255,193,7,0.2);
-}
-.app-status-approved {
-  background: rgba(76,175,80,0.15);
-  color: #4caf50;
-  border: 1px solid rgba(76,175,80,0.2);
-}
-.app-status-rejected {
-  background: rgba(244,67,54,0.15);
-  color: #f44336;
-  border: 1px solid rgba(244,67,54,0.2);
+  background: var(--warning-bg);
+  color: var(--warning);
+  border: 1px solid var(--warning-border);
 }
 
-/* ── Result Badge ── */
+.app-status-approved {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+.app-status-rejected {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.app-status-pooled {
+  background: var(--pooled-bg);
+  color: var(--pooled);
+  border: 1px solid var(--pooled-border);
+}
+
+.app-status-confirmed {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
 .result-badge {
   display: inline-block;
-  padding: 6px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
 }
+
 .result-badge.approved {
-  background: rgba(76,175,80,0.15);
-  color: #4caf50;
-  border: 1px solid rgba(76,175,80,0.3);
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
 }
+
 .result-badge.rejected {
-  background: rgba(244,67,54,0.15);
-  color: #f44336;
-  border: 1px solid rgba(244,67,54,0.3);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid var(--danger-border);
+}
+
+.result-badge.confirmed {
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+/* ── Chips ── */
+.chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--accent-muted);
+  color: var(--accent);
+  border: 1px solid var(--pooled-border);
+  margin-right: 4px;
+  margin-bottom: 4px;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chip-period {
+  background: var(--pooled-bg);
+  color: var(--pooled);
+  border-color: var(--pooled-border);
 }
 
 /* ── App Grid Fields ── */
 .app-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
-.app-field {
-  min-width: 0;
-}
-.app-field.full {
-  grid-column: 1 / -1;
-}
+.app-field { min-width: 0; }
+.app-field.full { grid-column: 1 / -1; }
+
 .app-field-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 3px;
-  font-weight: 600;
+  font-size: 12px;
+  color: var(--fg-dim);
+  margin-bottom: 4px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
+
 .app-field-value {
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--fg);
   word-break: break-word;
-}
-.app-field-value.image-link {
-  color: var(--accent-orange);
-  text-decoration: underline;
-  cursor: pointer;
-  display: inline-block;
-}
-.app-field-value.image-link:hover {
-  opacity: 0.8;
 }
 
 .app-image-thumb {
   display: inline-block;
   width: 60px;
   height: 60px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   cursor: pointer;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
   transition: var(--transition);
 }
+
 .app-image-thumb:hover {
-  border-color: var(--accent-orange);
-  transform: scale(1.05);
+  border-color: var(--accent);
+  box-shadow: 0 2px 6px var(--accent-muted);
 }
 
-/* ── Vote Section ── */
+/* ── Vote Section (booth) ── */
 .vote-section {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid var(--border-light);
 }
-.vote-title {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-}
+
+.vote-title { font-size: 13px; color: var(--fg-dim); margin-bottom: 12px; letter-spacing: 0.04em; }
 
 .vote-row {
   display: flex;
@@ -388,26 +653,15 @@ body::before {
   flex-wrap: wrap;
 }
 
-.vote-item {
-  min-width: 140px;
-}
-
-.vote-label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
-}
-
-.vote-count {
-  font-size: 22px;
-  font-weight: 700;
-}
-.vote-count.approve { color: #4caf50; }
-.vote-count.reject { color: #f44336; }
+.vote-item { min-width: 140px; }
+.vote-label { font-size: 12px; color: var(--fg-dim); margin-bottom: 2px; letter-spacing: 0.04em; }
+.vote-count { font-size: 22px; font-weight: 700; font-family: var(--font-display); font-variant-numeric: tabular-nums; }
+.vote-count.approve { color: var(--success); }
+.vote-count.reject { color: var(--danger); }
 
 .vote-bar-track {
   height: 6px;
-  background: rgba(255,255,255,0.06);
+  background: var(--border-light);
   border-radius: 3px;
   overflow: hidden;
   margin-top: 4px;
@@ -415,76 +669,94 @@ body::before {
   width: 120px;
 }
 
-.vote-bar-fill {
-  height: 100%;
-  border-radius: 3px;
-  transition: width 0.3s ease;
-}
-.vote-bar-fill.approve { background: #4caf50; }
-.vote-bar-fill.reject { background: #f44336; }
+.vote-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
+.vote-bar-fill.approve { background: var(--success); }
+.vote-bar-fill.reject { background: var(--danger); }
 
-.vote-bar-label {
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.vote-bar-label.threshold-met {
-  color: #4caf50;
-  font-weight: 600;
-}
+.vote-bar-label { font-size: 11px; color: var(--fg-dim); }
+.vote-bar-label.threshold-met { color: var(--success); font-weight: 600; }
 
 /* ── Vote Actions ── */
-.vote-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 12px;
-}
+.vote-actions { display: flex; gap: 8px; margin-top: 12px; }
 
 .btn-vote {
-  padding: 10px 28px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: var(--transition);
   font-family: inherit;
 }
-.btn-vote:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-.btn-vote:active {
-  transform: translateY(0);
-}
-.btn-vote:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-  transform: none;
-}
+
+.btn-vote:hover { opacity: 0.9; }
+.btn-vote:disabled { opacity: 0.4; cursor: not-allowed; }
+
 .btn-vote.approve {
-  background: rgba(76,175,80,0.2);
-  color: #4caf50;
-  border: 1px solid rgba(76,175,80,0.3);
-}
-.btn-vote.reject {
-  background: rgba(244,67,54,0.2);
-  color: #f44336;
-  border: 1px solid rgba(244,67,54,0.3);
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
 }
 
-/* ── Voted Badge ── */
+.btn-vote.reject {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+/* ── Single Vote Actions (staff) ── */
+.single-vote-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.btn-single-vote {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.btn-single-vote:hover { opacity: 0.9; }
+.btn-single-vote:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-single-vote.approve {
+  background: var(--success-bg);
+  color: var(--success);
+  border-color: var(--success-border);
+}
+
+.btn-single-vote.reject {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+}
+
+.btn-single-vote.withdraw {
+  background: transparent;
+  color: var(--fg-soft);
+  border-color: var(--border);
+}
+
 .voted-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 18px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.06);
-  color: var(--text-secondary);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--surface-raised);
+  color: var(--fg-soft);
   font-size: 13px;
   font-weight: 500;
-  border: 1px solid var(--card-border);
+  border: 1px solid var(--border);
 }
 
 /* ── App Footer ── */
@@ -494,40 +766,302 @@ body::before {
   justify-content: space-between;
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,0.04);
+  border-top: 1px solid var(--border-light);
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.app-id {
+.app-id { font-size: 12px; color: var(--fg-dim); letter-spacing: 0.04em; }
+
+/* ── Roster Pool Panel ── */
+.roster-panel {
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.roster-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.roster-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--fg);
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+}
+
+.roster-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.roster-progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+
+.roster-progress-bar {
+  width: 120px;
+  height: 8px;
+  background: var(--border-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.roster-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-fill));
+  transition: width 0.4s ease;
+}
+
+.roster-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.roster-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.roster-table thead th {
+  padding: 10px 14px;
+  text-align: left;
   font-size: 12px;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--fg-dim);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+}
+
+.roster-table tbody td {
+  padding: 10px 14px;
+  color: var(--fg);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.roster-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.roster-table tbody tr:hover td {
+  background: var(--surface-raised);
+}
+
+.roster-avatar-cell {
+  width: 36px;
+}
+
+.roster-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--accent-fill);
+  color: var(--bg);
+}
+
+.roster-status-pooled {
+  color: var(--pooled);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.roster-status-confirmed {
+  color: var(--success);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.roster-cell-secondary {
+  font-size: 12px;
+  color: var(--fg-soft);
+}
+
+.roster-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-roster {
+  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.btn-roster:hover { opacity: 0.9; }
+.btn-roster:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-roster.save {
+  background: var(--accent-fill);
+  color: var(--bg);
+  border-color: var(--accent-fill);
+}
+
+.btn-roster.unlock {
+  background: transparent;
+  color: var(--fg-soft);
+  border-color: var(--border);
+}
+
+.roster-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--fg-dim);
+  font-size: 14px;
+}
+
+.roster-frozen-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--success-bg);
+  color: var(--success);
+  border: 1px solid var(--success-border);
+}
+
+/* ── Staff Event Config ── */
+.staff-config-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 14px 0;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.staff-config-row:last-child {
+  border-bottom: none;
+}
+
+.staff-config-info { min-width: 0; flex: 1; }
+.staff-config-name { font-size: 14px; font-weight: 500; color: var(--fg); }
+.staff-config-date { font-size: 12px; color: var(--fg-dim); margin-top: 2px; letter-spacing: 0.04em; }
+
+.staff-config-fields {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.config-input {
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  font-size: 13px;
+  font-family: inherit;
+  width: 140px;
+  transition: var(--transition);
+}
+
+.config-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--accent-muted);
+}
+
+.config-input[type="datetime-local"] {
+  width: 200px;
+}
+
+.config-input[type="number"] {
+  width: 80px;
+}
+
+.config-label {
+  font-size: 12px;
+  color: var(--fg-dim);
+  display: block;
+  margin-bottom: 4px;
+  letter-spacing: 0.04em;
+}
+
+.btn-config-save {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.btn-config-save:hover {
+  background: var(--accent-fill);
+  color: var(--bg);
+  border-color: var(--accent-fill);
+}
+
+.btn-config-save:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ── Empty State ── */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
-  color: var(--text-secondary);
-  font-size: 15px;
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--card-border);
+  color: var(--fg-dim);
+  font-size: 14px;
+  background: var(--surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
 }
 
 /* ── Loading ── */
 .loading-spinner {
   display: inline-block;
-  width: 20px; height: 20px;
-  border: 2px solid var(--card-border);
-  border-top-color: var(--accent-pink);
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
   border-radius: 50%;
-  animation: spin 0.7s linear infinite;
+  animation: spin 0.6s linear infinite;
   vertical-align: middle;
   margin-right: 8px;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Toast ── */
@@ -536,22 +1070,21 @@ body::before {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(80px);
-  padding: 12px 28px;
-  border-radius: var(--radius-pill);
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  color: var(--text-primary);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  border: 1px solid var(--card-border);
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
   opacity: 0;
-  transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
   pointer-events: none;
   z-index: 999;
   white-space: nowrap;
 }
+
 .toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
@@ -561,9 +1094,7 @@ body::before {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.5);
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -572,14 +1103,12 @@ body::before {
 }
 
 .modal {
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--card-border);
-  box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   width: 100%;
-  max-width: 480px;
+  max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -588,29 +1117,27 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.modal-title {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-}
+.modal-title { font-size: 16px; font-weight: 600; color: var(--fg); font-family: var(--font-display); letter-spacing: -0.015em; }
 
 .modal-close {
   background: none;
   border: none;
-  color: var(--text-secondary);
-  font-size: 28px;
+  color: var(--fg-dim);
+  font-size: 24px;
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
-  transition: color 0.2s;
+  transition: var(--transition);
 }
-.modal-close:hover { color: var(--text-primary); }
+
+.modal-close:hover { color: var(--fg); }
 
 .modal-body {
-  padding: 20px 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -620,227 +1147,1181 @@ body::before {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
-  padding: 0 24px 20px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-light);
 }
 
 .btn {
-  padding: 8px 18px;
-  border: none;
-  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  border: 1px solid;
+  border-radius: var(--radius-full);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   font-family: inherit;
   cursor: pointer;
   transition: var(--transition);
 }
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: translateY(0); }
 
-.btn-glass {
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  color: var(--text-primary);
-  border: 1px solid var(--card-border);
-}
-.btn-glass:hover {
-  border-color: var(--accent-pink);
-  color: var(--accent-pink);
+.btn:hover { opacity: 0.9; }
+
+.btn-primary {
+  background: var(--accent-fill);
+  color: var(--bg);
+  border-color: var(--accent-fill);
 }
 
-/* ── Event Management ── */
-.event-mgr {
-  margin-bottom: 16px;
-  background: var(--card-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-card);
-  border: 1px solid var(--card-border);
+.btn-default {
+  background: transparent;
+  color: var(--fg-soft);
+  border-color: var(--border);
+}
+
+/* ── Preview Roster (compact dense view) ── */
+.preview-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   overflow: hidden;
 }
-.event-mgr-header {
+
+.preview-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
-  cursor: pointer;
-  user-select: none;
-  transition: var(--transition);
-}
-.event-mgr-header:hover { background: rgba(255,255,255,0.04); }
-.event-mgr-title {
-  font-size: 15px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
   gap: 8px;
 }
-.event-mgr-title .arrow {
-  display: inline-block;
-  transition: transform 0.3s ease;
-  font-size: 12px;
-}
-.event-mgr-title .arrow.open { transform: rotate(90deg); }
-.event-mgr-body {
-  padding: 0 20px 16px;
-  display: none;
-}
-.event-mgr-body.open { display: block; }
-.event-mgr-row {
+
+.preview-summary {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  transition: var(--transition);
-  gap: 12px;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--fg-muted);
+}
+
+.preview-summary strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
-.event-mgr-row:hover { background: rgba(255,255,255,0.04); }
-.event-mgr-row + .event-mgr-row { border-top: 1px solid rgba(255,255,255,0.04); }
-.event-mgr-info { min-width: 0; flex: 1; }
-.event-mgr-name { font-size: 14px; font-weight: 600; }
-.event-mgr-date { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
-.event-mgr-status {
+
+/* ── Roster Filters ── */
+.roster-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: var(--surface-raised);
+}
+
+.roster-filter-label {
   font-size: 12px;
-  font-weight: 600;
-  padding: 4px 12px;
-  border-radius: 20px;
+  font-weight: 500;
+  color: var(--fg-dim);
+  letter-spacing: 0.03em;
   white-space: nowrap;
 }
-.event-mgr-status.open {
-  background: rgba(76,175,80,0.15);
-  color: #4caf50;
+
+.roster-filter-select {
+  padding: 5px 28px 5px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--fg-soft);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  min-width: 120px;
 }
-.event-mgr-status.closed {
-  background: rgba(244,67,54,0.15);
-  color: #f44336;
+
+.roster-filter-select:focus {
+  border-color: var(--accent);
 }
-.event-mgr-toggle {
-  padding: 6px 16px;
-  border-radius: 8px;
+
+.roster-filter-select option {
+  background: var(--surface);
+  color: var(--fg);
+}
+
+.roster-filter-count {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-left: auto;
+}
+
+.roster-filter-count strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.roster-filter-reset {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-dim);
+  font-size: 11px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.roster-filter-reset:hover {
+  color: var(--fg);
+  border-color: var(--fg-dim);
+}
+
+.preview-table-wrap {
+  overflow-x: auto;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.preview-table thead th {
+  padding: 6px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--fg-dim);
+  letter-spacing: 0.04em;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.preview-table tbody td {
+  padding: 5px 12px;
+  color: var(--fg-soft);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.preview-table tbody tr:hover td {
+  background: var(--accent-ghost);
+}
+
+.preview-table .idx-col {
+  width: 32px;
+  color: var(--fg-dim);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-table .name-col {
+  font-weight: 500;
+  color: var(--fg);
+}
+
+.preview-table .pos-col {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.preview-table .period-col {
+  color: var(--fg-muted);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview-table .exp-col {
+  color: var(--fg-dim);
+}
+
+.preview-table .contact-col {
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-table .remove-col {
+  width: 40px;
+  text-align: center;
+}
+
+.btn-preview-remove {
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.btn-preview-remove:hover {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.preview-empty {
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--fg-dim);
+  font-size: 14px;
+}
+
+.btn-confirm-roster {
+  padding: 7px 20px;
+  border-radius: var(--radius-full);
+  border: none;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  border: 1px solid var(--card-border);
-  background: transparent;
-  color: var(--text-secondary);
+  transition: all 0.2s;
   font-family: inherit;
-  transition: var(--transition);
-  white-space: nowrap;
+  background: var(--accent-fill);
+  color: var(--bg);
 }
-.event-mgr-toggle:hover {
-  border-color: var(--accent-orange);
-  color: var(--accent-orange);
-}
-.event-mgr-toggle:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.event-mgr-toggle.close {
-  border-color: rgba(244,67,54,0.3);
-  color: #f44336;
-}
-.event-mgr-toggle.close:hover {
-  background: rgba(244,67,54,0.1);
-}
-.event-mgr-toggle.open-reg {
-  border-color: rgba(76,175,80,0.3);
-  color: #4caf50;
-}
-.event-mgr-toggle.open-reg:hover {
-  background: rgba(76,175,80,0.1);
-}
-.event-mgr-empty {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-secondary);
+
+.btn-confirm-roster:hover { filter: brightness(1.1); }
+.btn-confirm-roster:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-export {
+  padding: 7px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--fg-muted);
   font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.btn-export:hover {
+  border-color: var(--fg-dim);
+  color: var(--fg);
+  background: var(--nav-hover-bg);
+}
+.collapse-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.collapse-toggle:hover {
+  background: var(--nav-hover-bg);
+}
+
+.collapse-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+  font-size: 10px;
+  color: var(--fg-dim);
+}
+
+.collapse-arrow.open {
+  transform: rotate(90deg);
+}
+
+/* ── Theme Toggle ── */
+.theme-toggle {
+  width: 34px; height: 34px;
+  display: grid; place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--fg-dim);
+  font-size: 16px; line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  color: var(--fg);
+  border-color: var(--fg-dim);
+  background: var(--nav-hover-bg);
 }
 
 /* ── Responsive ── */
+
+/* ── 768px: Tablet / Large Phone ── */
 @media (max-width: 768px) {
-  .container { padding: 12px; }
-  .header { padding: 16px 18px; }
-  .header h1 { font-size: 18px; }
-  .stats-row { gap: 8px; }
-  .stat-card { min-width: 72px; padding: 12px 10px; }
-  .stat-card .num { font-size: 24px; }
-  .app-grid { grid-template-columns: 1fr; }
-  .app-card { padding: 16px; }
-  .tabs { padding: 3px; }
-  .tab-btn { padding: 8px 10px; font-size: 12px; }
-  .vote-row { gap: 20px; }
-  .filter-select { min-width: 140px; }
+  /* 1. Top header */
+  .top-header {
+    padding: 0 16px;
+    height: 52px;
+  }
+  .main-area {
+    padding-top: 52px;
+  }
+  .breadcrumb {
+    font-size: 13px;
+    gap: 6px;
+  }
+  .header-actions {
+    gap: 8px;
+  }
+  .header-link {
+    display: none;
+  }
+
+  /* 2. Content area */
+  .content {
+    padding: 16px;
+  }
+
+  /* 3. Page title */
+  .page-title {
+    font-size: 18px;
+    margin-bottom: 18px;
+  }
+
+  /* 4. Mode switch – horizontal scroll with hidden scrollbar */
+  .mode-switch {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 18px;
+  }
+  .mode-switch::-webkit-scrollbar {
+    display: none;
+  }
+  .mode-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+    min-height: 44px;
+    flex-shrink: 0;
+  }
+
+  /* 5. Stats row – 2-column, reduced padding */
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .stat-card {
+    padding: 14px;
+  }
+  .stat-card .num {
+    font-size: 24px;
+  }
+  .stat-card .label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  /* 6. Tabs – horizontal scroll with hidden scrollbar, 44px targets */
+  .tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-bottom: 16px;
+  }
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .tab-btn {
+    padding: 10px 16px;
+    min-height: 44px;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  /* 7. App cards – full width, reduced padding, single-column grid */
+  .app-card {
+    padding: 16px;
+  }
+  .app-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .applicant-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  .card-body {
+    padding: 16px;
+  }
+  .card-header {
+    padding: 14px 16px;
+  }
+
+  /* 8. Filter select – full width, 44px height */
+  .filters-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .filter-select {
+    width: 100%;
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  /* 9. Vote buttons – stacked full-width, 44px min */
+  .vote-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .vote-actions .btn-vote {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+  .single-vote-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .single-vote-actions .btn-single-vote {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+  .voted-badge {
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+
+  /* 10. Roster/Preview tables – gradient fade hint on scroll */
+  .roster-table-wrap {
+    position: relative;
+  }
+  .roster-table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to right, transparent, var(--surface));
+    pointer-events: none;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .roster-table thead th {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .roster-table tbody td {
+    padding: 8px 10px;
+  }
+  .preview-table-wrap {
+    position: relative;
+  }
+  .preview-table-wrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 24px;
+    background: linear-gradient(to right, transparent, var(--surface));
+    pointer-events: none;
+  }
+  .preview-table thead th {
+    padding: 6px 8px;
+  }
+  .preview-table tbody td {
+    padding: 5px 8px;
+  }
+
+  /* 11. Staff config rows – stack vertically */
+  .staff-config-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .staff-config-fields {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .config-input {
+    width: 100%;
+  }
+  .config-input[type="datetime-local"] {
+    width: 100%;
+  }
+  .config-input[type="number"] {
+    width: 100%;
+  }
+  .btn-config-save {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* 12. Modal – nearly full-screen, touch-friendly close */
+  .modal-overlay {
+    padding: 12px;
+  }
+  .modal {
+    max-height: 95vh;
+    max-width: 100%;
+    width: calc(100% - 0px);
+  }
+  .modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  /* 13. Toast */
+  .toast {
+    max-width: calc(100% - 32px);
+    font-size: 13px;
+    white-space: normal;
+    text-align: center;
+    padding: 12px 18px;
+    bottom: 16px;
+  }
+
+  /* 14. Collapse toggles – touch-friendly tap targets */
+  .collapse-toggle {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0;
+  }
+
+  /* Roster panel */
+  .roster-panel {
+    padding: 16px;
+  }
+  .roster-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .roster-progress {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .roster-progress-bar {
+    flex: 1;
+    min-width: 60px;
+  }
+  .roster-actions {
+    flex-direction: column;
+  }
+  .btn-roster {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  /* Vote row */
+  .vote-row {
+    gap: 16px;
+  }
+  .vote-bar-track {
+    width: 100px;
+  }
+
+  /* Preview panel */
+  .preview-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .preview-summary {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .preview-actions {
+    width: 100%;
+  }
+  .preview-actions .btn-export,
+  .preview-actions .btn-confirm-roster {
+    flex: 1;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  /* App footer */
+  .app-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  /* Theme toggle */
+  .theme-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* ── 480px: Phone ── */
+@media (max-width: 480px) {
+  /* Header */
+  .top-header {
+    padding: 0 12px;
+    height: 48px;
+  }
+  .main-area {
+    padding-top: 48px;
+  }
+  .breadcrumb {
+    font-size: 12px;
+    gap: 4px;
+  }
+  .breadcrumb-sep {
+    display: none;
+  }
+
+  /* Content */
+  .content {
+    padding: 14px;
+  }
+
+  /* Page title */
+  .page-title {
+    font-size: 17px;
+    margin-bottom: 16px;
+  }
+
+  /* Mode switch */
+  .mode-btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  /* Stats */
+  .stat-card {
+    padding: 12px;
+  }
+  .stat-card .num {
+    font-size: 22px;
+  }
+
+  /* App cards */
+  .app-card {
+    padding: 14px;
+  }
+  .card-body {
+    padding: 14px;
+  }
+  .card-header {
+    padding: 12px 14px;
+  }
+  .applicant-name {
+    font-size: 14px;
+  }
+  .applicant-club {
+    font-size: 11px;
+  }
+
+  /* Tabs */
+  .tab-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* Vote items */
+  .vote-item {
+    min-width: 100px;
+  }
+  .vote-count {
+    font-size: 20px;
+  }
+
+  /* Roster panel */
+  .roster-panel {
+    padding: 12px;
+  }
+  .roster-title {
+    font-size: 15px;
+  }
+
+  /* Modal */
+  .modal-header {
+    padding: 14px 16px;
+  }
+  .modal-body {
+    padding: 16px;
+  }
+  .modal-footer {
+    padding: 14px 16px;
+    flex-direction: column;
+  }
+  .modal-footer .btn {
+    width: 100%;
+    text-align: center;
+    min-height: 44px;
+  }
+
+  /* Toast */
+  .toast {
+    max-width: calc(100% - 24px);
+    font-size: 13px;
+    padding: 10px 14px;
+    bottom: 12px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 40px 16px;
+  }
+}
+
+/* ── 375px: Small Phone ── */
+@media (max-width: 375px) {
+  /* Content */
+  .content {
+    padding: 12px;
+  }
+
+  /* Page title */
+  .page-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  /* Stats – 2-column with smaller numbers */
+  .stats-row {
+    gap: 8px;
+  }
+  .stat-card {
+    padding: 10px;
+  }
+  .stat-card .num {
+    font-size: 20px;
+  }
+  .stat-card .label {
+    font-size: 11px;
+    margin-bottom: 4px;
+  }
+
+  /* Mode switch */
+  .mode-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  /* App cards */
+  .app-card {
+    padding: 12px;
+  }
+  .card-body {
+    padding: 12px;
+  }
+  .card-header {
+    padding: 10px 12px;
+  }
+  .card-title {
+    font-size: 14px;
+  }
+  .applicant-name {
+    font-size: 13px;
+  }
+  .applicant-club {
+    font-size: 10px;
+  }
+  .app-field-label {
+    font-size: 11px;
+  }
+  .app-field-value {
+    font-size: 13px;
+  }
+
+  /* Tabs */
+  .tab-btn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  /* Roster */
+  .roster-panel {
+    padding: 10px;
+  }
+  .roster-table {
+    font-size: 12px;
+  }
+  .roster-table thead th {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .roster-table tbody td {
+    padding: 6px 8px;
+  }
+
+  /* Preview table */
+  .preview-table {
+    font-size: 11px;
+  }
+  .preview-table thead th {
+    padding: 5px 6px;
+    font-size: 10px;
+  }
+  .preview-table tbody td {
+    padding: 4px 6px;
+  }
+
+  /* Chip */
+  .chip {
+    font-size: 11px;
+    padding: 2px 6px;
+  }
+
+  /* Toast */
+  .toast {
+    font-size: 12px;
+    max-width: calc(100% - 20px);
+    padding: 10px 12px;
+  }
+
+  /* Vote */
+  .vote-title {
+    font-size: 12px;
+  }
+  .vote-label {
+    font-size: 11px;
+  }
+  .vote-count {
+    font-size: 18px;
+  }
+
+  /* Staff config */
+  .staff-config-name {
+    font-size: 13px;
+  }
+  .staff-config-date {
+    font-size: 11px;
+  }
+  .config-label {
+    font-size: 11px;
+  }
+  .config-input {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  /* Modal */
+  .modal-title {
+    font-size: 14px;
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 32px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ── Animation Keyframes ── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Staggered Stat Card Entrance ── */
+.stat-card {
+  opacity: 0;
+  animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.stat-card:nth-child(1) { animation-delay: 0.05s; }
+.stat-card:nth-child(2) { animation-delay: 0.1s; }
+.stat-card:nth-child(3) { animation-delay: 0.15s; }
+.stat-card:nth-child(4) { animation-delay: 0.2s; }
+.stat-card:nth-child(5) { animation-delay: 0.25s; }
+
+/* ── App Card Entrance ── */
+.app-card {
+  opacity: 0;
+  animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ── Spring Hover on Cards ── */
+.app-card {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.3s ease,
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              color 0.35s ease;
+}
+
+.stat-card {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.3s ease,
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s ease,
+              color 0.35s ease;
+}
+
+/* ── Button Press Spring ── */
+.btn-vote:active,
+.btn-single-vote:active,
+.btn-roster:active,
+.btn-config-save:active,
+.btn-export:active,
+.btn-confirm-roster:active,
+.btn-preview-remove:active,
+.mode-btn:active,
+.tab-btn:active {
+  transform: scale(0.94);
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Tab Switch Content Fade ── */
+#boothMode, #staffMode {
+  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Mode Switch Slide ── */
+.mode-switch {
+  animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.02s both;
+}
+
+/* ── Theme Toggle Rotation ── */
+.theme-toggle:active {
+  transform: rotate(180deg) scale(0.85);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Roster/Preview Table Row Entrance ── */
+.roster-table tbody tr,
+.preview-table tbody tr {
+  animation: rowSlideIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Toast Slide-in Enhancement ── */
+.toast {
+  transition: opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ── Modal Overlay Fade ── */
+.modal-overlay {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.modal {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.3s ease;
+}
+
+/* ── Header Slide-down ── */
+.top-header {
+  animation: slideDown 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Page Title Fade-in ── */
+.page-title {
+  animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 </style>
 </head>
 <body>
 
-<div class="container">
+<!-- Main Area -->
+<div class="main-area">
 
-  <!-- Header -->
-  <div class="header">
-    <h1>GalOnly 审核面板</h1>
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="breadcrumb">
+      <a href="../index.html">首页</a>
+      <span class="breadcrumb-sep">/</span>
+      <span class="breadcrumb-current">申请审核</span>
+    </div>
     <div class="header-actions">
       <a class="header-link" href="../Galgame_events/galgameonly_list.html">活动列表</a>
       <a class="header-link" href="../admin/club_manager.html">同好会管理</a>
-      <a class="header-link" href="../index.html">← 返回地图</a>
+      <a class="header-link" href="../index.html">返回地图</a>
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="切换主题"></button>
     </div>
-  </div>
+  </header>
 
-  <!-- Stats Row -->
-  <div class="stats-row" id="statsRow">
-    <div class="stat-card">
-      <div class="num" id="statPending" style="color:#ffc107;">—</div>
-      <div class="label">待审核申请</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="statApproved" style="color:#4caf50;">—</div>
-      <div class="label">已通过</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="statRejected" style="color:#f44336;">—</div>
-      <div class="label">已拒绝</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="statAuditors" style="color:#9c27b0;">—</div>
-      <div class="label">审核员总数</div>
-    </div>
-  </div>
+  <!-- Content -->
+  <main class="content" data-component="audit-panel">
 
-  <!-- Event Management -->
-  <div class="event-mgr" id="eventMgr">
-    <div class="event-mgr-header" onclick="toggleEventMgr()">
-      <div class="event-mgr-title">
-        <span class="arrow" id="eventMgrArrow">&#9654;</span>
-        活动管理
+    <h1 class="page-title">申请审核</h1>
+
+    <!-- Mode Switch -->
+    <div class="mode-switch" id="modeSwitch" data-component="mode-switch">
+      <button class="mode-btn active" data-mode="booth">上海GalOnly 摊位申请</button>
+      <button class="mode-btn" data-mode="staff">上海GalOnly 工作人员审核</button>
+    </div>
+
+    <!-- BOOTH MODE -->
+    <div id="boothMode" data-component="booth-audit">
+
+      <!-- Stats Row -->
+      <div class="stats-row" id="boothStatsRow" data-component="booth-stats">
+        <div class="stat-card">
+          <div class="label">待审核申请</div>
+          <div class="num" id="statPending" style="color:var(--accent-orange);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">已通过</div>
+          <div class="num" id="statApproved" style="color:var(--accent-green);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">已拒绝</div>
+          <div class="num" id="statRejected" style="color:var(--accent-red);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">审核员总数</div>
+          <div class="num" id="statAuditors" style="color:var(--accent-purple);">—</div>
+        </div>
       </div>
-      <span style="font-size:12px;color:var(--text-secondary);" id="eventMgrCount"></span>
+
+      <!-- Event Management (booth) -->
+      <div class="card" id="eventMgr">
+        <div class="card-header collapse-toggle" onclick="toggleEventMgr()">
+          <div class="card-title">
+            <span class="collapse-arrow" id="eventMgrArrow">&#9654;</span>
+            活动管理
+          </div>
+          <span style="font-size:12px;color:var(--text-muted);" id="eventMgrCount"></span>
+        </div>
+        <div class="card-body collapsible" id="eventMgrBody">
+          <div id="eventMgrList"></div>
+        </div>
+      </div>
+
+      <!-- Event Filter -->
+      <div class="filters-row">
+        <select class="filter-select" id="eventFilter" onchange="onEventFilterChange()">
+          <option value="">全部活动</option>
+        </select>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" id="boothTabBar" data-component="booth-tabs">
+        <button class="tab-btn active" data-tab="pending">待审核</button>
+        <button class="tab-btn" data-tab="approved">已通过</button>
+        <button class="tab-btn" data-tab="rejected">已拒绝</button>
+      </div>
+
+      <!-- App List -->
+      <div class="app-list" id="boothAppList" data-component="booth-app-list">
+        <div class="empty-state">加载中...</div>
+      </div>
+
     </div>
-    <div class="event-mgr-body" id="eventMgrBody">
-      <div id="eventMgrList"></div>
+
+    <!-- STAFF MODE -->
+    <div id="staffMode" style="display:none;" data-component="staff-audit">
+
+      <!-- Staff Stats Row -->
+      <div class="stats-row" id="staffStatsRow" data-component="staff-stats">
+        <div class="stat-card">
+          <div class="label">待审核</div>
+          <div class="num" id="staffStatPending" style="color:var(--accent-orange);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">名单池</div>
+          <div class="num" id="staffStatPooled" style="color:var(--accent-purple);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">已拒绝</div>
+          <div class="num" id="staffStatRejected" style="color:var(--accent-red);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">已确定</div>
+          <div class="num" id="staffStatConfirmed" style="color:var(--accent-green);">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">需求人数</div>
+          <div class="num" id="staffStatRequired" style="color:var(--accent-blue);">—</div>
+        </div>
+      </div>
+
+      <!-- Staff Event Management -->
+      <div class="card" id="staffEventMgr">
+        <div class="card-header collapse-toggle" onclick="toggleStaffEventMgr()">
+          <div class="card-title">
+            <span class="collapse-arrow" id="staffEventMgrArrow">&#9654;</span>
+            Staff 活动配置（双熔断 + 需求人数）
+          </div>
+          <span style="font-size:12px;color:var(--text-muted);" id="staffEventMgrCount"></span>
+        </div>
+        <div class="card-body collapsible" id="staffEventMgrBody">
+          <div id="staffEventConfigList"></div>
+        </div>
+      </div>
+
+      <!-- Staff Event Filter -->
+      <div class="filters-row">
+        <select class="filter-select" id="staffEventFilter" onchange="onStaffEventFilterChange()">
+          <option value="">全部活动</option>
+        </select>
+      </div>
+
+      <!-- Staff Status Tabs -->
+      <div class="tabs" id="staffTabBar" data-component="staff-tabs">
+        <button class="tab-btn active" data-tab="pending">待审核</button>
+        <button class="tab-btn" data-tab="pooled">名单池</button>
+        <button class="tab-btn" data-tab="preview">预览名单</button>
+        <button class="tab-btn" data-tab="rejected">已拒绝</button>
+        <button class="tab-btn" data-tab="confirmed">已确定</button>
+      </div>
+
+      <!-- Staff App List -->
+      <div class="app-list" id="staffAppList" data-component="staff-app-list">
+        <div class="empty-state">加载中...</div>
+      </div>
+
+      <!-- Roster Pool Panel -->
+      <div class="roster-panel" id="rosterPanel" style="display:none;" data-component="roster-pool">
+        <div class="roster-header">
+          <div class="roster-title">名单池</div>
+          <div class="roster-progress">
+            <span class="roster-progress-text" id="rosterProgressText">0 / 0</span>
+            <div class="roster-progress-bar">
+              <div class="roster-progress-fill" id="rosterProgressFill" style="width:0%"></div>
+            </div>
+            <span class="roster-frozen-badge" id="rosterFrozenBadge" style="display:none;">名单已冻结</span>
+          </div>
+        </div>
+        <div id="rosterList">
+          <div class="roster-empty">暂无名单池成员</div>
+        </div>
+        <div class="roster-actions" id="rosterActions">
+          <button class="btn-roster save" id="btnSaveRoster" disabled onclick="finalizeRoster()">保存名单</button>
+          <button class="btn-roster unlock" id="btnUnlockRoster" style="display:none;" onclick="unlockRoster()">解锁名单</button>
+        </div>
+      </div>
+
     </div>
-  </div>
 
-  <!-- Event Filter -->
-  <div class="filters-row">
-    <select class="filter-select" id="eventFilter" onchange="onEventFilterChange()">
-      <option value="">全部活动</option>
-    </select>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs" id="tabBar">
-    <button class="tab-btn active" data-tab="pending">待审核</button>
-    <button class="tab-btn" data-tab="approved">已通过</button>
-    <button class="tab-btn" data-tab="rejected">已拒绝</button>
-  </div>
-
-  <!-- App List -->
-  <div class="app-list" id="appList">
-    <div class="empty-state">加载中...</div>
-  </div>
+  </main>
 
 </div>
 
@@ -849,35 +2330,61 @@ body::before {
 
 <!-- Image Preview Modal -->
 <div id="imageModal" class="modal-overlay" style="display:none;">
-  <div class="modal" style="max-width:800px;">
+  <div class="modal">
     <div class="modal-header">
-      <span class="modal-title">制品图片预览</span>
+      <span class="modal-title">图片预览</span>
       <button class="modal-close" onclick="closeImageModal()">&times;</button>
     </div>
     <div class="modal-body" style="text-align:center;">
-      <img id="previewImage" src="" alt="制品图片" style="max-width:100%;max-height:70vh;border-radius:8px;display:block;margin:0 auto;">
+      <img id="previewImage" src="" alt="图片预览" style="max-width:100%;max-height:70vh;border-radius:var(--radius-sm);display:block;margin:0 auto;">
     </div>
     <div class="modal-footer">
-      <a id="downloadImageBtn" class="btn btn-glass" href="" download style="text-decoration:none;color:var(--accent-orange);">下载原图</a>
-      <button class="btn btn-glass" onclick="closeImageModal()">关闭</button>
+      <a id="downloadImageBtn" class="btn btn-primary" href="" download style="text-decoration:none;">下载原图</a>
+      <button class="btn btn-default" onclick="closeImageModal()">关闭</button>
     </div>
   </div>
 </div>
 
 <script>
 // ====== State ======
-const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
-const VOTE_THRESHOLD = 4;
+var ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
+var VOTE_THRESHOLD = 4;
 
-let currentUser = null;
-let allApplications = [];
-let allEvents = [];
-let currentTab = 'pending';
-let selectedEventId = 0;
+var currentUser = null;
+var allApplications = [];
+var allStaffApplications = [];
+var allEvents = [];
+var currentMode = 'booth';
+var currentBoothTab = 'pending';
+var currentStaffTab = 'pending';
+var selectedEventId = 0;
+var selectedStaffEventId = 0;
 
-// Club name maps
-let clubNameMapCn = {};
-let clubNameMapJp = {};
+// Roster filter state
+var rosterFilterPosition = '';
+var rosterFilterCosplay = '';
+
+// 15 staff positions for filter dropdown
+var STAFF_POSITIONS = [
+  '检票发票 (布展日)',
+  '检票发票 (开展日)',
+  '场馆搭建搬货 (布展日)',
+  '搭建协助 (开展日)',
+  '物料发放 (游客)',
+  '物料发放 (摊主)',
+  '食品发放与看管',
+  '巡场 (安保/应急)',
+  '巡场检查 (内容合规)',
+  '舞台管理',
+  '问询处',
+  '线上社群管理',
+  '痛车区域管理',
+  'VIP室服务',
+  '交通指引'
+];
+
+var clubNameMapCn = {};
+var clubNameMapJp = {};
 
 // ====== Utilities ======
 function escapeHtml(str) {
@@ -905,8 +2412,7 @@ function showToast(msg, type) {
   var el = document.getElementById('toast');
   if (!el) return;
   el.textContent = msg;
-  el.style.background = type === 'error' ? 'rgba(244,67,54,0.15)' : type === 'success' ? 'rgba(76,175,80,0.15)' : '';
-  el.style.borderColor = type === 'error' ? 'rgba(244,67,54,0.3)' : type === 'success' ? 'rgba(76,175,80,0.3)' : '';
+  el.style.borderColor = type === 'error' ? 'var(--accent-red)' : type === 'success' ? 'var(--accent-green)' : 'var(--border-color)';
   el.classList.add('show');
   clearTimeout(el._timer);
   el._timer = setTimeout(function() { el.classList.remove('show'); }, 2500);
@@ -918,44 +2424,49 @@ function getClubName(clubId, country) {
   return map[clubId] || ('同好会 #' + clubId);
 }
 
+// ====== Mode Switch ======
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.mode === mode);
+  });
+  document.getElementById('boothMode').style.display = mode === 'booth' ? '' : 'none';
+  document.getElementById('staffMode').style.display = mode === 'staff' ? '' : 'none';
+  if (mode === 'staff') {
+    renderStaffCurrentTab();
+    renderRosterPanel();
+  }
+}
+
 // ====== Club Name Loading ======
 async function loadClubNames() {
   try {
     var cnResp = await fetch('../api/clubs.php?t=' + Date.now());
     var cnData = await cnResp.json();
     clubNameMapCn = {};
-    (cnData.data || []).forEach(function(c) {
-      clubNameMapCn[c.id] = c.name || c.school || '未知';
-    });
+    (cnData.data || cnData.clubs || []).forEach(function(c) { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
   } catch (e) { clubNameMapCn = {}; }
-
   try {
     var jpResp = await fetch('../api/clubs_japan.php?t=' + Date.now());
     var jpData = await jpResp.json();
     clubNameMapJp = {};
-    (jpData.data || []).forEach(function(c) {
-      clubNameMapJp[c.id] = c.name || c.school || '未知';
-    });
+    (jpData.data || jpData.clubs || []).forEach(function(c) { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
   } catch (e) { clubNameMapJp = {}; }
 }
 
 // ====== Auth ======
 async function checkAuth() {
-  var listContainer = document.getElementById('appList');
   try {
     var r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
     var data = await r.json();
     if (!data.logged_in) {
-      listContainer.innerHTML = '<div class="empty-state">请先登录<br><br><a href="../index.html" style="color:var(--accent-pink);">前往登录</a></div>';
+      document.getElementById('boothAppList').innerHTML = '<div class="empty-state">请先登录<br><br><a href="../index.html" style="color:var(--accent-blue);">前往登录</a></div>';
       return false;
     }
-    currentUser = data;
-    // Authorization is verified by the backend API (list_applications checks
-    // hasAuditPermission which covers both super_admin and is_audit flag).
-    // The frontend lets the backend decide and handles 403 in loadApplications.
+    currentUser = data.user || data;
     return true;
   } catch (e) {
-    listContainer.innerHTML = '<div class="empty-state">认证失败，请刷新页面重试<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+    document.getElementById('boothAppList').innerHTML = '<div class="empty-state">认证请求失败，请刷新页面重试<br><br><a href="../index.html" style="color:var(--accent-blue);">返回首页</a></div>';
     return false;
   }
 }
@@ -965,38 +2476,39 @@ async function loadEvents() {
   try {
     var r = await fetch('../api/galonly.php?action=list_events', { credentials: 'same-origin' });
     var data = await r.json();
-    if (!data.success) {
-      showToast('加载活动列表失败', 'error');
-      return;
-    }
+    if (!data.success) return;
     allEvents = data.events || [];
-    var sel = document.getElementById('eventFilter');
-    sel.innerHTML = '<option value="">全部活动</option>';
-    allEvents.forEach(function(ev) {
-      var opt = document.createElement('option');
-      opt.value = ev.id;
-      opt.textContent = ev.title || ev.name || ('活动 #' + ev.id);
-      sel.appendChild(opt);
-    });
-
-    // Refresh event management list
-    renderEventMgr();
   } catch (e) {
-    showToast('加载活动列表失败', 'error');
+    allEvents = [];
   }
+  var boothSel = document.getElementById('eventFilter');
+  boothSel.innerHTML = '<option value="">全部活动</option>';
+  allEvents.forEach(function(ev) {
+    var opt = document.createElement('option');
+    opt.value = ev.id;
+    opt.textContent = ev.title || ev.name || ('活动 #' + ev.id);
+    boothSel.appendChild(opt);
+  });
+  var staffSel = document.getElementById('staffEventFilter');
+  staffSel.innerHTML = '<option value="">全部活动</option>';
+  allEvents.forEach(function(ev) {
+    var opt = document.createElement('option');
+    opt.value = ev.id;
+    opt.textContent = ev.title || ev.name || ('活动 #' + ev.id);
+    staffSel.appendChild(opt);
+  });
+  renderEventMgr();
+  renderStaffEventConfig();
 }
 
-// ====== Applications Loading ======
+// ====== Applications Loading (Booth) ======
 async function loadApplications() {
-  var appList = document.getElementById('appList');
+  var appList = document.getElementById('boothAppList');
   appList.innerHTML = '<div class="empty-state"><span class="loading-spinner"></span>加载申请列表...</div>';
-
   try {
-    // Always fetch all applications; event filtering is done client-side
-    // so switching events is instant without additional API calls.
     var r = await fetch('../api/galonly.php?action=list_applications', { credentials: 'same-origin' });
     if (r.status === 403) {
-      appList.innerHTML = '<div class="empty-state">权限不足，你没有审核权限<br><br><a href="../index.html" style="color:var(--accent-pink);">返回首页</a></div>';
+      appList.innerHTML = '<div class="empty-state">权限不足，没有审核权限<br><br><a href="../index.html" style="color:var(--accent-blue);">返回首页</a></div>';
       return;
     }
     var data = await r.json();
@@ -1005,97 +2517,114 @@ async function loadApplications() {
       return;
     }
     allApplications = data.applications || [];
-    renderCurrentTab();
   } catch (e) {
-    appList.innerHTML = '<div class="empty-state">网络错误，加载申请列表失败</div>';
+    appList.innerHTML = '<div class="empty-state">加载申请列表失败</div>';
+    return;
   }
+  renderBoothCurrentTab();
 }
 
-// ====== Stats Update ======
-function updateStats(applications) {
-  var pending = 0, approved = 0, rejected = 0;
-  var maxVotes = 0;
+// ====== Staff Applications Loading ======
+async function loadStaffApplications() {
+  var appList = document.getElementById('staffAppList');
+  appList.innerHTML = '<div class="empty-state"><span class="loading-spinner"></span>加载 Staff 申请列表...</div>';
+  try {
+    var r = await fetch('../api/galonly.php?action=list_staff_applications', { credentials: 'same-origin' });
+    var data = await r.json();
+    if (!data.success) {
+      appList.innerHTML = '<div class="empty-state">' + escapeHtml(data.message || '加载 Staff 申请失败') + '</div>';
+      return;
+    }
+    allStaffApplications = data.applications || [];
+  } catch (e) {
+    appList.innerHTML = '<div class="empty-state">加载 Staff 申请列表失败</div>';
+    return;
+  }
+  renderStaffCurrentTab();
+  renderRosterPanel();
+}
 
+// ====== Booth Stats ======
+function updateBoothStats(applications) {
+  var pending = 0, approved = 0, rejected = 0, maxVotes = 0;
   applications.forEach(function(app) {
     var s = app.status || 'pending';
     if (s === 'pending') pending++;
     else if (s === 'approved') approved++;
     else if (s === 'rejected') rejected++;
-
     var totalVotes = (app.vote_counts ? (app.vote_counts.approve || 0) + (app.vote_counts.reject || 0) : 0);
     if (totalVotes > maxVotes) maxVotes = totalVotes;
   });
-
   document.getElementById('statPending').textContent = pending;
   document.getElementById('statApproved').textContent = approved;
   document.getElementById('statRejected').textContent = rejected;
   document.getElementById('statAuditors').textContent = applications.length > 0 ? maxVotes : '—';
 }
 
-// ====== Render ======
-function renderCurrentTab() {
-  var filtered = allApplications;
-
-  // Filter by event
-  if (selectedEventId > 0) {
-    filtered = filtered.filter(function(app) {
-      return parseInt(app.event_id) === selectedEventId;
-    });
+// ====== Staff Stats ======
+function updateStaffStats(applications) {
+  var pending = 0, pooled = 0, rejected = 0, confirmed = 0;
+  applications.forEach(function(app) {
+    var s = app.status || 'pending';
+    if (s === 'pending') pending++;
+    else if (s === 'pooled') pooled++;
+    else if (s === 'rejected') rejected++;
+    else if (s === 'confirmed') confirmed++;
+  });
+  document.getElementById('staffStatPending').textContent = pending;
+  document.getElementById('staffStatPooled').textContent = pooled;
+  document.getElementById('staffStatRejected').textContent = rejected;
+  document.getElementById('staffStatConfirmed').textContent = confirmed;
+  var reqCount = '—';
+  if (selectedStaffEventId > 0) {
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev && ev.staff_required_count) reqCount = ev.staff_required_count;
+  } else if (allEvents.length > 0) {
+    var totalReq = 0;
+    allEvents.forEach(function(e) { totalReq += (e.staff_required_count || 0); });
+    reqCount = totalReq || '—';
   }
-
-  // Filter by tab
-  if (currentTab === 'pending') {
-    filtered = filtered.filter(function(app) { return (app.status || 'pending') === 'pending'; });
-  } else if (currentTab === 'approved') {
-    filtered = filtered.filter(function(app) { return app.status === 'approved'; });
-  } else if (currentTab === 'rejected') {
-    filtered = filtered.filter(function(app) { return app.status === 'rejected'; });
-  }
-
-  updateStats(allApplications);
-  renderAppList(filtered);
+  document.getElementById('staffStatRequired').textContent = reqCount;
 }
 
-function renderAppList(applications) {
-  var appList = document.getElementById('appList');
+// ====== Booth Render ======
+function renderBoothCurrentTab() {
+  var filtered = allApplications;
+  if (selectedEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id) === selectedEventId; });
+  }
+  if (currentBoothTab === 'pending') {
+    filtered = filtered.filter(function(app) { return (app.status || 'pending') === 'pending'; });
+  } else if (currentBoothTab === 'approved') {
+    filtered = filtered.filter(function(app) { return app.status === 'approved'; });
+  } else if (currentBoothTab === 'rejected') {
+    filtered = filtered.filter(function(app) { return app.status === 'rejected'; });
+  }
+  updateBoothStats(allApplications);
+  renderBoothAppList(filtered);
+}
 
+function renderBoothAppList(applications) {
+  var appList = document.getElementById('boothAppList');
   if (applications.length === 0) {
     appList.innerHTML = '<div class="empty-state">暂无申请记录</div>';
     return;
   }
-
   var html = '';
-  applications.forEach(function(app) {
-    html += renderAppCard(app);
+  applications.forEach(function(app, i) {
+    html += renderBoothAppCard(app).replace('<div class="app-card"', '<div class="app-card" style="animation-delay:' + (i * 0.06) + 's"');
   });
   appList.innerHTML = html;
 }
 
-function renderAppCard(app) {
+function renderBoothAppCard(app) {
   var nickname = app.nickname || app.username || '未知';
   var firstChar = (nickname || '?')[0];
-
-  // Clubs display
   var clubs = app.clubs || [];
-  var clubsStr = '';
-  if (clubs.length > 0) {
-    clubsStr = clubs.map(function(c) {
-      var name = getClubName(parseInt(c.club_id), c.club_country || 'china');
-      var tag = (c.club_country === 'japan') ? '🇯🇵' : '🇨🇳';
-      return tag + ' ' + escapeHtml(name);
-    }).join(', ');
-  } else {
-    clubsStr = '未关联同好会';
-  }
-
+  var clubsStr = clubs.length > 0
+    ? clubs.map(function(c) { return (c.club_country === 'japan' ? 'JP ' : 'CN ') + escapeHtml(getClubName(parseInt(c.club_id), c.club_country || 'china')); }).join(', ')
+    : '未关联同好会';
   var isResolved = (app.status === 'approved' || app.status === 'rejected');
-
-  var images = app.image_paths;
-  if (!images || !Array.isArray(images)) {
-    images = (app.image_path && app.image_path.trim()) ? [app.image_path.trim()] : [];
-  }
-
-  // Determine header badge
   var headerBadgeHtml = '';
   if (isResolved) {
     var badgeCls = app.status === 'approved' ? 'approved' : 'rejected';
@@ -1104,116 +2633,66 @@ function renderAppCard(app) {
   } else {
     headerBadgeHtml = '<span class="app-status-badge app-status-pending">审核中</span>';
   }
-
-  // 重审标记
   if (app.resubmitted && !isResolved) {
-    headerBadgeHtml += ' <span class="app-status-badge" style="background:rgba(156,39,176,0.15);color:#ce93d8;border:1px solid rgba(156,39,176,0.2);">重审</span>';
+    headerBadgeHtml += ' <span class="app-status-badge" style="background:var(--accent-purple-bg);color:var(--accent-purple);border:1px solid var(--pooled-border);">重审</span>';
   }
-
-  // 已通过后被更新标记
   if (app.has_update && app.status === 'approved') {
-    headerBadgeHtml += ' <span class="app-status-badge" style="background:rgba(255,152,0,0.15);color:#ff9800;border:1px solid rgba(255,152,0,0.2);">已更新</span>';
+    headerBadgeHtml += ' <span class="app-status-badge" style="background:var(--accent-orange-bg);color:var(--accent-orange);border:1px solid var(--warning-border);">已更新</span>';
   }
-
-  // Border accent for resolved cards
   var cardBorderStyle = '';
-  if (app.status === 'approved') {
-    cardBorderStyle = ' style="border-color:rgba(76,175,80,0.2);"';
-  } else if (app.status === 'rejected') {
-    cardBorderStyle = ' style="border-color:rgba(244,67,54,0.2);"';
-  }
-
-  // Grid fields
+  if (app.status === 'approved') cardBorderStyle = ' style="border-color:var(--success-border);"';
+  else if (app.status === 'rejected') cardBorderStyle = ' style="border-color:var(--danger-border);"';
   var contactDisplay = app.contact ? escapeHtml(app.contact) : '<span style="color:var(--text-muted);">未填写</span>';
   var boothNameDisplay = app.booth_name ? escapeHtml(app.booth_name) : '<span style="color:var(--text-muted);">未填写</span>';
-
-  var jointDisplay = '';
-  if (parseInt(app.is_joint) === 1) {
-    jointDisplay = '是';
-    if (app.joint_name && app.joint_name.trim()) {
-      jointDisplay += ' · ' + escapeHtml(app.joint_name.trim());
-    }
-  } else {
-    jointDisplay = '否';
-  }
-
+  var jointDisplay = parseInt(app.is_joint) === 1 ? ('是' + (app.joint_name ? ' · ' + escapeHtml(app.joint_name) : '')) : '否';
   var upgradeDisplay = parseInt(app.wants_upgrade) === 1 ? '是' : '否';
-
-  var imageHtml = '';
-  if (images.length > 0) {
-    var imgs = [];
-    for (var ii = 0; ii < images.length; ii++) {
-      var imgUrl = '../' + images[ii];
-      imgs.push(
-        '<div style="position:relative;display:inline-block;">' +
-        '<img src="' + escapeHtml(imgUrl) + '" class="app-image-thumb" onclick="openImageModal(\'' + escapeHtml(imgUrl) + '\')" alt="制品图片 ' + (ii + 1) + '">' +
-        '<a href="' + escapeHtml(imgUrl) + '" download style="color:var(--accent-orange);font-size:12px;text-decoration:underline;display:block;text-align:center;margin-top:2px;">下载</a>' +
-        '</div>'
-      );
-    }
-    imageHtml = '<div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;">' + imgs.join('') + '</div>';
-  } else {
-    imageHtml = '<span style="color:var(--text-muted);">无</span>';
-  }
-
+  var imageHtml = '<span style="color:var(--text-muted);">无</span>';
   var notesHtml = '';
   if (app.notes && app.notes.trim()) {
     notesHtml = '<div class="app-field full"><div class="app-field-label">备注</div><div class="app-field-value" style="color:var(--text-secondary);">' + escapeHtml(app.notes) + '</div></div>';
   }
-
-  // Vote section
   var approveCount = app.vote_counts ? (app.vote_counts.approve || 0) : 0;
   var rejectCount = app.vote_counts ? (app.vote_counts.reject || 0) : 0;
   var approvePct = Math.min(100, (approveCount / VOTE_THRESHOLD) * 100);
   var rejectPct = Math.min(100, (rejectCount / VOTE_THRESHOLD) * 100);
-
   var approveThresholdMet = approveCount >= VOTE_THRESHOLD;
   var rejectThresholdMet = rejectCount >= VOTE_THRESHOLD;
-
   var approveBarLabel = approveThresholdMet ? '<span class="vote-bar-label threshold-met">已达门槛</span>' : ('<span class="vote-bar-label">/ ' + VOTE_THRESHOLD + '</span>');
-  var rejectBarLabel = rejectThresholdMet ? '<span class="vote-bar-label threshold-met" style="color:#f44336;">已达门槛</span>' : ('<span class="vote-bar-label">/ ' + VOTE_THRESHOLD + '</span>');
-
+  var rejectBarLabel = rejectThresholdMet ? '<span class="vote-bar-label threshold-met" style="color:var(--accent-red);">已达门槛</span>' : ('<span class="vote-bar-label">/ ' + VOTE_THRESHOLD + '</span>');
   var voteActionsHtml = '';
   if (app.my_vote) {
     var voteText = app.my_vote === 'approve' ? '通过' : '不通过';
     voteActionsHtml = '<div style="display:flex;gap:8px;align-items:center;">' +
       '<span class="voted-badge">你已投票 · ' + voteText + '</span>' +
       '<button class="btn-vote" onclick="withdrawVote(' + app.id + ')" ' +
-        'style="background:rgba(255,255,255,0.06);color:var(--text-secondary);border:1px solid var(--card-border);padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);" ' +
-        'onmouseover="this.style.borderColor=\'var(--accent-pink)\';this.style.color=\'var(--accent-pink)\'" ' +
-        'onmouseout="this.style.borderColor=\'\';this.style.color=\'\'">撤回投票</button>' +
-      '</div>';
+        'style="background:transparent;color:var(--text-secondary);border:1px solid var(--border-color);padding:6px 14px;border-radius:var(--radius-full);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:var(--transition);">撤回投票</button>' +
+    '</div>';
   } else if (isResolved) {
     voteActionsHtml = '';
   } else {
     voteActionsHtml = '<div class="vote-actions">' +
       '<button class="btn-vote approve" onclick="castVote(' + app.id + ',\'approve\')">通过</button>' +
       '<button class="btn-vote reject" onclick="castVote(' + app.id + ',\'reject\')">不通过</button>' +
-      '</div>';
-  }
-
-  var voteSectionHtml = '';
-  if (isResolved || app.my_vote || (!app.my_vote && !isResolved)) {
-    voteSectionHtml = '<div class="vote-section">' +
-      '<div class="vote-title">审核投票</div>' +
-      '<div class="vote-row">' +
-        '<div class="vote-item">' +
-          '<div class="vote-label">通过</div>' +
-          '<div class="vote-count approve">' + approveCount + '</div>' +
-          '<div class="vote-bar-track"><div class="vote-bar-fill approve" style="width:' + approvePct + '%;"></div></div>' +
-          approveBarLabel +
-        '</div>' +
-        '<div class="vote-item">' +
-          '<div class="vote-label">反对</div>' +
-          '<div class="vote-count reject">' + rejectCount + '</div>' +
-          '<div class="vote-bar-track"><div class="vote-bar-fill reject" style="width:' + rejectPct + '%;"></div></div>' +
-          rejectBarLabel +
-        '</div>' +
-      '</div>' +
-      voteActionsHtml +
     '</div>';
   }
-
+  var voteSectionHtml = '<div class="vote-section">' +
+    '<div class="vote-title">审核投票</div>' +
+    '<div class="vote-row">' +
+      '<div class="vote-item">' +
+        '<div class="vote-label">通过</div>' +
+        '<div class="vote-count approve">' + approveCount + '</div>' +
+        '<div class="vote-bar-track"><div class="vote-bar-fill approve" style="width:' + approvePct + '%;"></div></div>' +
+        approveBarLabel +
+      '</div>' +
+      '<div class="vote-item">' +
+        '<div class="vote-label">反对</div>' +
+        '<div class="vote-count reject">' + rejectCount + '</div>' +
+        '<div class="vote-bar-track"><div class="vote-bar-fill reject" style="width:' + rejectPct + '%;"></div></div>' +
+        rejectBarLabel +
+      '</div>' +
+    '</div>' +
+    voteActionsHtml +
+  '</div>';
   return '<div class="app-card"' + cardBorderStyle + '>' +
     '<div class="app-header">' +
       '<div class="applicant">' +
@@ -1225,7 +2704,6 @@ function renderAppCard(app) {
       '</div>' +
       headerBadgeHtml +
     '</div>' +
-
     '<div class="app-grid">' +
       '<div class="app-field"><div class="app-field-label">联系方式</div><div class="app-field-value">' + contactDisplay + '</div></div>' +
       '<div class="app-field"><div class="app-field-label">摊位名称</div><div class="app-field-value">' + boothNameDisplay + '</div></div>' +
@@ -1234,21 +2712,754 @@ function renderAppCard(app) {
       '<div class="app-field"><div class="app-field-label">制品图片</div><div class="app-field-value">' + imageHtml + '</div></div>' +
       notesHtml +
     '</div>' +
-
     voteSectionHtml +
-
     '<div class="app-footer">' +
-      '<span class="app-id">申请 #' + app.id + ' · 提交: ' + formatDate(app.created_at) + (app.updated_at && app.updated_at !== app.created_at ? ' · 更新: ' + formatDate(app.updated_at) : '') + '</span>' +
+      '<span class="app-id">申请 #' + app.id + ' · 提交: ' + formatDate(app.created_at) + '</span>' +
     '</div>' +
   '</div>';
 }
 
-// ====== Vote ======
+// ====== Staff Render ======
+function renderStaffCurrentTab() {
+  var filtered = allStaffApplications;
+  if (selectedStaffEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id) === selectedStaffEventId; });
+  }
+
+  // Preview tab shows a compact overview of all pooled + confirmed staff
+  if (currentStaffTab === 'preview') {
+    document.getElementById('staffAppList').style.display = 'none';
+    renderPreviewRoster(filtered);
+    updateStaffStats(allStaffApplications);
+    return;
+  }
+
+  // Normal tabs: filter by status and show card list
+  document.getElementById('staffAppList').style.display = '';
+  var previewEl = document.getElementById('previewPanel');
+  if (previewEl) previewEl.style.display = 'none';
+
+  filtered = filtered.filter(function(app) { return (app.status || 'pending') === currentStaffTab; });
+  updateStaffStats(allStaffApplications);
+  renderStaffAppList(filtered);
+}
+
+function renderStaffAppList(applications) {
+  var appList = document.getElementById('staffAppList');
+  if (applications.length === 0) {
+    appList.innerHTML = '<div class="empty-state">暂无 Staff 申请记录</div>';
+    return;
+  }
+  var html = '';
+  applications.forEach(function(app, i) {
+    html += renderStaffCard(app).replace('<div class="app-card"', '<div class="app-card" style="animation-delay:' + (i * 0.06) + 's"');
+  });
+  appList.innerHTML = html;
+}
+
+// ====== Preview Roster (compact dense view) ======
+function renderPreviewRoster(eventFiltered) {
+  var appList = document.getElementById('staffAppList');
+  appList.style.display = 'none';
+
+  // Get pooled + confirmed members for this event
+  var pooled = eventFiltered.filter(function(app) { return app.status === 'pooled'; });
+  var confirmed = eventFiltered.filter(function(app) { return app.status === 'confirmed'; });
+  var allPool = pooled.concat(confirmed);
+
+  // Required count
+  var requiredCount = 0;
+  var isFrozen = false;
+  if (selectedStaffEventId > 0) {
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) {
+      requiredCount = ev.staff_required_count || 0;
+      isFrozen = !!ev.staff_roster_finalized;
+    }
+  }
+
+  // Build or show preview panel
+  var previewEl = document.getElementById('previewPanel');
+  if (!previewEl) {
+    previewEl = document.createElement('div');
+    previewEl.id = 'previewPanel';
+    previewEl.setAttribute('data-component', 'preview-roster');
+    appList.parentNode.insertBefore(previewEl, appList.nextSibling);
+  }
+  previewEl.style.display = '';
+
+  // Progress (use full unfiltered pool for progress/completion)
+  var poolCount = allPool.length;
+  var pct = requiredCount > 0 ? Math.min(100, (poolCount / requiredCount) * 100) : 0;
+  var canConfirm = poolCount > 0 && poolCount >= requiredCount && !isFrozen;
+
+  // Apply filters
+  var displayPool = allPool;
+  if (rosterFilterPosition) {
+    displayPool = displayPool.filter(function(app) {
+      var pos = app.positions || [];
+      return pos.indexOf(rosterFilterPosition) !== -1;
+    });
+  }
+  if (rosterFilterCosplay !== '') {
+    var cosVal = rosterFilterCosplay === 'yes' ? 1 : 0;
+    displayPool = displayPool.filter(function(app) {
+      return app.is_cosplay === cosVal;
+    });
+  }
+  var isFiltered = rosterFilterPosition !== '' || rosterFilterCosplay !== '';
+
+  // Summary text
+  var summaryHtml = '<span>名单池 <strong>' + poolCount + '</strong> 人</span>';
+  if (requiredCount > 0) {
+    summaryHtml += '<span>需求 <strong>' + requiredCount + '</strong> 人</span>';
+    summaryHtml += '<span>完成度 <strong>' + Math.round(pct) + '%</strong></span>';
+  }
+  if (isFrozen) {
+    summaryHtml += '<span style="color:var(--success);">已确定</span>';
+  }
+
+  // Actions
+  var actionsHtml = '';
+  if (allPool.length > 0) {
+    actionsHtml += '<button class="btn-export" onclick="exportRosterCSV()">导出 CSV</button>';
+    if (!isFrozen) {
+      actionsHtml += '<button class="btn-confirm-roster" onclick="confirmPreviewRoster()" ' +
+        (canConfirm ? '' : 'disabled title="名单池人数需达到需求人数"') +
+        '>确定名单</button>';
+    } else {
+      actionsHtml += '<button class="btn-export" onclick="unlockRoster()" style="color:var(--danger);border-color:var(--danger-border);">解锁名单</button>';
+    }
+  }
+
+  // Filter bar HTML
+  var posOptions = '<option value="">全部岗位</option>';
+  STAFF_POSITIONS.forEach(function(p) {
+    posOptions += '<option value="' + escapeHtml(p) + '"' +
+      (rosterFilterPosition === p ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
+  });
+
+  var filterBarHtml = '<div class="roster-filters">' +
+    '<span class="roster-filter-label">筛选</span>' +
+    '<select class="roster-filter-select" id="rosterFilterPos" onchange="onRosterFilterChange()">' + posOptions + '</select>' +
+    '<select class="roster-filter-select" id="rosterFilterCos" onchange="onRosterFilterChange()">' +
+      '<option value=""' + (rosterFilterCosplay === '' ? ' selected' : '') + '>全部 Cos</option>' +
+      '<option value="yes"' + (rosterFilterCosplay === 'yes' ? ' selected' : '') + '>Cos</option>' +
+      '<option value="no"' + (rosterFilterCosplay === 'no' ? ' selected' : '') + '>非Cos</option>' +
+    '</select>' +
+    (isFiltered ? '<span class="roster-filter-count">显示 <strong>' + displayPool.length + '</strong> / ' + allPool.length + ' 人</span>' : '') +
+    (isFiltered ? '<button class="roster-filter-reset" onclick="resetRosterFilters()">重置</button>' : '') +
+  '</div>';
+
+  // Table
+  var tableHtml = '';
+  if (displayPool.length === 0) {
+    tableHtml = '<div class="preview-empty">' +
+      (isFiltered ? '没有匹配的筛选结果' : '名单池暂无成员，请先在「待审核」中通过申请') +
+    '</div>';
+  } else {
+    tableHtml = '<div class="preview-table-wrap"><table class="preview-table">' +
+      '<thead><tr>' +
+        '<th class="idx-col">#</th>' +
+        '<th>CN</th>' +
+        '<th>QQ号</th>' +
+        '<th>报名岗位</th>' +
+        '<th>是否Cos</th>' +
+        '<th>状态</th>' +
+        (!isFrozen ? '<th class="remove-col"></th>' : '') +
+      '</tr></thead><tbody>';
+
+    displayPool.forEach(function(app, i) {
+      var posArr = app.positions || [];
+      var posStr = posArr.length > 0 ? posArr.join('、') : '—';
+      var cosplayStr = app.is_cosplay === 1 ? '是' : '否';
+      var statusStr = app.status === 'confirmed'
+        ? '<span style="color:var(--success);">已确定</span>'
+        : '<span style="color:var(--accent);">名单池</span>';
+      var removeBtn = !isFrozen
+        ? '<button class="btn-preview-remove" onclick="removeFromPool(' + app.id + ')" title="移回待审核">&times;</button>'
+        : '';
+
+      tableHtml += '<tr style="animation-delay:' + (i * 0.03) + 's">' +
+        '<td class="idx-col">' + (i + 1) + '</td>' +
+        '<td class="name-col">' + escapeHtml(app.cn_name || app.nickname || '未知') + '</td>' +
+        '<td class="qq-col">' + escapeHtml(app.qq_number || '—') + '</td>' +
+        '<td class="pos-col" title="' + escapeHtml(posStr) + '">' + escapeHtml(posStr) + '</td>' +
+        '<td class="cos-col">' + cosplayStr + '</td>' +
+        '<td>' + statusStr + '</td>' +
+        (!isFrozen ? '<td class="remove-col">' + removeBtn + '</td>' : '') +
+      '</tr>';
+    });
+
+    tableHtml += '</tbody></table></div>';
+  }
+
+  previewEl.innerHTML = '<div class="preview-panel">' +
+    '<div class="preview-toolbar">' +
+      '<div class="preview-summary">' + summaryHtml + '</div>' +
+      '<div class="preview-actions">' + actionsHtml + '</div>' +
+    '</div>' +
+    filterBarHtml +
+    tableHtml +
+  '</div>';
+}
+
+// Roster filter handlers
+function onRosterFilterChange() {
+  var posSelect = document.getElementById('rosterFilterPos');
+  var cosSelect = document.getElementById('rosterFilterCos');
+  rosterFilterPosition = posSelect ? posSelect.value : '';
+  rosterFilterCosplay = cosSelect ? cosSelect.value : '';
+  renderStaffCurrentTab();
+}
+
+function resetRosterFilters() {
+  rosterFilterPosition = '';
+  rosterFilterCosplay = '';
+  renderStaffCurrentTab();
+}
+
+// ====== Confirm roster from preview ======
+async function confirmPreviewRoster() {
+  if (!confirm('确定要确认当前名单吗？确认后名单将被冻结，并向所有已确定的 staff 发出通知。')) return;
+
+  try {
+    var r = await fetch('../api/galonly.php?action=finalize_staff_roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ event_id: selectedStaffEventId })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '确认失败', 'error');
+      return;
+    }
+    showToast('名单已确认并冻结，通知已发送', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    // Preview fallback
+    allStaffApplications.forEach(function(app) {
+      if (app.status === 'pooled' && parseInt(app.event_id) === selectedStaffEventId) {
+        app.status = 'confirmed';
+      }
+    });
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) ev.staff_roster_finalized = 1;
+    showToast('名单已确认（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+    renderStaffEventConfig();
+  }
+}
+
+// ====== Remove from pool (back to pending) ======
+async function removeFromPool(applicationId) {
+  if (!confirm('确定要将此 staff 移回待审核吗？')) return;
+
+  try {
+    var r = await fetch('../api/galonly.php?action=withdraw_staff_vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ application_id: applicationId })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '操作失败', 'error');
+      return;
+    }
+    showToast('已移回待审核', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    // Preview fallback
+    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
+    if (app) {
+      app.status = 'pending';
+      app.voted_by = null;
+      app.vote = null;
+    }
+    showToast('已移回待审核（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+  }
+}
+
+// ====== Export roster CSV ======
+function exportRosterCSV() {
+  var filtered = allStaffApplications;
+  if (selectedStaffEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id) === selectedStaffEventId; });
+  }
+  var pooled = filtered.filter(function(app) { return app.status === 'pooled'; });
+  var confirmed = filtered.filter(function(app) { return app.status === 'confirmed'; });
+  var allPool = pooled.concat(confirmed);
+
+  if (allPool.length === 0) {
+    showToast('名单池无数据可导出', 'error');
+    return;
+  }
+
+  // Build CSV with BOM for Excel UTF-8 compatibility
+  var BOM = '\uFEFF';
+  var headers = ['序号', 'CN', 'QQ号', '手机号', '报名岗位', '是否Cosplay', '自我介绍', '状态'];
+  var rows = allPool.map(function(app, i) {
+    var posArr = app.positions || [];
+    var posStr = posArr.join('/');
+    var cosplay = app.is_cosplay === 1 ? '是' : '否';
+    var status = app.status === 'confirmed' ? '已确定' : '名单池';
+    return [
+      i + 1,
+      app.cn_name || app.nickname || '',
+      app.qq_number || '',
+      app.phone_number || '',
+      posStr,
+      cosplay,
+      (app.self_intro || '').replace(/\n/g, ' '),
+      status
+    ];
+  });
+
+  var csvContent = BOM + headers.join(',') + '\n';
+  rows.forEach(function(row) {
+    csvContent += row.map(function(cell) {
+      var str = String(cell);
+      if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1) {
+        str = '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }).join(',') + '\n';
+  });
+
+  // Get event name for filename
+  var eventName = 'staff';
+  if (selectedStaffEventId > 0) {
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) eventName = (ev.name || ev.title || 'staff').replace(/[^\w\u4e00-\u9fff]/g, '_');
+  }
+
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = eventName + '_名单_' + new Date().toISOString().slice(0, 10) + '.csv';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast('CSV 已导出', 'success');
+}
+
+function renderStaffCard(app) {
+  var nickname = app.cn_name || app.nickname || app.username || '未知';
+  var firstChar = (nickname || '?')[0];
+  var clubs = app.clubs || [];
+  var clubDisplay = '';
+  if (app.club_id) {
+    clubDisplay = (app.club_country === 'japan' ? 'JP ' : 'CN ') + escapeHtml(getClubName(parseInt(app.club_id), app.club_country || 'china'));
+  } else if (clubs.length > 0) {
+    clubDisplay = clubs.map(function(c) { return (c.club_country === 'japan' ? 'JP ' : 'CN ') + escapeHtml(getClubName(parseInt(c.club_id), c.club_country || 'china')); }).join(', ');
+  } else {
+    clubDisplay = '未关联同好会';
+  }
+  var statusMap = {
+    pending: { cls: 'app-status-pending', text: '待审核' },
+    pooled: { cls: 'app-status-pooled', text: '名单池' },
+    rejected: { cls: 'app-status-rejected', text: '已拒绝' },
+    confirmed: { cls: 'app-status-confirmed', text: '已确定' }
+  };
+  var statusInfo = statusMap[app.status] || statusMap.pending;
+  var headerBadgeHtml = '';
+  if (app.status === 'confirmed') {
+    headerBadgeHtml = '<span class="result-badge confirmed">已确定</span>';
+  } else {
+    headerBadgeHtml = '<span class="app-status-badge ' + statusInfo.cls + '">' + statusInfo.text + '</span>';
+  }
+  var cardBorderStyle = '';
+  if (app.status === 'confirmed') cardBorderStyle = ' style="border-color:var(--success-border);"';
+  else if (app.status === 'rejected') cardBorderStyle = ' style="border-color:var(--danger-border);"';
+  else if (app.status === 'pooled') cardBorderStyle = ' style="border-color:var(--pooled-border);"';
+  var qqDisplay = app.qq_number ? escapeHtml(app.qq_number) : '<span style="color:var(--fg-dim);">未填写</span>';
+  var phoneDisplay = app.phone_number ? escapeHtml(app.phone_number) : '<span style="color:var(--fg-dim);">未填写</span>';
+  var posArr = app.positions || [];
+  var positionDisplay = posArr.length > 0
+    ? '<div class="chip-group">' + posArr.map(function(p) { return '<span class="chip">' + escapeHtml(p) + '</span>'; }).join('') + '</div>'
+    : '<span style="color:var(--fg-dim);">未选择</span>';
+  var cosplayDisplay = app.is_cosplay === 1 ? '是' : '否';
+  var scheduleDisplay = '两天全天 ✓';
+  var introHtml = '';
+  if (app.self_intro && app.self_intro.trim()) {
+    introHtml = '<div class="app-field full"><div class="app-field-label">自我介绍</div><div class="app-field-value" style="color:var(--text-secondary);">' + escapeHtml(app.self_intro) + '</div></div>';
+  }
+  var voteActionsHtml = '';
+  var isPending = app.status === 'pending';
+  var isPooled = app.status === 'pooled';
+  var isRejected = app.status === 'rejected';
+  if (isPending) {
+    voteActionsHtml = '<div class="single-vote-actions">' +
+      '<button class="btn-single-vote approve" onclick="castStaffVote(' + app.id + ',\'approve\')">通过</button>' +
+      '<button class="btn-single-vote reject" onclick="castStaffVote(' + app.id + ',\'reject\')">拒绝</button>' +
+    '</div>';
+  } else if (isPooled || isRejected) {
+    var votedText = isPooled ? '已通过进池' : '已拒绝';
+    voteActionsHtml = '<div class="single-vote-actions">' +
+      '<span class="voted-badge">你已操作 · ' + votedText + '</span>' +
+      '<button class="btn-single-vote withdraw" onclick="withdrawStaffVote(' + app.id + ')">撤回</button>' +
+    '</div>';
+  } else if (app.status === 'confirmed') {
+    voteActionsHtml = '<div class="single-vote-actions">' +
+      '<span class="voted-badge" style="background:var(--accent-green-bg);border-color:var(--success-border);color:var(--accent-green);">名单已确定</span>' +
+    '</div>';
+  }
+  return '<div class="app-card"' + cardBorderStyle + '>' +
+    '<div class="app-header">' +
+      '<div class="applicant">' +
+        '<div class="applicant-avatar" style="background:var(--accent-purple);">' + escapeHtml(firstChar) + '</div>' +
+        '<div class="applicant-info">' +
+          '<div class="applicant-name">' + escapeHtml(nickname) + '</div>' +
+          '<div class="applicant-club">' + clubDisplay + '</div>' +
+        '</div>' +
+      '</div>' +
+      headerBadgeHtml +
+    '</div>' +
+    '<div class="app-grid">' +
+      '<div class="app-field"><div class="app-field-label">CN</div><div class="app-field-value">' + escapeHtml(app.cn_name || app.nickname || '未知') + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">QQ号</div><div class="app-field-value">' + qqDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">手机号</div><div class="app-field-value">' + phoneDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">所属社团</div><div class="app-field-value">' + clubDisplay + '</div></div>' +
+      '<div class="app-field full"><div class="app-field-label">报名岗位</div><div class="app-field-value">' + positionDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">是否Cosplay</div><div class="app-field-value">' + cosplayDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">服务时间</div><div class="app-field-value">' + scheduleDisplay + '</div></div>' +
+      introHtml +
+    '</div>' +
+    voteActionsHtml +
+    '<div class="app-footer">' +
+      '<span class="app-id">Staff #' + app.id + ' · 提交: ' + formatDate(app.created_at) + '</span>' +
+    '</div>' +
+  '</div>';
+}
+
+// ====== Roster Pool Panel ======
+function renderRosterPanel() {
+  var panel = document.getElementById('rosterPanel');
+  // Hide old roster panel when preview tab is active (preview replaces it)
+  if (currentStaffTab === 'preview') {
+    panel.style.display = 'none';
+    return;
+  }
+  var filtered = allStaffApplications;
+  if (selectedStaffEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id) === selectedStaffEventId; });
+  }
+  var pooled = filtered.filter(function(app) { return app.status === 'pooled'; });
+  var confirmed = filtered.filter(function(app) { return app.status === 'confirmed'; });
+  var allPool = pooled.concat(confirmed);
+  var requiredCount = 0;
+  var isFrozen = false;
+  if (selectedStaffEventId > 0) {
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) {
+      requiredCount = ev.staff_required_count || 0;
+      isFrozen = !!ev.staff_roster_finalized;
+    }
+  }
+  if (selectedStaffEventId <= 0) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = '';
+  var poolCount = allPool.length;
+  var pct = requiredCount > 0 ? Math.min(100, (poolCount / requiredCount) * 100) : 0;
+  document.getElementById('rosterProgressText').textContent = poolCount + ' / ' + requiredCount;
+  document.getElementById('rosterProgressFill').style.width = pct + '%';
+  document.getElementById('rosterFrozenBadge').style.display = isFrozen ? '' : 'none';
+  var listEl = document.getElementById('rosterList');
+  if (allPool.length === 0) {
+    listEl.innerHTML = '<div class="roster-empty">暂无名单池成员</div>';
+  } else {
+    listEl.innerHTML = '<div class="roster-table-wrap"><table class="roster-table">' +
+      '<thead><tr>' +
+        '<th class="roster-avatar-cell"></th>' +
+        '<th>CN</th>' +
+        '<th>QQ号</th>' +
+        '<th>报名岗位</th>' +
+        '<th>是否Cosplay</th>' +
+        '<th>状态</th>' +
+      '</tr></thead>' +
+      '<tbody>' +
+      allPool.map(function(app, i) {
+        var cnName = app.cn_name || app.nickname || '未知';
+        var firstChar = (cnName || '?')[0];
+        var statusClass = app.status === 'confirmed' ? 'roster-status-confirmed' : 'roster-status-pooled';
+        var statusText = app.status === 'confirmed' ? '已确定' : '名单池';
+        var posArr = app.positions || [];
+        var posText = posArr.length > 0 ? posArr.join('、') : '—';
+        var cosplayText = app.is_cosplay === 1 ? '是' : '否';
+        return '<tr style="animation-delay:' + (i * 0.03) + 's">' +
+          '<td class="roster-avatar-cell"><span class="roster-avatar">' + escapeHtml(firstChar) + '</span></td>' +
+          '<td>' + escapeHtml(cnName) + '</td>' +
+          '<td>' + escapeHtml(app.qq_number || '—') + '</td>' +
+          '<td class="roster-cell-secondary">' + escapeHtml(posText) + '</td>' +
+          '<td class="roster-cell-secondary">' + cosplayText + '</td>' +
+          '<td><span class="' + statusClass + '">' + statusText + '</span></td>' +
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  var btnSave = document.getElementById('btnSaveRoster');
+  var btnUnlock = document.getElementById('btnUnlockRoster');
+  if (isFrozen) {
+    btnSave.style.display = 'none';
+    btnUnlock.style.display = '';
+  } else {
+    btnSave.style.display = '';
+    btnUnlock.style.display = 'none';
+    btnSave.disabled = poolCount < requiredCount;
+  }
+}
+
+// ====== Staff Event Config ======
+function toggleStaffEventMgr() {
+  var body = document.getElementById('staffEventMgrBody');
+  var arrow = document.getElementById('staffEventMgrArrow');
+  body.classList.toggle('open');
+  arrow.classList.toggle('open');
+}
+
+function renderStaffEventConfig() {
+  var list = document.getElementById('staffEventConfigList');
+  var count = document.getElementById('staffEventMgrCount');
+  if (!allEvents || allEvents.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无活动</div>';
+    if (count) count.textContent = '';
+    return;
+  }
+  if (count) count.textContent = allEvents.length + ' 个活动';
+  list.innerHTML = allEvents.map(function(ev) {
+    var name = escapeHtml(ev.name || ev.title || '未命名');
+    var dateStr = ev.date || '';
+    var deadline = ev.staff_deadline || '';
+    var deadlineValue = deadline ? String(deadline).replace(' ', 'T').slice(0, 16) : '';
+    var maxApps = ev.staff_max_applicants || '';
+    var reqCount = ev.staff_required_count || 0;
+    var regOpen = ev.staff_registration_open === 0 || ev.staff_registration_open === '0' ? '0' : '1';
+    var isFrozen = !!ev.staff_roster_finalized;
+    var frozenTag = isFrozen ? ' <span style="color:var(--accent-green);font-size:11px;">(已冻结)</span>' : '';
+    return '<div class="staff-config-row">' +
+      '<div class="staff-config-info">' +
+        '<div class="staff-config-name">' + name + frozenTag + '</div>' +
+        '<div class="staff-config-date">' + escapeHtml(dateStr) + '</div>' +
+      '</div>' +
+      '<div class="staff-config-fields">' +
+        '<div>' +
+          '<span class="config-label">时间熔断</span>' +
+          '<input type="datetime-local" class="config-input" value="' + deadlineValue + '" data-event-id="' + ev.id + '" data-field="staff_deadline" aria-label="时间熔断截止时间">' +
+        '</div>' +
+        '<div>' +
+          '<span class="config-label">报名开关</span>' +
+          '<select class="config-input" data-event-id="' + ev.id + '" data-field="staff_registration_open" aria-label="Staff 报名开关">' +
+            '<option value="1"' + (regOpen === '1' ? ' selected' : '') + '>开放</option>' +
+            '<option value="0"' + (regOpen === '0' ? ' selected' : '') + '>关闭</option>' +
+          '</select>' +
+        '</div>' +
+        '<div>' +
+          '<span class="config-label">人数上限</span>' +
+          '<input type="number" class="config-input" value="' + maxApps + '" min="0" data-event-id="' + ev.id + '" data-field="staff_max_applicants" aria-label="Staff 申请人数上限">' +
+        '</div>' +
+        '<div>' +
+          '<span class="config-label">需求人数</span>' +
+          '<input type="number" class="config-input" value="' + reqCount + '" min="0" data-event-id="' + ev.id + '" data-field="staff_required_count" aria-label="Staff 需求人数">' +
+        '</div>' +
+        '<button class="btn-config-save" onclick="saveStaffEventConfig(' + ev.id + ', this)">保存</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function saveStaffEventConfig(eventId, btn) {
+  btn.disabled = true;
+  var row = btn.closest('.staff-config-fields');
+  var inputs = row.querySelectorAll('.config-input');
+  var payload = { event_id: eventId };
+  inputs.forEach(function(input) {
+    var field = input.dataset.field;
+    var val = input.value;
+    if (field === 'staff_max_applicants' || field === 'staff_required_count') {
+      payload[field] = val ? parseInt(val) : null;
+    } else if (field === 'staff_registration_open') {
+      payload[field] = val === '0' ? 0 : 1;
+    } else {
+      payload[field] = val || null;
+    }
+  });
+  try {
+    var r = await fetch('../api/galonly.php?action=update_staff_event_config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify(payload)
+    });
+    var data = await r.json();
+    if (data.success) {
+      showToast('Staff 配置已保存', 'success');
+      var ev = allEvents.find(function(e) { return e.id === eventId; });
+      if (ev) {
+        ev.staff_deadline = payload.staff_deadline;
+        ev.staff_max_applicants = payload.staff_max_applicants;
+        ev.staff_required_count = payload.staff_required_count;
+        ev.staff_registration_open = payload.staff_registration_open;
+      }
+      renderRosterPanel();
+      updateStaffStats(allStaffApplications);
+    } else {
+      showToast(data.message || '保存失败', 'error');
+    }
+  } catch (e) {
+    showToast('配置已保存（预览模式）', 'success');
+    var ev = allEvents.find(function(e) { return e.id === eventId; });
+    if (ev) {
+      ev.staff_deadline = payload.staff_deadline;
+      ev.staff_max_applicants = payload.staff_max_applicants;
+      ev.staff_required_count = payload.staff_required_count;
+      ev.staff_registration_open = payload.staff_registration_open;
+    }
+    renderRosterPanel();
+    updateStaffStats(allStaffApplications);
+  }
+  btn.disabled = false;
+}
+
+// ====== Staff Vote ======
+async function castStaffVote(applicationId, vote) {
+  var btns = document.querySelectorAll('.btn-single-vote');
+  btns.forEach(function(b) { b.disabled = true; });
+  try {
+    var r = await fetch('../api/galonly.php?action=vote_staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ application_id: applicationId, vote: vote })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '操作失败', 'error');
+      btns.forEach(function(b) { b.disabled = false; });
+      return;
+    }
+    showToast(vote === 'approve' ? '已通过，进入名单池' : '已拒绝', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
+    if (app) {
+      app.status = vote === 'approve' ? 'pooled' : 'rejected';
+      app.voted_by = 99;
+      app.vote = vote;
+    }
+    showToast(vote === 'approve' ? '已通过，进入名单池（预览）' : '已拒绝（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+    btns.forEach(function(b) { b.disabled = false; });
+  }
+}
+
+async function withdrawStaffVote(applicationId) {
+  if (!confirm('确定要撤回你的操作吗？')) return;
+  try {
+    var r = await fetch('../api/galonly.php?action=withdraw_staff_vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ application_id: applicationId })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '撤回失败', 'error');
+      return;
+    }
+    showToast('已撤回', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
+    if (app) {
+      app.status = 'pending';
+      app.voted_by = null;
+      app.vote = null;
+    }
+    showToast('已撤回（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+  }
+}
+
+// ====== Roster Finalize / Unlock ======
+async function finalizeRoster() {
+  if (!confirm('确定要保存并冻结当前名单吗？冻结后将向已确定的 staff 发出通知。')) return;
+  try {
+    var r = await fetch('../api/galonly.php?action=finalize_staff_roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ event_id: selectedStaffEventId })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '保存失败', 'error');
+      return;
+    }
+    showToast('名单已保存并冻结，通知已发送', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    allStaffApplications.forEach(function(app) {
+      if (app.status === 'pooled' && parseInt(app.event_id) === selectedStaffEventId) {
+        app.status = 'confirmed';
+      }
+    });
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) ev.staff_roster_finalized = 1;
+    showToast('名单已保存并冻结（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+    renderStaffEventConfig();
+  }
+}
+
+async function unlockRoster() {
+  if (!confirm('确定要解锁名单吗？已确定的 staff 将恢复为名单池状态，可继续修改。')) return;
+  try {
+    var r = await fetch('../api/galonly.php?action=unlock_staff_roster', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ event_id: selectedStaffEventId })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '解锁失败', 'error');
+      return;
+    }
+    showToast('名单已解锁', 'success');
+    await loadStaffApplications();
+  } catch (e) {
+    allStaffApplications.forEach(function(app) {
+      if (app.status === 'confirmed' && parseInt(app.event_id) === selectedStaffEventId) {
+        app.status = 'pooled';
+      }
+    });
+    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
+    if (ev) ev.staff_roster_finalized = 0;
+    showToast('名单已解锁（预览）', 'success');
+    renderStaffCurrentTab();
+    renderRosterPanel();
+    renderStaffEventConfig();
+  }
+}
+
+// ====== Booth Vote ======
 async function castVote(applicationId, vote) {
   var btn = document.querySelector('.btn-vote.approve[onclick*="' + applicationId + '"]') ||
             document.querySelector('.btn-vote.reject[onclick*="' + applicationId + '"]');
   if (btn) btn.disabled = true;
-
   try {
     var r = await fetch('../api/galonly.php?action=vote', {
       method: 'POST',
@@ -1257,16 +3468,12 @@ async function castVote(applicationId, vote) {
       body: JSON.stringify({ application_id: applicationId, vote: vote })
     });
     var data = await r.json();
-
     if (!data.success) {
       showToast(data.message || '投票失败', 'error');
       if (btn) btn.disabled = false;
       return;
     }
-
     showToast('投票成功', 'success');
-
-    // Re-fetch all applications to update display
     await loadApplications();
   } catch (e) {
     showToast('网络错误，投票失败', 'error');
@@ -1274,10 +3481,8 @@ async function castVote(applicationId, vote) {
   }
 }
 
-// ====== Withdraw Vote ======
 async function withdrawVote(applicationId) {
   if (!confirm('确定要撤回你的投票吗？')) return;
-
   try {
     var r = await fetch('../api/galonly.php?action=withdraw_vote', {
       method: 'POST',
@@ -1286,12 +3491,10 @@ async function withdrawVote(applicationId) {
       body: JSON.stringify({ application_id: applicationId })
     });
     var data = await r.json();
-
     if (!data.success) {
       showToast(data.message || '撤回投票失败', 'error');
       return;
     }
-
     showToast('已撤回投票', 'success');
     await loadApplications();
   } catch (e) {
@@ -1313,24 +3516,39 @@ function closeImageModal() {
   document.getElementById('previewImage').src = '';
 }
 
-// ====== Event Filter ======
+// ====== Event Filters ======
 function onEventFilterChange() {
-  var sel = document.getElementById('eventFilter');
-  var val = sel.value;
+  var val = document.getElementById('eventFilter').value;
   selectedEventId = val ? parseInt(val) : 0;
-  renderCurrentTab();
+  renderBoothCurrentTab();
 }
 
-// ====== Tab Switching ======
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+function onStaffEventFilterChange() {
+  var val = document.getElementById('staffEventFilter').value;
+  selectedStaffEventId = val ? parseInt(val) : 0;
+  renderStaffCurrentTab();
+  renderRosterPanel();
+  updateStaffStats(allStaffApplications);
+}
+
+// ====== Tab Switch ======
+function switchBoothTab(tab) {
+  currentBoothTab = tab;
+  document.querySelectorAll('#boothTabBar .tab-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.tab === tab);
   });
-  renderCurrentTab();
+  renderBoothCurrentTab();
 }
 
-// ====== Event Management (熔断) ======
+function switchStaffTab(tab) {
+  currentStaffTab = tab;
+  document.querySelectorAll('#staffTabBar .tab-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+  renderStaffCurrentTab();
+}
+
+// ====== Booth Event Management ======
 function toggleEventMgr() {
   var body = document.getElementById('eventMgrBody');
   var arrow = document.getElementById('eventMgrArrow');
@@ -1341,108 +3559,122 @@ function toggleEventMgr() {
 function renderEventMgr() {
   var list = document.getElementById('eventMgrList');
   var count = document.getElementById('eventMgrCount');
-
   if (!allEvents || allEvents.length === 0) {
-    list.innerHTML = '<div class="event-mgr-empty">暂无活动</div>';
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无活动</div>';
     if (count) count.textContent = '';
     return;
   }
-
   if (count) count.textContent = allEvents.length + ' 个活动';
-
   list.innerHTML = allEvents.map(function(ev) {
     var isOpen = ev.registration_open == 1;
     var name = escapeHtml(ev.name || ev.title || '未命名');
     var dateStr = ev.date || '';
     var statusHtml = isOpen
-      ? '<span class="event-mgr-status open">开放申请</span>'
-      : '<span class="event-mgr-status closed">已熔断</span>';
+      ? '<span class="app-status-badge app-status-approved">开放申请</span>'
+      : '<span class="app-status-badge app-status-rejected">已熔断</span>';
     var btnHtml = isOpen
-      ? '<button class="event-mgr-toggle close" onclick="toggleRegistration(' + ev.id + ',1)" title="关闭申请入口，用户将看到「摊位申请已达到上限」">熔断</button>'
-      : '<button class="event-mgr-toggle open-reg" onclick="toggleRegistration(' + ev.id + ',0)">重新开放</button>';
-
-    return '<div class="event-mgr-row">' +
-      '<div class="event-mgr-info">' +
-        '<div class="event-mgr-name">' + name + '</div>' +
-        '<div class="event-mgr-date">' + escapeHtml(dateStr) + '</div>' +
+      ? '<button onclick="toggleRegistration(' + ev.id + ',1)" class="btn-single-vote reject" style="font-size:12px;padding:4px 12px;">熔断</button>'
+      : '<button onclick="toggleRegistration(' + ev.id + ',0)" class="btn-single-vote approve" style="font-size:12px;padding:4px 12px;">重新开放</button>';
+    return '<div class="staff-config-row">' +
+      '<div class="staff-config-info">' +
+        '<div class="staff-config-name">' + name + '</div>' +
+        '<div class="staff-config-date">' + escapeHtml(dateStr) + '</div>' +
       '</div>' +
-      statusHtml +
-      btnHtml +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        statusHtml + btnHtml +
+      '</div>' +
     '</div>';
   }).join('');
 }
 
 async function toggleRegistration(eventId, currentlyOpen) {
-  var label = currentlyOpen ? '熔断' : '重新开放';
   var msg = currentlyOpen
-    ? '确定要熔断此活动吗？熔断后用户将看到「摊位申请已达到上限」，无法提交新的申请。\n\n已通过或已提交的申请仍可继续编辑。'
+    ? '确定要熔断此活动吗？熔断后用户将看到「摊位申请已达到上限」。'
     : '确定要重新开放此活动的申请入口吗？';
-
   if (!confirm(msg)) return;
-
-  var btn = document.querySelector('.event-mgr-toggle[onclick*="toggleRegistration(' + eventId + '"]');
-  if (btn) btn.disabled = true;
-
   try {
     var r = await fetch('../api/galonly.php?action=update_event', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify({
-        event_id: eventId,
-        registration_open: currentlyOpen ? 0 : 1
-      })
+      body: JSON.stringify({ event_id: eventId, registration_open: currentlyOpen ? 0 : 1 })
     });
     var data = await r.json();
-
     if (!data.success) {
       showToast(data.message || '操作失败', 'error');
-      if (btn) btn.disabled = false;
       return;
     }
-
-    showToast(label + '成功', 'success');
-
-    // Reload events to refresh both management list and filter dropdown
+    showToast((currentlyOpen ? '熔断' : '重新开放') + '成功', 'success');
     await loadEvents();
     renderEventMgr();
   } catch (e) {
     showToast('网络错误，操作失败', 'error');
-    if (btn) btn.disabled = false;
   }
 }
 
 // ====== Init ======
 async function init() {
-  // Auth
   var authorized = await checkAuth();
   if (!authorized) return;
-
-  // Load club names
   await loadClubNames();
-
-  // Load events
   await loadEvents();
   renderEventMgr();
-
-  // Load applications
   await loadApplications();
+  await loadStaffApplications();
 }
 
-// ====== Tab Event Delegation ======
-document.getElementById('tabBar').addEventListener('click', function(e) {
-  var btn = e.target.closest('.tab-btn');
-  if (btn) switchTab(btn.dataset.tab);
+// ====== Event Delegation ======
+document.getElementById('modeSwitch').addEventListener('click', function(e) {
+  var btn = e.target.closest('.mode-btn');
+  if (btn) switchMode(btn.dataset.mode);
 });
 
-// Close image modal on overlay click
+document.getElementById('boothTabBar').addEventListener('click', function(e) {
+  var btn = e.target.closest('.tab-btn');
+  if (btn) switchBoothTab(btn.dataset.tab);
+});
+
+document.getElementById('staffTabBar').addEventListener('click', function(e) {
+  var btn = e.target.closest('.tab-btn');
+  if (btn) switchStaffTab(btn.dataset.tab);
+});
+
 document.getElementById('imageModal').addEventListener('click', function(e) {
   if (e.target === e.currentTarget) closeImageModal();
 });
 
+// ====== Theme Toggle ======
+function toggleTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme') || 'dark';
+  var next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  try { localStorage.setItem('galonly-theme', next); } catch(e) {}
+  updateThemeIcon(next);
+}
+
+function updateThemeIcon(theme) {
+  var btn = document.getElementById('themeToggle');
+  if (!btn) return;
+  btn.textContent = theme === 'dark' ? '\u263E' : '\u2600';
+}
+
+// Restore saved theme on load
+(function() {
+  try {
+    var saved = localStorage.getItem('galonly-theme');
+    if (saved === 'light' || saved === 'dark') {
+      document.documentElement.setAttribute('data-theme', saved);
+    }
+  } catch(e) {}
+  // Set icon after DOM ready
+  document.addEventListener('DOMContentLoaded', function() {
+    updateThemeIcon(document.documentElement.getAttribute('data-theme') || 'dark');
+  });
+})();
+
 // ====== Start ======
 init();
 </script>
-<script src="../js/page-background.js" data-picker="compact"></script>
 </body>
 </html>

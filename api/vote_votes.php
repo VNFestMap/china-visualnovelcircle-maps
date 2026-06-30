@@ -67,6 +67,13 @@ function voteTrimMoeMatchRows(array &$rows, array $visibility): void {
     unset($row);
 }
 
+function voteStageDeadlinePassed(?string $endsAt): bool {
+    $endsAt = trim((string)$endsAt);
+    if ($endsAt === '') return false;
+    $deadline = strtotime($endsAt);
+    return $deadline !== false && $deadline <= time();
+}
+
 switch ($action) {
     case 'eligibility':
         $user = getCurrentUser();
@@ -87,6 +94,9 @@ switch ($action) {
         if ($flowPool) {
             $runtime = voteFlowPoolRuntime($flowPool, $stage);
             if (($flowPool['status'] ?? '') !== 'open') voteRespond(['success' => false, 'message' => '当前阶段池未开放投票'], 400);
+            if (voteStageDeadlinePassed($runtime['ends_at'] ?? ($stage['ends_at'] ?? null))) {
+                voteRespond(['success' => false, 'message' => '当前阶段已到截止时间，不能继续投票'], 400);
+            }
             $entryIds = $input['entry_ids'] ?? (isset($input['entry_id']) ? [$input['entry_id']] : []);
             if (!is_array($entryIds)) $entryIds = [];
             $entryIds = array_values(array_unique(array_map('intval', $entryIds)));
@@ -178,6 +188,9 @@ switch ($action) {
         }
 
         if (($stage['status'] ?? '') !== 'open') voteRespond(['success' => false, 'message' => '当前阶段未开放投票'], 400);
+        if (voteStageDeadlinePassed($stage['ends_at'] ?? null)) {
+            voteRespond(['success' => false, 'message' => '当前阶段已到截止时间，不能继续投票'], 400);
+        }
 
         $entryIds = $input['entry_ids'] ?? (isset($input['entry_id']) ? [$input['entry_id']] : []);
         if (!is_array($entryIds)) $entryIds = [];
@@ -335,14 +348,12 @@ switch ($action) {
                 (string)$runtime['result_visibility']
             );
             $matchResults = voteResultsMatchRows($db, $stageId, (int)$flowPool['id']);
-            if (($project['project_type'] ?? '') === 'moe') {
-                if (empty($visibility['rank_visible'])) {
-                    $rows = [];
-                    $matchResults = [];
-                } else {
-                    voteTrimMoeResultRows($rows, $visibility);
-                    voteTrimMoeMatchRows($matchResults, $visibility);
-                }
+            if (empty($visibility['rank_visible'])) {
+                $rows = [];
+                $matchResults = [];
+            } else {
+                voteTrimMoeResultRows($rows, $visibility);
+                voteTrimMoeMatchRows($matchResults, $visibility);
             }
             voteRespond([
                 'success' => true,
@@ -395,14 +406,12 @@ switch ($action) {
             (string)($stage['result_visibility'] ?? 'live_rank_only')
         );
         $matchResults = voteResultsMatchRows($db, $stageId, null);
-        if (($project['project_type'] ?? '') === 'moe') {
-            if (empty($visibility['rank_visible'])) {
-                $rows = [];
-                $matchResults = [];
-            } else {
-                voteTrimMoeResultRows($rows, $visibility);
-                voteTrimMoeMatchRows($matchResults, $visibility);
-            }
+        if (empty($visibility['rank_visible'])) {
+            $rows = [];
+            $matchResults = [];
+        } else {
+            voteTrimMoeResultRows($rows, $visibility);
+            voteTrimMoeMatchRows($matchResults, $visibility);
         }
         voteRespond([
             'success' => true,

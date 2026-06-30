@@ -4,7 +4,7 @@ import { extname, join, relative } from 'path';
 import vm from 'vm';
 
 const ROOT = join(import.meta.dirname, '..');
-const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', 'www', 'android']);
+const SKIP_DIRS = new Set(['.git', '_local', 'node_modules', 'dist', 'www', 'android']);
 
 const files = [];
 const failures = [];
@@ -40,11 +40,28 @@ function runCheck(label, command, args) {
 
 function checkInlineScripts(file) {
   const html = readFileSync(file, 'utf8');
-  const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/gi)];
+  const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
 
   scripts.forEach((match, index) => {
+    const attributes = match[1] || '';
+    const source = match[2] || '';
+    const isModule = /\btype\s*=\s*(['"])module\1/i.test(attributes);
+    if (isModule) {
+      const result = spawnSync('node', ['--input-type=module', '--check', '-'], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        input: source,
+      });
+      if (result.status !== 0) {
+        failures.push({
+          label: `html inline module: ${relative(ROOT, file)}#${index + 1}`,
+          output: `${result.stdout || ''}${result.stderr || ''}`.trim(),
+        });
+      }
+      return;
+    }
     try {
-      new vm.Script(match[1], {
+      new vm.Script(source, {
         filename: `${relative(ROOT, file)}#script${index + 1}`,
       });
     } catch (error) {

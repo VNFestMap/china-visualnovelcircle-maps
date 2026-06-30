@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>角色卡生成器</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+      background: linear-gradient(135deg, #fff5f0,#f0fafa,#fff5f8);
+      min-height: 100vh;
+      color: #49333b;
+    }
+    .app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1 { text-align: center; font-size: 28px; color: #49333b; margin-bottom: 4px; letter-spacing: .03em; }
+    .subtitle { text-align: center; color: #9a7a84; font-size: 14px; margin-bottom: 24px; }
+
+    .main-layout { display: flex; gap: 28px; align-items: flex-start; }
+    .form-panel {
+      flex: 0 0 400px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(246,167,188,.2);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 8px 32px rgba(157,98,114,.1);
+      backdrop-filter: blur(12px);
+    }
+    .preview-panel {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      padding: 20px 0;
+      position: sticky;
+      top: 20px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 900;
+      color: #7a5a64;
+      margin-bottom: 5px;
+      letter-spacing: .02em;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(246,167,188,.2);
+      border-radius: 14px;
+      background: rgba(255,255,255,.78);
+      color: #49333b;
+      font-size: 14px;
+      outline: none;
+      transition: .14s;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: rgba(233,130,162,.5);
+      box-shadow: 0 0 0 3px rgba(246,167,188,.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 50px; }
+    .form-group .hint { font-size: 11px; color: #b89aa4; margin-top: 3px; }
+
+    .stat-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px;
+    }
+    .stat-row label {
+      width: 36px;
+      font-size: 12px; font-weight: 900; color: #7a5a64;
+      flex-shrink: 0;
+    }
+    .stat-row input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f0d5dd, #e89ab3);
+      outline: none;
+    }
+    .stat-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f6a7bc, #d9b87a);
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(157,98,114,.2);
+      cursor: pointer;
+    }
+    .stat-row .stat-val {
+      width: 30px;
+      text-align: right;
+      font-size: 14px;
+      font-weight: 900;
+      color: #5a3f48;
+    }
+
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .tag-grid label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.66);
+      border: 1px solid rgba(246,167,188,.16);
+      font-size: 12px;
+      font-weight: 900;
+      color: #9a7a84;
+      cursor: pointer;
+      transition: .14s;
+    }
+    .tag-grid label:has(input:checked) {
+      background: rgba(246,167,188,.18);
+      border-color: rgba(233,130,162,.4);
+      color: #6a4a55;
+    }
+    .tag-grid input { display: none; }
+
+    .btn {
+      border: 0; border-radius: 16px; padding: 12px 20px;
+      background: linear-gradient(135deg, #e89ab3, #d9b87a);
+      color: #fff; font-weight: 900; font-size: 15px;
+      box-shadow: 0 8px 20px rgba(233,130,162,.22);
+      cursor: pointer;
+      transition: .14s;
+      width: 100%;
+    }
+    .btn:hover { transform: translateY(-1px); filter: saturate(1.04); }
+    .btn:active { transform: scale(.97); }
+    .btn.secondary {
+      background: linear-gradient(135deg, #a9dfe3, #f4b1c5);
+      box-shadow: 0 8px 20px rgba(143,216,223,.22);
+    }
+
+    .preset-section { margin-top: 20px; }
+    .preset-section h3 {
+      font-size: 13px; color: #7a5a64; margin-bottom: 10px;
+    }
+    .preset-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .preset-grid button {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(143,216,223,.3);
+      background: rgba(255,255,255,.6);
+      color: #5a7a84;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: .14s;
+    }
+    .preset-grid button:hover {
+      background: rgba(143,216,223,.18);
+      border-color: rgba(143,216,223,.5);
+    }
+    .preset-grid button:active { transform: scale(.96); }
+    .preset-grid button.preset-recruit {
+      border-color: rgba(246,167,188,.2);
+      color: #8a6a74;
+    }
+    .preset-grid button.preset-recruit:hover {
+      background: rgba(246,167,188,.12);
+    }
+
+    .empty-card {
+      width: 320px;
+      padding: 60px 20px;
+      text-align: center;
+      border: 2px dashed rgba(246,167,188,.25);
+      border-radius: 24px;
+      color: #b89aa4;
+      font-size: 14px;
+      line-height: 2;
+    }
+    .empty-card i { font-size: 40px; margin-bottom: 12px; opacity: .5; }
+    .empty-card p { margin: 0; }
+
+    @media (max-width: 820px) {
+      .main-layout { flex-direction: column; align-items: center; }
+      .form-panel { flex: none; width: 100%; max-width: 500px; }
+      .preview-panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <h1><i class="fas fa-id-card" style="color:#e89ab3;margin-right:8px"></i>角色卡生成器</h1>
+  <p class="subtitle">填写角色数据，实时生成精美的角色卡</p>
+
+  <div class="main-layout">
+    <!-- 表单区 -->
+    <div class="form-panel" id="formPanel">
+      <div class="form-group">
+        <label for="nameInput">名称</label>
+        <input type="text" id="nameInput" placeholder="例：杏子" value="杏子" />
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1">
+          <label for="gradeSelect">年级</label>
+          <select id="gradeSelect">
+            <option value="一年级">一年级</option>
+            <option value="二年级" selected>二年级</option>
+            <option value="三年级">三年级</option>
+            <option value="四年级">四年级</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1">
+          <label for="roleInput">角色 / 职位</label>
+        <input type="text" id="roleInput" placeholder="例：副会长 / 文案主持" value="副会长 / 文案主持" />
+      </div>
+
+      <div class="form-group">
+        <label for="traitInput">特质描述</label>
+        <textarea id="traitInput" placeholder="例：热情但容易燃尽">热情但容易燃尽</textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="skillSelect">技能</label>
+        <select id="skillSelect"></select>
+        <div class="hint" id="skillDesc">选择技能后查看描述</div>
+      </div>
+
+      <div class="form-group">
+        <label>标签（点击选取）</label>
+        <div class="tag-grid" id="tagGrid"></div>
+      </div>
+
+      <div class="form-group">
+        <label>五维属性</label>
+        <div id="statSliders">
+          <div class="stat-row">
+            <label>热情</label>
+            <input type="range" min="0" max="100" value="72" data-stat="heat" />
+            <span class="stat-val" id="val-heat">72</span>
+          </div>
+          <div class="stat-row">
+            <label>疲劳</label>
+            <input type="range" min="0" max="100" value="18" data-stat="fatigue" />
+            <span class="stat-val" id="val-fatigue">18</span>
+          </div>
+          <div class="stat-row">
+            <label>成长</label>
+            <input type="range" min="0" max="100" value="58" data-stat="growth" />
+            <span class="stat-val" id="val-growth">58</span>
+          </div>
+          <div class="stat-row">
+            <label>信任</label>
+            <input type="range" min="0" max="100" value="54" data-stat="trust" />
+            <span class="stat-val" id="val-trust">54</span>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn" id="generateBtn"><i class="fas fa-wand-magic-sparkles" style="margin-right:6px"></i>生成卡片</button>
+
+      <!-- 预设角色 -->
+      <div class="preset-section">
+        <h3><i class="fas fa-users" style="margin-right:5px;color:#9a7a84"></i>预设角色</h3>
+        <div class="preset-grid" id="presetGrid"></div>
+        <h3 style="margin-top:14px"><i class="fas fa-user-plus" style="margin-right:5px;color:#9a7a84"></i>招募角色</h3>
+        <div class="preset-grid" id="recruitPresetGrid"></div>
+      </div>
+    </div>
+
+    <!-- 预览区 -->
+    <div class="preview-panel" id="previewPanel">
+      <div id="cardPreview"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { coreSeed, recruitPool } from '../src/data/members.js';
+  import { skills } from '../src/data/skills.js';
+  import { generateCardHTML } from './generator.js';
+
+  // --- 填充技能下拉 ---
+  const skillSelect = document.getElementById('skillSelect');
+  const skillDesc = document.getElementById('skillDesc');
+  const allSkills = Object.entries(skills);
+  allSkills.forEach(([id, sk]) => {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = `${sk.name}（冷却${sk.cool}周）`;
+    skillSelect.appendChild(opt);
+  });
+  function updateSkillDesc() {
+    const sk = skills[skillSelect.value];
+    skillDesc.textContent = sk ? sk.desc : '';
+  }
+  skillSelect.addEventListener('change', updateSkillDesc);
+  skillSelect.value = 'ice';
+  updateSkillDesc();
+
+  // --- 填充标签 ---
+  const allTags = [...new Set([...coreSeed, ...recruitPool].flatMap(m => m.tags))];
+  const tagGrid = document.getElementById('tagGrid');
+  const selectedTags = new Set();
+  allTags.forEach(t => {
+    const label = document.createElement('label');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = t;
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(t));
+    tagGrid.appendChild(label);
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedTags.add(t);
+      else selectedTags.delete(t);
+    });
+  });
+
+  // --- 五维滑块联动 ---
+  document.querySelectorAll('[data-stat]').forEach(slider => {
+    const valSpan = document.getElementById('val-' + slider.dataset.stat);
+    slider.addEventListener('input', () => {
+      valSpan.textContent = slider.value;
+    });
+  });
+
+  // --- 从表单读取数据 ---
+  function readForm() {
+    const heat = parseInt(document.querySelector('[data-stat="heat"]').value, 10);
+    const fatigue = parseInt(document.querySelector('[data-stat="fatigue"]').value, 10);
+    const growth = parseInt(document.querySelector('[data-stat="growth"]').value, 10);
+    const trust = parseInt(document.querySelector('[data-stat="trust"]').value, 10);
+    const skillId = skillSelect.value;
+    const sk = skills[skillId];
+    return {
+      name: document.getElementById('nameInput').value || '无名',
+      grade: document.getElementById('gradeSelect').value,
+      role: document.getElementById('roleInput').value || '未知角色',
+      trait: document.getElementById('traitInput').value || '暂无描述',
+      tags: [...selectedTags],
+      heat, fatigue, growth, trust,
+      skillName: sk?.name || '无技能',
+      skillDesc: sk?.desc || '暂无专属技能。',
+      skillCd: 0,
+    };
+  }
+
+  // --- 生成卡片 ---
+  function renderCard() {
+    const m = readForm();
+    document.getElementById('cardPreview').innerHTML = generateCardHTML(m);
+  }
+
+  document.getElementById('generateBtn').addEventListener('click', renderCard);
+
+  // --- 填充预设 ---
+  function fillPreset(m) {
+    document.getElementById('nameInput').value = m.name;
+    document.getElementById('gradeSelect').value = m.grade;
+    document.getElementById('roleInput').value = m.role;
+    document.getElementById('traitInput').value = m.trait;
+
+    // 技能
+    if (m.skill && skills[m.skill]) {
+      skillSelect.value = m.skill;
+      updateSkillDesc();
+    }
+
+    // 标签
+    tagGrid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.checked = m.tags.includes(cb.value);
+      if (cb.checked) selectedTags.add(cb.value);
+      else selectedTags.delete(cb.value);
+    });
+
+    // 五维
+    const map = { heat: 'heat', fatigue: 'fatigue', growth: 'growth', trust: 'trust' };
+    Object.entries(map).forEach(([field, stat]) => {
+      const slider = document.querySelector(`[data-stat="${stat}"]`);
+      if (slider) {
+        slider.value = m[field] ?? 50;
+        document.getElementById(`val-${stat}`).textContent = slider.value;
+      }
+    });
+
+    renderCard();
+  }
+
+  // 核心成员预设
+  const presetGrid = document.getElementById('presetGrid');
+  coreSeed.forEach(m => {
+    const btn = document.createElement('button');
+    btn.textContent = m.name;
+    btn.addEventListener('click', () => fillPreset(m));
+    presetGrid.appendChild(btn);
+  });
+
+  // 招募角色预设
+  const recruitGrid = document.getElementById('recruitPresetGrid');
+  recruitPool.forEach(m => {
+    const btn = document.createElement('button');
+    btn.textContent = m.name;
+    btn.classList.add('preset-recruit');
+    btn.addEventListener('click', () => fillPreset(m));
+    recruitGrid.appendChild(btn);
+  });
+
+  // --- 初始渲染 ---
+  // 自动勾选杏子的标签
+  const kyoko = coreSeed[0];
+  tagGrid.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    if (kyoko.tags.includes(cb.value)) {
+      cb.checked = true;
+      selectedTags.add(cb.value);
+    }
+  });
+  renderCard();
+</script>
+</body>
+</html>

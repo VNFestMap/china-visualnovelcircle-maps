@@ -47,9 +47,31 @@ $sizes = array_count_values($mapA);
 
 $invalidRejected = false;
 try {
-    voteValidateMoePoolConfig(array_merge($poolA, ['advance_count' => 6]), 9);
+    voteValidateMoePoolConfig(array_merge($poolA, ['advance_count' => 0]), 9);
 } catch (Throwable $e) {
     $invalidRejected = true;
+}
+
+$unevenPool = [
+    'vote_mode' => 'multi_select',
+    'stage_type' => 'qualifier',
+    'group_count' => 2,
+    'advance_count' => 3,
+    'config_json' => voteJson(['rule_version' => 2]),
+];
+$unevenRows = [
+    ['entry_id' => 1, 'group_key' => 'G1', 'seed_no' => 1, 'votes' => 10],
+    ['entry_id' => 2, 'group_key' => 'G1', 'seed_no' => 2, 'votes' => 9],
+    ['entry_id' => 3, 'group_key' => 'G1', 'seed_no' => 3, 'votes' => 8],
+    ['entry_id' => 4, 'group_key' => 'G2', 'seed_no' => 4, 'votes' => 7],
+    ['entry_id' => 5, 'group_key' => 'G2', 'seed_no' => 5, 'votes' => 6],
+];
+$unevenAdvanced = [];
+foreach (voteFlowRankRowsForPool($unevenPool, $unevenRows) as $row) {
+    if (!empty($row['_advanced'])) {
+        $key = (string)($row['group_key'] ?? '');
+        $unevenAdvanced[$key] = ($unevenAdvanced[$key] ?? 0) + 1;
+    }
 }
 
 $scorePool = [
@@ -92,6 +114,13 @@ $bracketStage = voteFetchStage(13);
 $bracketPool = voteFlowCreatePool($db, $run, $bracketStage);
 voteFlowSeedPoolEntries($db, $bracketPool, array_slice($entryIds, 0, 4));
 $matches = voteFlowGenerateMatches($db, $bracketPool);
+// 给两场对阵各投相同的票数（人为制造平票）
+foreach ($matches as $match) {
+    $db->prepare("INSERT INTO vote_votes (project_id, stage_id, entry_id, match_id, user_id, vote_value) VALUES (1, 13, ?, ?, 200, 1)")
+        ->execute([(int)$match['slot_a_entry_id'], (int)$match['id']]);
+    $db->prepare("INSERT INTO vote_votes (project_id, stage_id, entry_id, match_id, user_id, vote_value) VALUES (1, 13, ?, ?, 201, 1)")
+        ->execute([(int)$match['slot_b_entry_id'], (int)$match['id']]);
+}
 $matchResult = voteFlowSettleOpenMatchesByVotes($db, $bracketPool);
 $bracketFresh = voteFlowPoolById($db, (int)$bracketPool['id']);
 
@@ -103,6 +132,7 @@ echo json_encode([
     'stable_groups' => $mapA === $mapB,
     'group_sizes' => array_values($sizes),
     'invalid_rejected' => $invalidRejected,
+    'uneven_advanced' => $unevenAdvanced,
     'can_rebuild_before_votes' => $canRebuildBeforeVotes,
     'can_rebuild_after_votes' => $canRebuildAfterVotes,
     'score_order' => $scoreOrder,
@@ -129,6 +159,7 @@ assert.equal(data.runtime.scoring_method, 'total_points');
 assert.equal(data.stable_groups, true);
 assert.ok(Math.max(...data.group_sizes) - Math.min(...data.group_sizes) <= 1);
 assert.equal(data.invalid_rejected, true);
+assert.deepEqual(data.uneven_advanced, { G1: 2, G2: 1 }, 'non-divisible advance count should distribute extra slots across groups');
 assert.equal(data.can_rebuild_before_votes, true);
 assert.equal(data.can_rebuild_after_votes, false);
 assert.deepEqual(data.score_order, [2, 1, 3, 4]);

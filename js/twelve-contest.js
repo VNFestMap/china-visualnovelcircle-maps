@@ -298,7 +298,7 @@
     panel.style.display = '';
     panel.innerHTML = '<div class="tw-nom-empty">搜索中...</div>';
 
-    api('../api/bangumi_proxy.php?action=search_subject&type=4&keyword=' + encodeURIComponent(keyword)).then(function (data) {
+    api('../api/vote_sources.php?action=search&project_type=twelve&limit=12&keyword=' + encodeURIComponent(keyword)).then(function (data) {
       var results = (data && data.data) || [];
       results = results.slice(0, 12);
       if (!results.length) {
@@ -326,13 +326,14 @@
 
     for (var i = 0; i < results.length; i++) {
       var work = results[i];
-      var year = work.air_date ? String(work.air_date).slice(0, 4) : '';
+      var year = work.air_date ? String(work.air_date).slice(0, 4) : (work.subtitle && /^\d{4}/.test(work.subtitle) ? String(work.subtitle).slice(0, 4) : '');
+      var sourceLabel = sourceLabelVote(work.source_type);
       html +=
         '<div class="tw-nom-item tw-nom-search-result" style="cursor:pointer;" data-idx="' + i + '">' +
           '<div class="tw-nom-cover" style="background:' + (work.image_url ? 'url(' + esc(work.image_url) + ') center/cover' : coverGradient(i)) + '"></div>' +
           '<div class="tw-nom-info">' +
             '<div class="tw-nom-name">' + esc(work.title_cn || work.title || '') + '</div>' +
-            '<div class="tw-nom-meta">' + esc(work.title && work.title_cn ? work.title : '') + (year ? ' · ' + year : '') + '</div>' +
+            '<div class="tw-nom-meta">' + esc([sourceLabel, work.title && work.title_cn ? work.title : '', work.subtitle || year].filter(Boolean).join(' · ')) + '</div>' +
           '</div>' +
           '<span class="tw-nom-status" style="background:var(--tw-blue);color:#fff;font-size:9px;padding:2px 8px;border-radius:10px;">提名</span>' +
         '</div>';
@@ -365,14 +366,14 @@
     if (currentCount >= maxNoms) { toast('已达到最大提名数（' + maxNoms + '个）'); return; }
     var payload = {
       contest_id: CONTEST_STATE.project.id,
-      title: work.title_cn || work.title || '',
-      title_cn: work.title || '',
-      subtitle: work.title && work.title_cn ? work.title : '',
-      source_type: 'bangumi_subject',
-      source_id: String(work.bangumi_id || ''),
+      title: work.title || work.title_cn || '',
+      title_cn: work.title_cn || '',
+      subtitle: work.subtitle || (work.title && work.title_cn ? work.title : ''),
+      source_type: work.source_type || 'manual',
+      source_id: String(work.source_id || work.bangumi_id || ''),
       image_url: work.image_url || '',
       summary: work.summary || '',
-      external_url: 'https://bgm.tv/subject/' + (work.bangumi_id || '')
+      external_url: work.external_url || (work.bangumi_id ? 'https://bgm.tv/subject/' + work.bangumi_id : '')
     };
     post('../api/twelve_works.php?action=nominate', payload).then(function (r) {
       if (r && r.success) {
@@ -456,6 +457,24 @@
     };
   }
 
+  function canChangeVote(stage) {
+    return Number(stage && stage.allow_vote_change ? stage.allow_vote_change : 0) === 1;
+  }
+
+  function updateSubmitAfterExistingVote(stage) {
+    var allowChange = canChangeVote(stage);
+    var btn = document.getElementById('twBottomSubmit');
+    var hdr = document.getElementById('twHeaderSubmit');
+    if (btn) {
+      btn.disabled = !allowChange;
+      btn.textContent = allowChange ? '修改投票' : '已投票';
+    }
+    if (hdr) {
+      hdr.disabled = !allowChange;
+      hdr.textContent = allowChange ? '修改投票' : '已投票';
+    }
+  }
+
   function selectedVoteIds() {
     return Object.keys(CONTEST_STATE.myVotes).filter(function (k) { return CONTEST_STATE.myVotes[k]; });
   }
@@ -484,8 +503,9 @@
         CONTEST_STATE.myVotes[entryId] = true;
         CONTEST_STATE.myScores[entryId] = Number(vote.score_value || bounds.max);
       });
-      CONTEST_STATE.votingLocked = votes.length > 0;
+      CONTEST_STATE.votingLocked = votes.length > 0 && !canChangeVote(stage);
       renderScoreGrid(CONTEST_STATE.works, maxVotes, bounds, CONTEST_STATE.votingLocked, showVotes);
+      if (votes.length) updateSubmitAfterExistingVote(stage);
     }).catch(function (error) {
       document.getElementById('twScoreGrid').innerHTML = '<div class="tw-empty" style="grid-column:1/-1">' + esc(error && error.message ? error.message : '评分加载失败') + '</div>';
     });
@@ -596,22 +616,18 @@
       if (groups.length > 1) {
         CONTEST_STATE.groups = groups;
         CONTEST_STATE.currentGroup = 0;
-        CONTEST_STATE.votingLocked = votes.length > 0;
+        CONTEST_STATE.votingLocked = votes.length > 0 && !canChangeVote(stage);
         document.getElementById('twContestContent').innerHTML =
           '<div class="tw-group-tabs" id="twGroupTabs"></div>' +
           '<div class="tw-action"><div class="tw-action-hint" id="twGroupHint"></div></div>' +
           '<div class="tw-work-grid--group" id="twGroupGrid"></div>';
         renderStageGroupTabs(maxVotes);
         renderGroupGrid(groups[0], maxVotes, showVotes);
-        if (votes.length) {
-          var btn = document.getElementById('twBottomSubmit');
-          var hdr = document.getElementById('twHeaderSubmit');
-          if (btn) { btn.disabled = true; btn.textContent = '已投票'; }
-          if (hdr) { hdr.disabled = true; hdr.textContent = '已投票'; }
-        }
+        if (votes.length) updateSubmitAfterExistingVote(stage);
         return;
       }
-      renderWorkGrid(CONTEST_STATE.works, maxVotes, 'twVoteGrid', 'tw-work-grid', stage, votes.length > 0, showVotes);
+      renderWorkGrid(CONTEST_STATE.works, maxVotes, 'twVoteGrid', 'tw-work-grid', stage, votes.length > 0 && !canChangeVote(stage), showVotes);
+      if (votes.length) updateSubmitAfterExistingVote(stage);
     });
   }
 
@@ -749,7 +765,7 @@
       for (var i = 0; i < votes.length; i++) {
         CONTEST_STATE.myVotes[Number(votes[i].entry_id)] = true;
       }
-      CONTEST_STATE.votingLocked = votes.length > 0;
+      CONTEST_STATE.votingLocked = votes.length > 0 && !canChangeVote(stage);
 
       CONTEST_STATE.groups = groupWorksByKey(works, groupCount);
 
@@ -777,12 +793,7 @@
         return;
       }
       renderGroupGrid(CONTEST_STATE.groups[0], maxVotes, showVotes);
-      if (votes.length) {
-        var btn = document.getElementById('twBottomSubmit');
-        var hdr = document.getElementById('twHeaderSubmit');
-        if (btn) { btn.disabled = true; btn.textContent = '已投票'; }
-        if (hdr) { hdr.disabled = true; hdr.textContent = '已投票'; }
-      }
+      if (votes.length) updateSubmitAfterExistingVote(stage);
     });
 
     showBottomBar(stage, maxVotes);
@@ -894,7 +905,8 @@
       for (var i = 0; i < votes.length; i++) {
         CONTEST_STATE.myVotes[Number(votes[i].entry_id)] = true;
       }
-      renderWorkGrid(CONTEST_STATE.works, maxVotes, 'twFinalGrid', 'tw-work-grid', stage, votes.length > 0, showVotes);
+      renderWorkGrid(CONTEST_STATE.works, maxVotes, 'twFinalGrid', 'tw-work-grid', stage, votes.length > 0 && !canChangeVote(stage), showVotes);
+      if (votes.length) updateSubmitAfterExistingVote(stage);
       overrideGridToGold();
     });
   }
@@ -940,10 +952,10 @@
         post('../api/twelve_votes.php?action=cast', payload).then(function (r) {
           if (r && r.success) {
             toast('投票成功');
-            bottomBtn.disabled = true;
-            bottomBtn.textContent = '已投票';
+            bottomBtn.disabled = !canChangeVote(stage);
+            bottomBtn.textContent = canChangeVote(stage) ? '修改投票' : '已投票';
             var hdr = document.getElementById('twHeaderSubmit');
-            if (hdr) { hdr.disabled = true; hdr.textContent = '已投票'; }
+            if (hdr) { hdr.disabled = !canChangeVote(stage); hdr.textContent = canChangeVote(stage) ? '修改投票' : '已投票'; }
           } else {
             toast((r && r.message) || '投票失败');
           }

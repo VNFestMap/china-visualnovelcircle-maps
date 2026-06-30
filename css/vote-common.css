@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
   --bg: #f6f7fb;
-  --panel: #ffffff;
+  --panel: #f9fafb;
   --text: #182033;
   --muted: #687084;
   --line: #dfe4ee;
   --brand: #2f6fed;
   --brand-2: #13a37f;
   --danger: #d64545;
-  --moe: #d83b65;
-  --moe-bg: #fff1f2;
+  --moe: #f472b6;
+  --moe-bg: #fce7f3;
   --twelve: #2f6fed;
   --twelve-bg: #edf3ff;
   --gold: #c7932b;
@@ -25,7 +25,7 @@
   --muted: #8898b8;
   --line: rgba(255,255,255,0.08);
   --shadow: 0 12px 30px rgba(0,0,0,0.3);
-  --moe-bg: rgba(216,59,101,0.12);
+  --moe-bg: rgba(244,114,182,0.12);
   --twelve-bg: rgba(47,111,237,0.12);
   --gold-bg: rgba(234,179,8,0.1);
 }

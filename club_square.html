@@ -1,43 +1,569 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="referrer" content="no-referrer">
-  <title>同好会广场 - VNFest</title>
-  <link rel="stylesheet" href="./css/vote-common.css">
-  <link rel="stylesheet" href="./css/club-square.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="referrer" content="no-referrer" />
+  <title>同好会广场 — VNFest</title>
+  <script src="./js/vote-common.js"></script>
+  <style>
+    /* ============================================================
+       视觉令牌 —— 深邃宇宙 + 五色活动卡片
+       ============================================================ */
+    :root {
+      --font-display: 'Noto Serif SC', 'STZhongsong', 'SimSun', serif;
+      --font-body:    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Microsoft YaHei', system-ui, sans-serif;
+      --font-mono:    'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
+
+      /* 五色活动主题 */
+      --moe-color:      #c07ab8;
+      --twelve-color:   #6898d0;
+      --radar-color:    #4ea89e;
+      --sim-color:      #d48c6a;
+      --board-color:    #c44a4a;
+      --board-gold:     #c9a454;
+    }
+
+    /* ---- 暗色主题（默认） ---- */
+    [data-theme="dark"] {
+      --bg:             #0a0c18;
+      --bg-gradient:    linear-gradient(160deg, #0a0c18 0%, #11162a 40%, #0f1522 100%);
+      --surface:        rgba(18, 20, 36, 0.88);
+      --surface-raised: rgba(24, 26, 46, 0.92);
+      --fg:             #dddae4;
+      --fg-secondary:   #8c88a4;
+      --border:         rgba(255, 255, 255, 0.08);
+      --border-hover:   rgba(255, 255, 255, 0.14);
+      --shadow-sm:      0 2px 12px rgba(0, 0, 0, 0.25);
+      --shadow-md:      0 8px 32px rgba(0, 0, 0, 0.40);
+      --glass-bg:       rgba(255, 255, 255, 0.03);
+      --glass-border:   rgba(255, 255, 255, 0.06);
+      --topbar-bg:      rgba(8, 10, 22, 0.78);
+      --status-running-bg: rgba(90, 200, 130, 0.12);
+      --status-running-fg: #78c898;
+      --tag-moe-bg:     rgba(192, 122, 184, 0.15);
+      --tag-twelve-bg:  rgba(104, 152, 208, 0.15);
+      --tag-board-bg:   rgba(196, 74, 74, 0.15);
+    }
+
+    /* ---- 亮色主题 ---- */
+    [data-theme="light"] {
+      --bg:             #f6f5fa;
+      --bg-gradient:    linear-gradient(160deg, #f6f5fa 0%, #faf8ff 40%, #f3f6fb 100%);
+      --surface:        #fbfafc;
+      --surface-raised: #fcfbfe;
+      --fg:             #2a2638;
+      --fg-secondary:   #7874a0;
+      --border:         rgba(140, 130, 180, 0.14);
+      --border-hover:   rgba(140, 130, 180, 0.24);
+      --shadow-sm:      0 2px 10px rgba(100, 80, 140, 0.06);
+      --shadow-md:      0 8px 28px rgba(100, 80, 140, 0.10);
+      --glass-bg:       rgba(255, 255, 255, 0.6);
+      --glass-border:   rgba(160, 140, 200, 0.12);
+      --topbar-bg:      rgba(251, 250, 252, 0.78);
+      --status-running-bg: rgba(60, 170, 100, 0.08);
+      --status-running-fg: #408860;
+      --tag-moe-bg:     rgba(192, 122, 184, 0.1);
+      --tag-twelve-bg:  rgba(104, 152, 208, 0.1);
+      --tag-board-bg:   rgba(196, 74, 74, 0.08);
+    }
+
+    /* ============================================================
+       全局重置
+       ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { color-scheme: dark; scroll-behavior: smooth; }
+    [data-theme="light"] { color-scheme: light; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      transition: background 0.4s ease, color 0.3s ease;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; cursor: pointer; }
+
+    /* ---- 键盘焦点环 ---- */
+    :focus-visible {
+      outline: 2px solid var(--moe-color);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+    .gateway-card:focus-visible {
+      outline: 2px solid var(--moe-color);
+      outline-offset: -2px;
+    }
+    .card-twelve:focus-visible  { outline-color: var(--twelve-color); }
+    .card-radar:focus-visible   { outline-color: var(--radar-color); }
+    .card-sim:focus-visible     { outline-color: var(--sim-color); }
+    .card-board:focus-visible   { outline-color: var(--board-color); }
+
+    /* ============================================================
+       主容器
+       ============================================================ */
+    .shell {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 28px 48px;
+    }
+
+    /* ============================================================
+       顶栏
+       ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      margin: 0 -28px;
+      background: var(--topbar-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .topbar-brand {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--fg);
+    }
+
+    .topbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .topbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      transition: all 0.18s ease;
+    }
+    .topbar-btn:hover {
+      border-color: var(--border-hover);
+      color: var(--fg);
+      background: var(--surface-raised);
+    }
+    .topbar-btn.primary {
+      background: rgba(192, 122, 184, 0.12);
+      color: var(--moe-color);
+      border-color: rgba(192, 122, 184, 0.2);
+    }
+    .topbar-btn.primary:hover {
+      background: rgba(192, 122, 184, 0.18);
+    }
+
+    /* 主题切换 */
+    .theme-toggle {
+      width: 36px; height: 36px;
+      display: grid; place-items: center;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--fg-secondary);
+      transition: all 0.18s ease;
+    }
+    .theme-toggle:hover { border-color: var(--border-hover); color: var(--fg); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+    [data-theme="light"] .icon-moon { display: none; }
+    [data-theme="dark"]  .icon-sun  { display: none; }
+
+    /* ============================================================
+       Hero
+       ============================================================ */
+    .hero {
+      text-align: center;
+      padding: 64px 20px 40px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--fg);
+      margin-bottom: 8px;
+    }
+    .hero-sub {
+      font-size: 15px;
+      color: var(--fg-secondary);
+    }
+
+    /* ============================================================
+       入口卡片网格
+       ============================================================ */
+    .gateway {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 20px;
+      padding: 8px 0 28px;
+    }
+
+    .gateway-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+    .gateway-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
+    }
+
+    /* 图标区 */
+    .gateway-icon {
+      height: 110px;
+      display: grid;
+      place-items: center;
+    }
+    .gateway-icon svg {
+      width: 48px; height: 48px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card-moe  .gateway-icon { background: linear-gradient(135deg, rgba(192,122,184,0.18), rgba(140,80,160,0.06)); color: var(--moe-color); }
+    .card-twelve .gateway-icon { background: linear-gradient(135deg, rgba(104,152,208,0.16), rgba(60,110,170,0.06)); color: var(--twelve-color); }
+    .card-radar .gateway-icon { background: linear-gradient(135deg, rgba(78,168,158,0.16), rgba(40,120,110,0.06)); color: var(--radar-color); }
+    .card-sim   .gateway-icon { background: linear-gradient(135deg, rgba(212,140,106,0.16), rgba(160,100,70,0.06)); color: var(--sim-color); }
+    .card-board .gateway-icon { background: linear-gradient(135deg, rgba(196,74,74,0.16), rgba(180,130,60,0.07)); color: var(--board-color); }
+
+    /* 内容区 */
+    .gateway-body {
+      padding: 18px 20px 12px;
+      flex: 1;
+    }
+    .gateway-body h2 {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .card-moe  .gateway-body h2 { color: var(--moe-color); }
+    .card-twelve .gateway-body h2 { color: var(--twelve-color); }
+    .card-radar .gateway-body h2 { color: var(--radar-color); }
+    .card-sim   .gateway-body h2 { color: var(--sim-color); }
+    .card-board .gateway-body h2 { color: var(--board-color); }
+
+    .gateway-desc {
+      font-size: 13px;
+      color: var(--fg-secondary);
+      line-height: 1.7;
+    }
+    .gateway-stats {
+      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    .card-moe  .gateway-stats { color: color-mix(in srgb, var(--moe-color) 75%, var(--fg-secondary)); }
+    .card-twelve .gateway-stats { color: color-mix(in srgb, var(--twelve-color) 75%, var(--fg-secondary)); }
+    .card-radar .gateway-stats { color: color-mix(in srgb, var(--radar-color) 75%, var(--fg-secondary)); }
+    .card-sim   .gateway-stats { color: color-mix(in srgb, var(--sim-color) 75%, var(--fg-secondary)); }
+    .card-board .gateway-stats { color: color-mix(in srgb, var(--board-color) 75%, var(--fg-secondary)); }
+
+    /* 进入按钮 */
+    .gateway-enter {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 0 20px 18px;
+      padding: 8px 0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      transition: background 0.18s ease;
+    }
+    .gateway-enter::after { content: "→"; margin-left: 2px; }
+
+    .card-moe  .gateway-enter { background: rgba(192,122,184,0.1); color: var(--moe-color); border: 1px solid rgba(192,122,184,0.18); }
+    .card-twelve .gateway-enter { background: rgba(104,152,208,0.1); color: var(--twelve-color); border: 1px solid rgba(104,152,208,0.18); }
+    .card-radar .gateway-enter { background: rgba(78,168,158,0.1); color: var(--radar-color); border: 1px solid rgba(78,168,158,0.2); }
+    .card-sim   .gateway-enter { background: rgba(212,140,106,0.1); color: var(--sim-color); border: 1px solid rgba(212,140,106,0.2); }
+    .card-board .gateway-enter { background: rgba(196,74,74,0.1); color: var(--board-color); border: 1px solid rgba(196,74,74,0.2); }
+
+    .card-moe  .gateway-enter:hover { background: rgba(192,122,184,0.16); }
+    .card-twelve .gateway-enter:hover { background: rgba(104,152,208,0.16); }
+    .card-radar .gateway-enter:hover { background: rgba(78,168,158,0.16); }
+    .card-sim   .gateway-enter:hover { background: rgba(212,140,106,0.16); }
+    .card-board .gateway-enter:hover { background: rgba(196,74,74,0.16); }
+
+    /* ============================================================
+       进行中活动
+       ============================================================ */
+    .ongoing {
+      padding: 0 0 40px;
+    }
+    .ongoing-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .ongoing-bar {
+      width: 3px; height: 18px;
+      border-radius: 2px;
+      background: var(--moe-color);
+      opacity: 0.5;
+    }
+    .ongoing-head h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--fg);
+    }
+    .ongoing-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .ongoing-empty {
+      padding: 32px 16px;
+      text-align: center;
+      color: var(--fg-secondary);
+      font-size: 14px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+    }
+    .ongoing-retry {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 5px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--fg-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s ease;
+    }
+    .ongoing-retry:hover { border-color: var(--border-hover); color: var(--fg); }
+
+    /* 骨架加载 */
+    .skeleton-row {
+      height: 52px;
+      border-radius: 10px;
+      background: var(--surface);
+      animation: sk-pulse 1.6s ease-in-out infinite;
+    }
+    @keyframes sk-pulse {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 0.7; }
+    }
+
+    /* 状态文本加载 */
+    .stat-loading {
+      display: inline-block;
+      width: 80px; height: 14px;
+      border-radius: 4px;
+      background: var(--surface);
+      animation: sk-pulse 1.6s ease-in-out infinite;
+      vertical-align: middle;
+    }
+    .ongoing-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .ongoing-item:hover {
+      background: var(--surface-raised);
+      border-color: var(--border);
+    }
+    .ongoing-tag {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ongoing-item.moe  .ongoing-tag { background: var(--tag-moe-bg); color: var(--moe-color); }
+    .ongoing-item.twelve .ongoing-tag { background: var(--tag-twelve-bg); color: var(--twelve-color); }
+    .ongoing-item.board .ongoing-tag { background: var(--tag-board-bg); color: var(--board-color); }
+    .ongoing-info {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .ongoing-title {
+      font-size: 14px; font-weight: 600;
+      color: var(--fg);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .ongoing-meta {
+      font-size: 12px; color: var(--fg-secondary);
+    }
+    .ongoing-status {
+      font-size: 11px; padding: 2px 8px; border-radius: 5px;
+      background: var(--status-running-bg); color: var(--status-running-fg);
+      white-space: nowrap; flex-shrink: 0;
+      letter-spacing: 0.03em;
+    }
+    .ongoing-arrow {
+      flex-shrink: 0; color: var(--fg-secondary); opacity: 0.5;
+    }
+
+    /* ============================================================
+       Toast
+       ============================================================ */
+    .toast {
+      position: fixed;
+      bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      z-index: 200;
+      padding: 12px 28px;
+      font-size: 14px; color: #fff;
+      background: rgba(20, 18, 40, 0.94);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      letter-spacing: 0.03em;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ============================================================
+       响应式
+       ============================================================ */
+    @media (max-width: 1200px) {
+      .gateway { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 860px) {
+      .shell { padding: 0 16px 32px; }
+      .topbar { margin: 0 -16px; padding: 10px 16px; gap: 10px; }
+      .topbar-brand { font-size: 15px; }
+      .topbar-nav { gap: 6px; }
+      .topbar-btn { padding: 5px 10px; font-size: 12px; }
+
+      .gateway { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+      .hero { padding: 40px 12px 28px; }
+      .hero h1 { font-size: 26px; }
+      .hero-sub { font-size: 13px; }
+
+      .gateway-icon { height: 88px; }
+      .gateway-icon svg { width: 38px; height: 38px; }
+      .gateway-body { padding: 14px 14px 10px; }
+      .gateway-body h2 { font-size: 16px; }
+      .gateway-enter { margin: 0 14px 14px; font-size: 12px; }
+
+      .ongoing-item { padding: 12px 14px; gap: 10px; }
+    }
+    @media (max-width: 560px) {
+      .gateway { grid-template-columns: 1fr; gap: 14px; }
+      .topbar-nav { flex-wrap: wrap; }
+      .ongoing-item {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 4px 10px;
+        align-items: center;
+      }
+      .ongoing-item .ongoing-tag   { grid-column: 1; grid-row: 1; }
+      .ongoing-item .ongoing-info  { grid-column: 2; grid-row: 1; }
+      .ongoing-item .ongoing-status { grid-column: 3; grid-row: 1; }
+      .ongoing-item .ongoing-arrow { grid-column: 3; grid-row: 2; justify-self: end; }
+    }
+
+    /* ============================================================
+       减弱动效
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      html { scroll-behavior: auto; }
+    }
+
+    /* ============================================================
+       微妙的装饰 —— 背景纹理
+       ============================================================ */
+    body::before {
+      content: "";
+      position: fixed; inset: 0; z-index: -1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 20% 5%, rgba(192,122,184,0.06), transparent 50%),
+        radial-gradient(ellipse at 80% 10%, rgba(104,152,208,0.05), transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(78,168,158,0.04), transparent 50%);
+    }
+    [data-theme="dark"] body::before {
+      background:
+        radial-gradient(ellipse at 20% 5%, rgba(192,122,184,0.08), transparent 50%),
+        radial-gradient(ellipse at 80% 10%, rgba(104,152,208,0.06), transparent 50%),
+        radial-gradient(ellipse at 60% 80%, rgba(78,168,158,0.05), transparent 50%);
+    }
+  </style>
 </head>
 <body>
   <main class="shell">
-    <!-- 导航栏 -->
+    <!-- ===== 顶栏 ===== -->
     <header class="topbar">
-      <div class="brand">
-        <strong>同好会广场</strong>
-      </div>
-      <div class="actions">
-        <a class="btn" href="./index.html?guest=1">返回地图</a>
-        <a class="btn" href="./user.html">用户中心</a>
-        <a class="btn primary" href="./admin/club_project_manager.html">负责人管理</a>
-        <button class="btn theme-toggle" id="themeToggle" title="切换明亮/暗色模式" aria-label="切换明亮/暗色模式">
+      <span class="topbar-brand">同好会广场</span>
+      <nav class="topbar-nav">
+        <a class="topbar-btn" href="./index.html?guest=1">返回地图</a>
+        <a class="topbar-btn" href="./user.html">用户中心</a>
+        <a class="topbar-btn primary" href="./admin/club_project_manager.html">负责人管理</a>
+        <button class="theme-toggle" id="themeToggle" title="切换明亮/暗色模式" aria-label="切换明亮/暗色模式">
           <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
           <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         </button>
-      </div>
+      </nav>
     </header>
 
-    <!-- 标题区 -->
+    <!-- ===== Hero 标题区 ===== -->
     <section class="hero">
       <h1>同好会广场</h1>
-      <p class="hero-sub">同好会大型企划活动入口 — 萌战角色评选 &amp; 十二器作品投票</p>
+      <p class="hero-sub">同好会企划、组织画像、经营模拟与推理博弈活动入口</p>
     </section>
 
-    <!-- 两大入口卡片 -->
+    <!-- ===== 活动入口卡片 ===== -->
     <section class="gateway">
-      <a class="gateway-card moe" href="./moe/index.html">
+      <!-- 萌战 -->
+      <a class="gateway-card card-moe" href="./moe/index.html" aria-label="萌战 — 角色人气投票活动">
         <div class="gateway-icon">
-          <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <path d="M24 4L29.6 17.2L44 19.6L33.2 29.6L35.6 44L24 36.8L12.4 44L14.8 29.6L4 19.6L18.4 17.2L24 4Z" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.8"/>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4L29.6 17.2L44 19.6L33.2 29.6L35.6 44L24 36.8L12.4 44L14.8 29.6L4 19.6L18.4 17.2L24 4Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
             <circle cx="24" cy="24" r="14" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.3"/>
           </svg>
         </div>
@@ -49,10 +575,11 @@
         <span class="gateway-enter">进入活动</span>
       </a>
 
-      <a class="gateway-card twelve" href="./twelve/index.html">
+      <!-- 十二器 -->
+      <a class="gateway-card card-twelve" href="./twelve/index.html" aria-label="十二器 — Galgame 作品评选活动">
         <div class="gateway-icon">
-          <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.8"/>
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <rect x="8" y="8" width="32" height="32" rx="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
             <rect x="16" y="16" width="16" height="16" rx="2" stroke="currentColor" stroke-width="0.8" fill="none" opacity="0.4"/>
             <line x1="24" y1="4" x2="24" y2="14" stroke="currentColor" stroke-width="1" opacity="0.5"/>
             <line x1="24" y1="34" x2="24" y2="44" stroke="currentColor" stroke-width="1" opacity="0.5"/>
@@ -68,12 +595,37 @@
         <span class="gateway-enter">进入活动</span>
       </a>
 
-      <a class="gateway-card radar" href="./club-operation-portrait/index.html">
+      <!-- 棋盘推理（新增） -->
+      <a class="gateway-card card-board" href="https://narrative.map.vnfest.top" aria-label="棋盘推理 — 多人叙事推理博弈">
         <div class="gateway-icon">
-          <svg width="44" height="44" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <rect x="6" y="6" width="36" height="36" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="24" y1="6" x2="24" y2="42" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+            <line x1="6" y1="24" x2="42" y2="24" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
+            <line x1="6" y1="6" x2="42" y2="42" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
+            <line x1="42" y1="6" x2="6" y2="42" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
+            <circle cx="24" cy="24" r="2.5" fill="currentColor" opacity="0.9"/>
+            <circle cx="24" cy="12" r="1.5" fill="currentColor" opacity="0.5"/>
+            <circle cx="36" cy="24" r="1.5" fill="currentColor" opacity="0.4"/>
+            <circle cx="12" cy="24" r="1.5" fill="currentColor" opacity="0.4"/>
+            <circle cx="24" cy="36" r="1.5" fill="currentColor" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="gateway-body">
+          <h2>棋盘推理</h2>
+          <p class="gateway-desc">多人叙事推理博弈 — 红蓝字对抗，在棋盘上拼凑隐藏的真相</p>
+          <div class="gateway-stats">红蓝对抗 · 身份推理 · GM 主持</div>
+        </div>
+        <span class="gateway-enter">进入推理</span>
+      </a>
+
+      <!-- 运行画像 -->
+      <a class="gateway-card card-radar" href="./club-operation-portrait/index.html" aria-label="运行画像 — 同好会六维雷达检测">
+        <div class="gateway-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
             <circle cx="24" cy="24" r="17" stroke="currentColor" stroke-width="1" opacity="0.28"/>
             <path d="M24 7V41M7 24H41M12 12L36 36M36 12L12 36" stroke="currentColor" stroke-width="0.8" opacity="0.28"/>
-            <path d="M24 9L36 18L32 33L24 39L13 31L11 18Z" stroke="currentColor" stroke-width="1.6" fill="none" opacity="0.88"/>
+            <path d="M24 9L36 18L32 33L24 39L13 31L11 18Z" stroke="currentColor" stroke-width="1.6" fill="none"/>
             <circle cx="24" cy="9" r="2" fill="currentColor" opacity="0.75"/>
             <circle cx="36" cy="18" r="2" fill="currentColor" opacity="0.75"/>
             <circle cx="32" cy="33" r="2" fill="currentColor" opacity="0.75"/>
@@ -84,14 +636,33 @@
         </div>
         <div class="gateway-body">
           <h2>运行画像</h2>
-          <p class="gateway-desc">通过问卷与 AI 追问生成同好会六维雷达图，观察组织结构、活动执行、内容沉淀和传承风险</p>
+          <p class="gateway-desc">通过问卷与 AI 追问生成同好会六维雷达图，观察组织结构与传承风险</p>
           <div class="gateway-stats">雷达图检测 · AI 顾问追问</div>
         </div>
         <span class="gateway-enter">进入检测</span>
       </a>
+
+      <!-- 同好会模拟器 -->
+      <a class="gateway-card card-sim" href="./Game/galgame_club_sim/index.html" aria-label="同好会模拟器 — 校园经营策略模拟">
+        <div class="gateway-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M10 15H38C41.3 15 44 17.7 44 21V32C44 35.3 41.3 38 38 38H34L29 33H19L14 38H10C6.7 38 4 35.3 4 32V21C4 17.7 6.7 15 10 15Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M14 22V30M10 26H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="34" cy="23" r="2" fill="currentColor" opacity="0.8"/>
+            <circle cx="29" cy="28" r="2" fill="currentColor" opacity="0.55"/>
+            <path d="M17 15L20 10H28L31 15" stroke="currentColor" stroke-width="1.2" opacity="0.55"/>
+          </svg>
+        </div>
+        <div class="gateway-body">
+          <h2>同好会模拟器</h2>
+          <p class="gateway-desc">经营 Galgame 同好会，在一个学年中招募成员、筹措经费并推进社团企划</p>
+          <div class="gateway-stats">校园经营 · 策略模拟</div>
+        </div>
+        <span class="gateway-enter">开始模拟</span>
+      </a>
     </section>
 
-    <!-- 正在进行中的活动 -->
+    <!-- ===== 进行中活动 ===== -->
     <section class="ongoing">
       <div class="ongoing-head">
         <span class="ongoing-bar"></span>
@@ -103,77 +674,95 @@
     </section>
   </main>
 
-  <div id="toast" class="toast"></div>
+  <div class="toast" id="toast"></div>
 
-  <script src="./js/vote-common.js"></script>
   <script>
   (function () {
     'use strict';
-    var $ = $vote, api = apiVote, esc = escVote;
 
-    /* ---- 主题切换 ---- */
-    var themeBtn = $('themeToggle');
-    if (themeBtn) {
-      themeBtn.addEventListener('click', function () {
-        var html = document.documentElement;
-        var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        html.setAttribute('data-theme', next);
-        localStorage.setItem('themePreference', next);
+    /* ===== 工具函数 ===== */
+    var $ = function (id) { return document.getElementById(id); };
+    var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+
+    function apiFetch(url, options) {
+      return fetch(url, Object.assign({ credentials: 'same-origin', cache: 'no-store' }, options || {})).then(function (r) {
+        return r.text().then(function (text) {
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            console.error('[apiFetch] JSON parse failed for: ' + url);
+            console.error('[apiFetch] HTTP status: ' + r.status);
+            console.error('[apiFetch] Response preview (first 500 chars): ' + text.substring(0, 500));
+            throw new Error('JSON parse failed (HTTP ' + r.status + '): ' + text.substring(0, 120));
+          }
+        });
+      }).catch(function (error) {
+        if (error && /^JSON parse failed/.test(error.message || '')) throw error;
+        throw new Error('网络异常或接口不可用，请稍后重试');
       });
     }
 
-    /* ---- 加载数据 ---- */
+    /* ===== 主题切换 ===== */
+    initVoteThemeToggle('themeToggle');
+
+    /* ===== Toast ===== */
+    function showToast(msg) {
+      var t = $('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._timer);
+      t._timer = setTimeout(function () { t.classList.remove('show'); }, 2600);
+    }
+
+    /* ===== 加载数据 ===== */
     var runningProjects = [];
+    var loadFailed = false;
+
+    function showSkeleton() {
+      var list = $('ongoingList');
+      if (!list) return;
+      list.innerHTML = Array(3).fill('<div class="skeleton-row"></div>').join('');
+    }
 
     function loadAll() {
+      showSkeleton();
+      loadFailed = false;
       Promise.all([
-        api('./api/vote_projects.php?action=list&project_type=moe&status=running'),
-        api('./api/vote_projects.php?action=list&project_type=twelve&status=running')
+        apiFetch('./api/vote_projects.php?action=list&project_type=moe&status=running').catch(function () { return { success: false, data: [] }; }),
+        apiFetch('./api/vote_projects.php?action=list&project_type=twelve&status=running').catch(function () { return { success: false, data: [] }; })
       ]).then(function (results) {
         var allRunning = [];
-        var moeTotal = 0, twelveTotal = 0;
-        var moeRunning = 0, twelveRunning = 0;
-
         results.forEach(function (r) {
-          if (!r.success || !r.data) return;
+          if (!r.success || !r.data) { loadFailed = true; return; }
           r.data.forEach(function (p) {
-            if (p.status === 'running') {
-              allRunning.push(p);
-              if (p.project_type === 'moe') moeRunning++;
-              else twelveRunning++;
-            }
+            if (p.status === 'running') allRunning.push(p);
           });
         });
-
         runningProjects = allRunning;
-
-        // 更新卡片统计（需要总数，另发请求）
         updateStats();
-
-        // 渲染活动列表
         renderOngoing();
-      }).catch(function (e) {
-        console.error('loadAll failed', e);
-        updateStats();
+      }).catch(function () {
+        loadFailed = true;
         renderOngoing();
       });
     }
 
     function updateStats() {
       ['moe', 'twelve'].forEach(function (type) {
-        api('./api/vote_projects.php?action=list&project_type=' + type).then(function (data) {
-          if (!data.success) return;
+        var el = $(type === 'moe' ? 'moeStats' : 'twelveStats');
+        if (el) el.innerHTML = '<span class="stat-loading"></span>';
+        apiFetch('./api/vote_projects.php?action=list&project_type=' + type).then(function (data) {
+          if (!data.success) { if (el) el.textContent = '加载失败'; return; }
           var items = data.data || [];
           var running = items.filter(function (i) { return i.status === 'running'; }).length;
           var total = items.length;
-          var el = $(type === 'moe' ? 'moeStats' : 'twelveStats');
           if (!el) return;
           var parts = [];
           if (running > 0) parts.push(running + ' 场进行中');
           if (total > 0) parts.push('共 ' + total + ' 场企划');
           el.textContent = parts.join(' · ') || '暂无企划';
         }).catch(function () {
-          var el = $(type === 'moe' ? 'moeStats' : 'twelveStats');
           if (el) el.textContent = '加载失败';
         });
       });
@@ -182,27 +771,28 @@
     function renderOngoing() {
       var list = $('ongoingList');
       if (!list) return;
-
+      if (loadFailed) {
+        list.innerHTML = '<div class="ongoing-empty">数据加载失败<button class="ongoing-retry" onclick="location.reload()">重新加载</button></div>';
+        return;
+      }
       if (!runningProjects.length) {
         list.innerHTML = '<div class="ongoing-empty">暂无进行中的活动</div>';
         return;
       }
-
       list.innerHTML = runningProjects.map(function (p) {
         var type = p.project_type;
         var label = type === 'moe' ? '萌战' : '十二器';
         var href = type === 'moe' ? './moe/index.html' : './twelve/index.html';
         var title = esc(p.title || '未命名企划');
         var club = p.club_id ? '同好会 #' + Number(p.club_id) : '';
-
-        return '<a class="ongoing-item ' + type + '" href="' + href + '">' +
+        return '<a class="ongoing-item ' + type + '" href="' + href + '" aria-label="' + esc(title) + ' — ' + label + '">' +
           '<span class="ongoing-tag">' + label + '</span>' +
           '<span class="ongoing-info">' +
             '<span class="ongoing-title">' + title + '</span>' +
             '<span class="ongoing-meta">' + club + '</span>' +
           '</span>' +
           '<span class="ongoing-status">进行中</span>' +
-          '<svg class="ongoing-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>' +
+          '<svg class="ongoing-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>' +
         '</a>';
       }).join('');
     }

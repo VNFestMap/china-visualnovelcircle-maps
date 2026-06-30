@@ -233,6 +233,54 @@ body {
     color: rgba(255,255,255,0.4); font-size: 14px; text-align: center; padding: 20px;
 }
 
+/* 参展展示图预览 */
+.display-preview-item {
+    position:relative; width:200px; border-radius:8px; overflow:hidden;
+    border:2px solid rgba(255,107,53,0.4);
+}
+.display-preview-item img { width:100%; display:block; }
+.display-preview-remove {
+    position:absolute; top:4px; right:4px; width:24px; height:24px;
+    background:rgba(0,0,0,0.6); border:none; border-radius:50%;
+    color:#fff; font-size:14px; cursor:pointer; line-height:24px; text-align:center;
+}
+.display-preview-remove:hover { background:rgba(231,76,60,0.9); }
+.display-preview-label {
+    position:absolute; bottom:0; left:0; right:0;
+    background:rgba(255,107,53,0.8); color:#fff; font-size:11px;
+    text-align:center; padding:2px 0;
+}
+
+/* 展示图裁剪模态框 */
+.crop-modal-overlay {
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,0.75); align-items:center; justify-content:center;
+}
+.crop-modal-overlay.active { display:flex; }
+.crop-modal-box {
+    background:#1a1a1a; border-radius:16px; padding:24px;
+    width:90%; max-width:640px; max-height:90vh; overflow-y:auto;
+}
+.crop-modal-title { font-size:16px; font-weight:600; margin-bottom:8px; }
+.crop-modal-hint { font-size:13px; color:rgba(255,255,255,0.5); margin-bottom:16px; }
+.crop-modal-image-wrap {
+    max-height:400px; overflow:hidden; border-radius:8px;
+}
+.crop-modal-image-wrap img { max-width:100%; }
+.crop-modal-actions {
+    display:flex; gap:12px; justify-content:flex-end; margin-top:16px;
+}
+.crop-modal-cancel {
+    padding:8px 24px; border-radius:8px;
+    border:1px solid rgba(255,255,255,0.15);
+    background:transparent; color:#fff; cursor:pointer; font-size:14px;
+}
+.crop-modal-confirm {
+    padding:8px 24px; border-radius:8px; border:none;
+    background:linear-gradient(135deg,#ff6b35,#e74c3c);
+    color:#fff; cursor:pointer; font-weight:600; font-size:14px;
+}
+
 @media (max-width: 600px) {
     body { padding: 20px 12px; }
     .form-card { padding: 24px 16px; }
@@ -242,6 +290,7 @@ body {
     .btn-club-remove { width: 28px; height: 28px; min-width: 28px; font-size: 12px; }
 }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
 <body>
 
@@ -336,6 +385,38 @@ body {
             <div id="image-preview-container" class="image-preview-container" style="display:none;margin-top:12px;gap:10px;flex-wrap:wrap;"></div>
         </div>
 
+        <!-- 参展展示图 -->
+        <div class="form-group">
+            <label class="form-label">参展展示图</label>
+            <div class="file-upload-area" id="display-upload-area">
+                <input type="file" id="display-image-input" accept="image/jpeg,image/png,image/webp">
+                <div class="file-upload-text" id="display-upload-text">
+                    点击上传参展展示图<br>
+                    支持 JPG / PNG / WebP，最大 10MB，将裁剪为 16:10
+                </div>
+            </div>
+            <div class="form-hint">
+                此图片将作为海报页的摊位主展示图。如不上传，将自动从第一张制品图片裁剪生成。
+            </div>
+            <div class="upload-status" id="display-upload-status"></div>
+            <div id="display-preview-container" style="display:none;margin-top:12px;"></div>
+        </div>
+
+        <!-- 展示图裁剪模态框 -->
+        <div class="crop-modal-overlay" id="displayCropModal">
+            <div class="crop-modal-box">
+                <div class="crop-modal-title">裁剪参展展示图</div>
+                <div class="crop-modal-hint">拖动调整裁剪区域（16:10 比例）</div>
+                <div class="crop-modal-image-wrap">
+                    <img id="displayCropImage" src="" alt="裁剪预览">
+                </div>
+                <div class="crop-modal-actions">
+                    <button type="button" class="crop-modal-cancel" id="displayCropCancel">取消</button>
+                    <button type="button" class="crop-modal-confirm" id="displayCropConfirm">确认裁剪</button>
+                </div>
+            </div>
+        </div>
+
         <!-- 联系方式 -->
         <div class="form-group">
             <label class="form-label">联系方式 <span class="required">*</span></label>
@@ -377,6 +458,8 @@ body {
     var applicationId = 0;
     var isEditMode = false;
     var uploadedImagePaths = [];
+    var uploadedDisplayImagePath = '';
+    var cropperDisplayInstance = null;
     var isJoint = false;
 
     // ------------------------------------------------------------
@@ -660,6 +743,150 @@ body {
     }
 
     // ------------------------------------------------------------
+    // Display image upload + crop
+    // ------------------------------------------------------------
+    function handleDisplayImageUpload(e) {
+        var file = e.target.files && e.target.files[0];
+        if (!file) return;
+
+        var allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (allowedTypes.indexOf(file.type) === -1) {
+            showDisplayUploadStatus('❌ 格式不支持，仅支持 JPG / PNG / WebP', '#e74c3c');
+            $('display-image-input').value = '';
+            return;
+        }
+        if (file.size > 10 * 1024 * 1024) {
+            showDisplayUploadStatus('❌ 文件超过 10MB 限制', '#e74c3c');
+            $('display-image-input').value = '';
+            return;
+        }
+
+        // Reset input value so same file can be re-selected
+        $('display-image-input').value = '';
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            openDisplayCropModal(ev.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showDisplayUploadStatus(text, color) {
+        var el = $('display-upload-status');
+        el.textContent = text;
+        el.style.color = color || 'rgba(255,255,255,0.5)';
+        el.style.display = 'block';
+    }
+
+    function openDisplayCropModal(src) {
+        if (cropperDisplayInstance) {
+            cropperDisplayInstance.destroy();
+            cropperDisplayInstance = null;
+        }
+        var modal = $('displayCropModal');
+        var img = $('displayCropImage');
+        img.src = src;
+        modal.classList.add('active');
+
+        img.onload = function() {
+            cropperDisplayInstance = new Cropper(img, {
+                aspectRatio: 16 / 10,
+                viewMode: 1,
+                dragMode: 'move',
+                autoCropArea: 1,
+                cropBoxMovable: false,
+                cropBoxResizable: false,
+                toggleDragModeOnDblclick: false,
+                background: false,
+            });
+        };
+    }
+
+    function closeDisplayCropModal() {
+        $('displayCropModal').classList.remove('active');
+        if (cropperDisplayInstance) {
+            cropperDisplayInstance.destroy();
+            cropperDisplayInstance = null;
+        }
+    }
+
+    function confirmDisplayCrop() {
+        if (!cropperDisplayInstance) return;
+
+        var canvas = cropperDisplayInstance.getCroppedCanvas({
+            width: 960,
+            height: 600,
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high',
+        });
+
+        closeDisplayCropModal();
+
+        canvas.toBlob(function(blob) {
+            if (!blob) { showDisplayUploadStatus('❌ 图片裁剪失败，请重试', '#e74c3c'); return; }
+            var formData = new FormData();
+            formData.append('file', blob, 'display_image.webp');
+            formData.append('event_id', eventId);
+
+            showDisplayUploadStatus('⏳ 上传展示图中...', 'rgba(255,255,255,0.5)');
+
+            fetch('../api/galonly.php?action=upload_image', {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    uploadedDisplayImagePath = data.path;
+                    renderDisplayImagePreview();
+                    showDisplayUploadStatus('✅ 展示图上传成功', '#4caf50');
+                } else {
+                    showDisplayUploadStatus('❌ 上传失败: ' + (data.message || ''), '#e74c3c');
+                }
+            })
+            .catch(function() {
+                showDisplayUploadStatus('❌ 上传失败，请重试', '#e74c3c');
+            });
+        }, 'image/webp', 0.82);
+    }
+
+    function renderDisplayImagePreview() {
+        var container = $('display-preview-container');
+        if (!container) return;
+        container.innerHTML = '';
+        if (!uploadedDisplayImagePath) {
+            container.style.display = 'none';
+            return;
+        }
+        container.style.display = 'flex';
+
+        var wrapper = document.createElement('div');
+        wrapper.className = 'display-preview-item';
+
+        var img = document.createElement('img');
+        img.src = '../' + uploadedDisplayImagePath;
+        img.alt = '参展展示图';
+
+        var label = document.createElement('div');
+        label.className = 'display-preview-label';
+        label.textContent = '参展展示图';
+
+        var delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'display-preview-remove';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', function() {
+            uploadedDisplayImagePath = '';
+            renderDisplayImagePreview();
+        });
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(label);
+        wrapper.appendChild(delBtn);
+        container.appendChild(wrapper);
+    }
+
+    // ------------------------------------------------------------
     // Form submission
     // ------------------------------------------------------------
     function handleSubmit() {
@@ -714,66 +941,128 @@ body {
         var btn = $('btn-submit');
         btn.disabled = true;
 
-        var payload = {
-            event_id: eventId,
-            club_ids: selectedClubs.map(function(c) { return c.club_id; }),
-            club_countries: selectedClubs.map(function(c) { return c.country; }),
-            booth_name: boothName,
-            is_joint: isJoint ? 1 : 0,
-            joint_name: jointName,
-            wants_upgrade: $('wants_upgrade').checked ? 1 : 0,
-            contact: contact,
-            notes: $('notes').value.trim(),
-            image_paths: uploadedImagePaths
-        };
+        function proceedSubmit(displayPath) {
+            var payload = {
+                event_id: eventId,
+                club_ids: selectedClubs.map(function(c) { return c.club_id; }),
+                club_countries: selectedClubs.map(function(c) { return c.country; }),
+                booth_name: boothName,
+                is_joint: isJoint ? 1 : 0,
+                joint_name: jointName,
+                wants_upgrade: $('wants_upgrade').checked ? 1 : 0,
+                contact: contact,
+                notes: $('notes').value.trim(),
+                image_paths: uploadedImagePaths,
+                display_image: displayPath || null
+            };
 
-        if (isEditMode) {
-            payload.application_id = applicationId;
-            btn.textContent = '保存中...';
-            fetch('../api/galonly.php?action=update_application', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    window.location.href = 'galgameonly_list.html';
-                } else {
-                    showError(data.message || '保存失败');
+            if (isEditMode) {
+                payload.application_id = applicationId;
+                btn.textContent = '保存中...';
+                fetch('../api/galonly.php?action=update_application', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        window.location.href = 'galgameonly_list.html';
+                    } else {
+                        showError(data.message || '保存失败');
+                        btn.disabled = false;
+                        btn.textContent = '保存修改';
+                    }
+                })
+                .catch(function() {
+                    showError('保存失败，请检查网络连接后重试');
                     btn.disabled = false;
                     btn.textContent = '保存修改';
-                }
-            })
-            .catch(function() {
-                showError('保存失败，请检查网络连接后重试');
-                btn.disabled = false;
-                btn.textContent = '保存修改';
-            });
-        } else {
-            btn.textContent = '提交中...';
-            fetch('../api/galonly.php?action=submit', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(function(res) { return res.json(); })
-            .then(function(data) {
-                if (data.success) {
-                    window.location.href = 'galgameonly_list.html';
-                } else {
-                    showError(data.message || '提交失败');
+                });
+            } else {
+                btn.textContent = '提交中...';
+                fetch('../api/galonly.php?action=submit', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        window.location.href = 'galgameonly_list.html';
+                    } else {
+                        showError(data.message || '提交失败');
+                        btn.disabled = false;
+                        btn.textContent = '提交申请';
+                    }
+                })
+                .catch(function() {
+                    showError('提交失败，请检查网络连接后重试');
                     btn.disabled = false;
                     btn.textContent = '提交申请';
+                });
+            }
+        }
+
+        // Auto-crop fallback: if no display image was uploaded, crop from first product image
+        if (!uploadedDisplayImagePath && uploadedImagePaths.length > 0) {
+            showDisplayUploadStatus('⏳ 正在生成展示图...', 'rgba(255,255,255,0.5)');
+
+            var img = new Image();
+            img.src = '../' + uploadedImagePaths[0];
+
+            img.onload = function() {
+                var canvas = document.createElement('canvas');
+                var w = img.width;
+                var h = img.height;
+                var targetRatio = 16 / 10;
+
+                var cropW, cropH, cropX, cropY;
+                if (w / h > targetRatio) {
+                    cropH = h;
+                    cropW = Math.round(h * targetRatio);
+                    cropX = Math.round((w - cropW) / 2);
+                    cropY = 0;
+                } else {
+                    cropW = w;
+                    cropH = Math.round(w / targetRatio);
+                    cropX = 0;
+                    cropY = Math.round((h - cropH) / 2);
                 }
-            })
-            .catch(function() {
-                showError('提交失败，请检查网络连接后重试');
-                btn.disabled = false;
-                btn.textContent = '提交申请';
-            });
+
+                canvas.width = 960;
+                canvas.height = 600;
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, 960, 600);
+
+                canvas.toBlob(function(blob) {
+                    var fd = new FormData();
+                    fd.append('file', blob, 'auto_display.webp');
+                    fd.append('event_id', eventId);
+
+                    fetch('../api/galonly.php?action=upload_image', {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: fd
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        var path = data.success ? data.path : '';
+                        proceedSubmit(path);
+                    })
+                    .catch(function() {
+                        proceedSubmit('');
+                    });
+                }, 'image/webp', 0.82);
+            };
+
+            img.onerror = function() {
+                proceedSubmit('');
+            };
+        } else {
+            proceedSubmit(uploadedDisplayImagePath);
         }
     }
 
@@ -886,6 +1175,10 @@ body {
                         uploadedImagePaths = [appData.image_path.trim()];
                         renderImagePreviews();
                     }
+                    if (appData.display_image) {
+                        uploadedDisplayImagePath = appData.display_image;
+                        renderDisplayImagePreview();
+                    }
                     $('btn-submit').textContent = '保存修改';
                     $('header-title').textContent = '编辑摊位';
                     $('event-name-display').textContent = '修改申请信息';
@@ -912,11 +1205,27 @@ body {
 
                 // Submit
                 $('btn-submit').addEventListener('click', handleSubmit);
+
+                // Display image upload
+                $('display-image-input').addEventListener('change', handleDisplayImageUpload);
+                $('displayCropCancel').addEventListener('click', function() {
+                    closeDisplayCropModal();
+                    $('display-image-input').value = '';
+                });
+                $('displayCropConfirm').addEventListener('click', confirmDisplayCrop);
+                $('displayCropModal').addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeDisplayCropModal();
+                        $('display-image-input').value = '';
+                    }
+                });
             });
     });
 
 })();
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
 <script src="../js/page-background.js" data-picker="compact"></script>
 </body>

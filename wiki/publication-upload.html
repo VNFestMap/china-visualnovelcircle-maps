@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布资料预览 - VNFest WIKI</title>
+  <link rel="stylesheet" href="./wiki.css">
+  <style>
+    .publication-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .publication-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--wiki-text);
+      font-weight: 700;
+    }
+
+    .publication-form input,
+    .publication-form select,
+    .publication-form textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-text);
+      font: inherit;
+      font-weight: 400;
+      padding: 8px 10px;
+    }
+
+    .publication-form textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .publication-form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 12px;
+    }
+
+    .publication-progress {
+      display: none;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+      padding: 10px 12px;
+      color: var(--wiki-muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .publication-progress.is-visible {
+      display: block;
+    }
+
+    .publication-upload-note,
+    .publication-empty {
+      margin: 0;
+      color: var(--wiki-muted);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    .wiki-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-link);
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .wiki-button.primary {
+      border-color: var(--wiki-link);
+      background: #eaf2ff;
+      color: var(--wiki-link);
+      font-weight: 700;
+    }
+
+    .publication-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .publication-setting-group {
+      display: grid;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+    }
+
+    .publication-setting-group h3 {
+      margin: 0;
+      color: var(--wiki-text);
+      font-size: 16px;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 760px) {
+      .publication-form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
+    <a href="../index.html">Galgame 同好会地图</a>
+    <a href="./index.html">VNFest WIKI</a>
+    <a href="./publications.html">资料公开库</a>
+    <span>发布资料预览</span>
+  </header>
+
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="发布目录">
+      <div class="wiki-sidebar-card">
+        <p class="wiki-index-kicker">Publish</p>
+        <h1>发布资料预览</h1>
+        <p>上传 PDF 或有序页面图片，绑定同好会后生成公开 3D 翻页阅读入口。</p>
+      </div>
+      <nav class="wiki-nav wiki-index-toc" aria-label="页面目录">
+        <a href="#publication-upload">上传刊物</a>
+        <a href="./publications.html">返回资料公开库</a>
+        <a href="./publication-manage.html">刊物管理</a>
+        <a href="./index.html">返回 Wiki 首页</a>
+      </nav>
+    </aside>
+
+    <section class="wiki-index-main">
+      <section class="wiki-index-hero wiki-article-shell">
+        <div>
+          <p class="wiki-index-kicker">同好会资料</p>
+          <h2>刊物预览发布</h2>
+          <p>发布页只绑定同好会，不关联刊物企划。上传完成后记录会立即公开到资料公开库。</p>
+        </div>
+      </section>
+
+      <section class="wiki-index-country wiki-article-shell" id="publication-upload">
+        <div class="wiki-index-section-heading">
+          <h2>上传刊物</h2>
+          <span id="uploadAuthStatus">检查权限中</span>
+        </div>
+
+        <form class="publication-form" id="previewUploadForm" hidden>
+          <label>
+            绑定同好会
+            <select id="previewClubSelect"></select>
+            <span class="publication-upload-note">请选择你已加入或已管理的同好会；发布权限仍由系统按同好会负责人/管理员规则校验。</span>
+          </label>
+
+          <label>
+            刊物标题
+            <input id="previewTitle" type="text" maxlength="120" required>
+          </label>
+          <label>
+            简介
+            <textarea id="previewDescription" maxlength="2000" placeholder="可填写刊物主题、参与社团、期数或阅读说明。"></textarea>
+          </label>
+          <section class="publication-setting-group" aria-label="阅读尺寸">
+            <h3>阅读尺寸</h3>
+            <div class="publication-form-grid">
+              <label>
+                开本预设
+                <select id="readerSizePreset">
+                  <option value="a4">A4 210 x 297 mm</option>
+                  <option value="b5">B5 176 x 250 mm</option>
+                  <option value="a5">A5 148 x 210 mm</option>
+                  <option value="square">方形 210 x 210 mm</option>
+                  <option value="custom">自定义尺寸</option>
+                </select>
+              </label>
+              <label>
+                方向
+                <select id="readerOrientation">
+                  <option value="portrait">纵向</option>
+                  <option value="landscape">横向</option>
+                </select>
+              </label>
+            </div>
+            <div class="publication-form-grid" id="readerCustomSizeFields" hidden>
+              <label>
+                宽度 mm
+                <input id="readerWidthMm" type="number" min="1" step="0.1" inputmode="decimal" value="210">
+              </label>
+              <label>
+                高度 mm
+                <input id="readerHeightMm" type="number" min="1" step="0.1" inputmode="decimal" value="297">
+              </label>
+            </div>
+            <p class="publication-upload-note">尺寸只影响 3D 阅读器中的书本比例，不会改变上传页面图片。</p>
+          </section>
+          <label>
+            PDF 或页面图片
+            <input id="previewFileInput" type="file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp" multiple required>
+            <span class="publication-upload-note">PDF 会在浏览器端转为页面图片；图片上传时请按文件名排序，例如 001.jpg、002.jpg。</span>
+          </label>
+          <div class="publication-progress" id="previewProgress"></div>
+          <div class="publication-actions">
+            <button class="wiki-button primary" type="submit">发布资料预览</button>
+            <a class="wiki-button" href="./publications.html">查看公开库</a>
+          </div>
+        </form>
+
+        <p class="publication-empty" id="previewUploadLocked">请登录同好会负责人或管理员账号后发布。</p>
+      </section>
+    </section>
+
+    <aside class="wiki-index-aside" aria-label="说明">
+      <section class="wiki-sidebar-card">
+        <h2>发布规则</h2>
+        <p>请只上传已确认可公开展示的刊物成品或样张。未完成上传的记录不会出现在公开库。</p>
+      </section>
+      <section class="wiki-sidebar-card">
+        <h2>格式建议</h2>
+        <p>推荐 PDF 或 JPG 页面图。页面宽高尽量一致，图片文件名按阅读顺序排序。</p>
+      </section>
+    </aside>
+  </main>
+
+  <script src="../tools/pdf-reader/vendor/pdfReader/pdf/pdf.js"></script>
+  <script>
+  (function () {
+    var API = '../api/publication_previews.php';
+    var PDF_WORKER = '../tools/pdf-reader/vendor/pdfReader/pdf/pdf.worker.js';
+    var state = { userClubs: [], clubNameMap: {} };
+    var elForm = document.getElementById('previewUploadForm');
+    var elLocked = document.getElementById('previewUploadLocked');
+    var elAuthStatus = document.getElementById('uploadAuthStatus');
+    var elClubSelect = document.getElementById('previewClubSelect');
+    var elTitle = document.getElementById('previewTitle');
+    var elDescription = document.getElementById('previewDescription');
+    var elFile = document.getElementById('previewFileInput');
+    var elProgress = document.getElementById('previewProgress');
+    var elSizePreset = document.getElementById('readerSizePreset');
+    var elOrientation = document.getElementById('readerOrientation');
+    var elCustomSizeFields = document.getElementById('readerCustomSizeFields');
+    var elWidthMm = document.getElementById('readerWidthMm');
+    var elHeightMm = document.getElementById('readerHeightMm');
+    var sizePresets = {
+      a4: [210, 297],
+      b5: [176, 250],
+      a5: [148, 210],
+      square: [210, 210]
+    };
+
+    function esc(value) {
+      var div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    function apiGet(url, fallback) {
+      return fetch(url, { credentials: 'same-origin' })
+        .then(function (response) { return response.ok ? response.json() : fallback; })
+        .catch(function () { return fallback; });
+    }
+
+    function fetchClubNames(country, url) {
+      return fetch(url, { credentials: 'same-origin' })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+          if (!data || !Array.isArray(data.data)) return;
+          data.data.forEach(function (club) {
+            state.clubNameMap[club.id + '_' + country] = club.display_name || club.name || '未知同好会';
+          });
+        })
+        .catch(function () {});
+    }
+
+    function getClubName(clubId, country) {
+      return state.clubNameMap[clubId + '_' + country] || ('同好会 #' + clubId);
+    }
+
+    function apiPost(action, payload) {
+      return fetch(API + '?action=' + encodeURIComponent(action), {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ action: action }, payload || {}))
+      }).then(function (response) {
+        return response.json().catch(function () { return {}; }).then(function (json) {
+          if (!response.ok || !json.success) throw new Error(json.message || '请求失败');
+          return json;
+        });
+      });
+    }
+
+    function setProgress(message, visible) {
+      elProgress.textContent = message || '';
+      elProgress.classList.toggle('is-visible', !!visible);
+    }
+
+    function renderUploadControls() {
+      if (!state.userClubs.length) {
+        elForm.hidden = true;
+        elLocked.hidden = false;
+        elAuthStatus.textContent = '没有可绑定同好会';
+        return;
+      }
+
+      elForm.hidden = false;
+      elLocked.hidden = true;
+      elAuthStatus.textContent = '可发布';
+      elClubSelect.innerHTML = '<option value="">请选择绑定同好会</option>' + state.userClubs.map(function (club) {
+        var id = parseInt(club.club_id || club.id, 10);
+        var country = club.country || 'china';
+        return '<option value="' + esc(id + '|' + country) + '">' + esc(getClubName(id, country)) + '</option>';
+      }).join('');
+    }
+
+    function selectedClubIds() {
+      if (!elClubSelect.value) return [];
+      var parts = elClubSelect.value.split('|');
+      var id = parseInt(parts[0], 10);
+      var country = parts[1] || 'china';
+      return id > 0 ? [{ id: id, country: country }] : [];
+    }
+
+    function updateCustomSizeFields() {
+      var preset = elSizePreset.value;
+      elCustomSizeFields.hidden = preset !== 'custom';
+      if (preset !== 'custom' && sizePresets[preset]) {
+        elWidthMm.value = sizePresets[preset][0];
+        elHeightMm.value = sizePresets[preset][1];
+      }
+    }
+
+    function collectReaderSettings() {
+      var preset = elSizePreset.value || 'a4';
+      var base = sizePresets[preset] || sizePresets.a4;
+      var width = preset === 'custom' ? parseFloat(elWidthMm.value || '0') : base[0];
+      var height = preset === 'custom' ? parseFloat(elHeightMm.value || '0') : base[1];
+      if (!(width > 0) || !(height > 0)) {
+        preset = 'a4';
+        width = sizePresets.a4[0];
+        height = sizePresets.a4[1];
+      }
+      return {
+        page_size: {
+          preset: preset,
+          width_mm: width,
+          height_mm: height,
+          orientation: elOrientation.value || 'portrait'
+        },
+        theme: 'wiki',
+        fit_mode: 'fit-page',
+        flip_sound: true
+      };
+    }
+
+    function canvasToBlob(canvas, quality) {
+      return new Promise(function (resolve) {
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      });
+    }
+
+    function drawImageToCanvas(img) {
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, img.width);
+      canvas.height = Math.max(1, img.height);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas;
+    }
+
+    function imageFileToBlob(file) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        img.onload = function () {
+          var canvas = drawImageToCanvas(img);
+          URL.revokeObjectURL(img.src);
+          canvasToBlob(canvas, 0.82).then(resolve);
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
+      });
+    }
+
+    function pdfToBlobs(file, onProgress) {
+      var pdfjsLib = window['pdfjs-dist/build/pdf'];
+      if (!pdfjsLib) throw new Error('PDF.js 未加载');
+      pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER;
+      return file.arrayBuffer().then(function (buffer) {
+        return pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+      }).then(async function (pdf) {
+        var count = pdf.numPages;
+        var pages = [];
+        for (var i = 1; i <= count; i++) {
+          onProgress('正在渲染 PDF 第 ' + i + ' / ' + count + ' 页');
+          var page = await pdf.getPage(i);
+          var viewport = page.getViewport({ scale: 1.35 });
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(viewport.width);
+          canvas.height = Math.round(viewport.height);
+          await page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+          var blob = await canvasToBlob(canvas, 0.82);
+          pages.push(blob);
+        }
+        return pages;
+      });
+    }
+
+    function filesToPageBlobs(files, onProgress) {
+      var list = Array.prototype.slice.call(files || []);
+      if (!list.length) throw new Error('请选择文件');
+      list.sort(function (a, b) { return a.name.localeCompare(b.name, undefined, { numeric: true }); });
+      if (list.length === 1 && (/\.pdf$/i.test(list[0].name) || list[0].type === 'application/pdf')) {
+        return pdfToBlobs(list[0], onProgress);
+      }
+      list = list.filter(function (file) { return /^image\//.test(file.type); });
+      if (!list.length) throw new Error('请选择 PDF 或图片文件');
+      return Promise.all(list.map(function (file, index) {
+        onProgress('正在处理图片第 ' + (index + 1) + ' / ' + list.length + ' 页');
+        return imageFileToBlob(file);
+      }));
+    }
+
+    function uploadPage(previewId, page, blob) {
+      if (!blob) throw new Error('第 ' + page + ' 页生成失败');
+      var fd = new FormData();
+      fd.append('action', 'upload_page');
+      fd.append('preview_id', previewId);
+      fd.append('page', page);
+      fd.append('image', blob, page + '.jpg');
+      return fetch(API + '?action=upload_page', { method: 'POST', credentials: 'same-origin', body: fd })
+        .then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (json) {
+            if (!response.ok || !json.success) throw new Error(json.message || '上传第 ' + page + ' 页失败');
+            return json;
+          });
+        });
+    }
+
+    async function submitPreview(event) {
+      event.preventDefault();
+      var title = elTitle.value.trim();
+      var files = elFile.files;
+      var clubIds = selectedClubIds();
+      if (!title) { alert('请填写刊物标题'); return; }
+      if (!files || !files.length) { alert('请选择 PDF 或图片文件'); return; }
+      if (!clubIds.length) { alert('请选择绑定同好会'); return; }
+
+      try {
+        setProgress('正在创建预览记录...', true);
+        var pages = await filesToPageBlobs(files, setProgress);
+        if (!pages.length) throw new Error('未生成任何页面');
+        var created = await apiPost('create', {
+          title: title,
+          description: elDescription.value.trim(),
+          club_ids: clubIds,
+          reader_settings: collectReaderSettings()
+        });
+        for (var i = 0; i < pages.length; i++) {
+          setProgress('正在上传第 ' + (i + 1) + ' / ' + pages.length + ' 页', true);
+          await uploadPage(created.preview.id, i + 1, pages[i]);
+        }
+        setProgress('正在发布...', true);
+        await apiPost('publish', { preview_id: created.preview.id, page_count: pages.length });
+        setProgress('发布成功。公开地址：../tools/pdf-reader/?preview_id=' + created.preview.id, true);
+        elForm.reset();
+      } catch (error) {
+        setProgress(error.message || '发布失败', true);
+      }
+    }
+
+    async function init() {
+      var eligibility = await apiGet('../api/galonly.php?action=check_eligibility&_=' + Date.now(), { success: false, eligible: false, clubs: [] });
+      if (!eligibility.success || !eligibility.eligible) {
+        elForm.hidden = true;
+        elLocked.hidden = false;
+        elAuthStatus.textContent = eligibility.reason || '请先加入或创建一个同好会';
+        return;
+      }
+      state.userClubs = eligibility.clubs || [];
+      await Promise.all([
+        fetchClubNames('china', '../api/clubs.php'),
+        fetchClubNames('japan', '../api/clubs_japan.php')
+      ]);
+      renderUploadControls();
+    }
+
+    elForm.addEventListener('submit', submitPreview);
+    elSizePreset.addEventListener('change', updateCustomSizeFields);
+    updateCustomSizeFields();
+    init();
+  }());
+  </script>
+</body>
+</html>

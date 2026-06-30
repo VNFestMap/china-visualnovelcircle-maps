@@ -28,18 +28,36 @@ function vndbRequest(array $payload, string $cacheKey, int $ttl): array {
         'http' => [
             'method' => 'POST',
             'timeout' => 12,
+            'ignore_errors' => true,
             'header' => "Content-Type: application/json\r\nUser-Agent: VNFest/1.0\r\n",
             'content' => json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
         ],
     ]);
     $response = @file_get_contents('https://api.vndb.org/kana/vn', false, $context);
+    $status = 0;
+    foreach (($http_response_header ?? []) as $header) {
+        if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $m)) {
+            $status = (int)$m[1];
+            break;
+        }
+    }
     if ($response === false) {
         if (file_exists($cacheFile)) {
             return json_decode(file_get_contents($cacheFile), true) ?: [];
         }
-        return [];
+        return ['_error' => 'VNDB API 请求失败'];
     }
-    $data = json_decode($response, true) ?: [];
+    $data = json_decode($response, true);
+    if ($status >= 400 || !is_array($data)) {
+        if (file_exists($cacheFile)) {
+            return json_decode(file_get_contents($cacheFile), true) ?: [];
+        }
+        return [
+            '_error' => 'VNDB API 返回异常',
+            '_status' => $status,
+            '_body' => function_exists('mb_substr') ? mb_substr($response, 0, 240) : substr($response, 0, 240),
+        ];
+    }
     file_put_contents($cacheFile, json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     return $data;
 }
@@ -79,6 +97,10 @@ if ($action === 'search' || $action === 'search_vn') {
         'results' => $limit,
     ];
     $data = vndbRequest($payload, 'search_' . md5(twelveLowerForProxy($keyword) . '_' . $limit), 3600);
+    if (!empty($data['_error'])) {
+        echo json_encode(['success' => false, 'message' => $data['_error'], 'status' => $data['_status'] ?? 0], JSON_UNESCAPED_UNICODE);
+        exit();
+    }
     $results = [];
     foreach ($data['results'] ?? [] as $item) {
         if (is_array($item)) {

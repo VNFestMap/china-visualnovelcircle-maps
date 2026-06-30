@@ -24,30 +24,59 @@
     stageEntriesCache: {},
     rebuildFlowInFlight: false,
     lastSettleIssues: [],
-    moeAwardSyncKey: ''
+    moeAwardSyncKey: '',
+    modalReturnFocus: null,
+    tieDecision: null
   };
   var POOL_PAGE_SIZE = 16;
 
+  function setButtonBusy(btn, label) {
+    if (!btn) return function () {};
+    var oldText = btn.textContent;
+    btn.disabled = true;
+    if (label) btn.textContent = label;
+    return function () {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    };
+  }
+
+  function loadingMarkup(text) {
+    return '<div class="loading-state">' + esc(text || '加载中...') + '</div>';
+  }
+
+  function setClubSearchExpanded(expanded) {
+    var input = $('clubSearchInput');
+    if (input) input.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+  }
+
+  function setCreateCardOpen(open) {
+    var card = $('createCard');
+    var toggle = $('createToggle');
+    if (!card || !toggle) return;
+    card.classList.toggle('open', !!open);
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+
   /* ===== Theme Toggle ===== */
-  (function () {
-    var html = document.documentElement;
-    var saved = localStorage.getItem('themePreference') || 'light';
-    html.setAttribute('data-theme', saved);
-    $('themeToggle').addEventListener('click', function () {
-      var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('themePreference', next);
-    });
-  })();
+  initVoteThemeToggle('themeToggle');
 
   /* ===== Club Data ===== */
   function loadClubData() {
     if (state.clubData) return Promise.resolve(state.clubData);
+    var empty = { data: [] };
     return Promise.all([
-      fetch('../api/clubs.php', { credentials: 'same-origin' }).then(function (r) { return r.json(); }),
-      fetch('../api/clubs_japan.php', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+      fetch('../api/clubs.php', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : empty; }).catch(function () { return empty; }),
+      fetch('../api/clubs_japan.php', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : empty; }).catch(function () { return empty; })
     ]).then(function (results) {
-      state.clubData = { china: (results[0] || {}).data || [], japan: (results[1] || {}).data || [] };
+      state.clubData = {
+        china: ((results[0] || empty).data || []).map(function (club) { return Object.assign({ country: 'china' }, club); }),
+        japan: ((results[1] || empty).data || []).map(function (club) { return Object.assign({ country: 'japan' }, club); })
+      };
+      var realInput = $('clubSearchReal');
+      if (realInput && realInput.value.trim() && !state.selectedClub) {
+        performClubSearch(realInput.value.trim());
+      }
       return state.clubData;
     }).catch(function () {
       state.clubData = { china: [], japan: [] };
@@ -66,19 +95,62 @@
     return club ? (club.name || club.display_name || club.school || ('同好会 ' + clubId)) : ('同好会 ' + clubId);
   }
 
+  function clubSearchName(club) {
+    return club ? (club.display_name || club.name || club.school || ('同好会 ' + club.id)) : '';
+  }
+
+  function clubSearchMeta(club) {
+    if (!club) return '';
+    var parts = [];
+    if (club.school && clubSearchName(club).indexOf(club.school) === -1) parts.push(club.school);
+    if (club.prefecture) parts.push(club.prefecture);
+    if (club.province) parts.push(club.province);
+    if (Array.isArray(club.provinces) && club.provinces.length) parts.push(club.provinces.join('、'));
+    parts.push((club.country || 'china') === 'japan' ? '日本' : '中国');
+    return parts.filter(Boolean).join(' · ');
+  }
+
+  function normalizeSearchText(value) {
+    return String(value || '').toLowerCase().replace(/\s+/g, '');
+  }
+
+  function clubMatchesQuery(club, query) {
+    if (!query) return true;
+    var countryLabel = (club.country || 'china') === 'japan' ? '日本 japan jp' : '中国 china cn';
+    var haystack = [
+      club.name,
+      club.display_name,
+      club.school,
+      club.raw_text,
+      club.info,
+      club.province,
+      Array.isArray(club.provinces) ? club.provinces.join(' ') : '',
+      club.prefecture,
+      countryLabel
+    ].map(normalizeSearchText).join(' ');
+    return haystack.indexOf(query) !== -1;
+  }
+
+  function emptyStateMarkup(text, hint) {
+    return '<div class="empty-state"><div class="empty-state-inner"><p>' + esc(text) + '</p>' +
+      (hint ? '<p class="hint">' + esc(hint) + '</p>' : '') + '</div></div>';
+  }
+
   /* ===== Project List ===== */
   function loadManageable() {
+    $('manageList').innerHTML = loadingMarkup('正在加载可管理企划');
     return api('../api/vote_projects.php?action=my_manageable').then(function (data) {
       state.projects = data.success ? (data.data || []) : [];
       renderProjectList();
       if (!state.selected && state.projects.length) selectProject(state.projects[0].id);
       return state.projects;
     }).catch(function () {
-      $('manageList').innerHTML = '<div class="empty-state"><div class="empty-state-inner"><p>请先登录负责人/管理员账号</p></div></div>';
+      $('manageList').innerHTML = emptyStateMarkup('请先登录负责人/管理员账号', '登录后会显示可管理的十二器/萌战企划。');
     });
   }
 
   function selectProject(id) {
+    $('detailArea').innerHTML = loadingMarkup('正在加载企划详情');
     return api('../api/vote_projects.php?action=get&id=' + encodeURIComponent(id)).then(function (data) {
       if (!data.success) { toast(data.message || '加载失败'); return; }
       state.selected = data.data;
@@ -112,6 +184,9 @@
           renderDetail();
         });
       });
+    }).catch(function () {
+      $('detailArea').innerHTML = emptyStateMarkup('企划详情加载失败', '请刷新后重试。');
+      toast('企划详情加载失败');
     });
   }
 
@@ -168,13 +243,13 @@
     var count = $('projectCount');
     if (count) count.textContent = state.projects.length + ' 个';
     if (!state.projects.length) {
-      host.innerHTML = '<div class="empty-state"><div class="empty-state-inner"><p>暂无可管理企划</p></div></div>';
+      host.innerHTML = emptyStateMarkup('暂无可管理企划', '可以先创建草稿，或确认当前账号的同好会权限。');
       return;
     }
     host.innerHTML = state.projects.map(function (p) {
       var isMoe = p.project_type === 'moe';
       var active = state.selected && Number(state.selected.id) === Number(p.id);
-      return '<div class="project-list-item' + (active ? ' active' : '') + '" data-project-id="' + Number(p.id) + '">' +
+      return '<div class="project-list-item' + (active ? ' active' : '') + '" data-project-id="' + Number(p.id) + '" role="button" tabindex="0" aria-current="' + (active ? 'true' : 'false') + '">' +
         '<span class="project-token ' + (isMoe ? 'moe' : 'twelve') + '">' + (isMoe ? '萌' : '12') + '</span>' +
         '<div class="project-info">' +
           '<div class="project-name">' + esc(p.title) + '</div>' +
@@ -192,7 +267,9 @@
     state.createType = type;
     this.querySelectorAll('.segmented-btn').forEach(function (b) {
       b.classList.remove('active');
-      if (b.dataset.type === type) b.classList.add('active');
+      var selected = b.dataset.type === type;
+      b.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      if (selected) b.classList.add('active');
     });
     $('suffixField').style.display = type === 'twelve' ? 'block' : 'none';
     var submitBtn = $('createBtn');
@@ -220,10 +297,11 @@
   }
 
   $('createToggle').addEventListener('click', function () {
-    $('createCard').classList.toggle('open');
+    setCreateCardOpen(!$('createCard').classList.contains('open'));
   });
 
   $('createBtn').addEventListener('click', function () {
+    var btn = this;
     var title = $('createTitle').value.trim();
     if (!title) { toast('请填写标题'); return; }
     if (!state.selectedClub) { toast('请选择所属同好会'); return; }
@@ -235,12 +313,14 @@
       year_label: $('createYear').value.trim() || String(new Date().getFullYear()),
       visibility: $('createVisibility').value,
       eligibility_mode: $('createEligibility').value,
+      result_visibility: $('createResultVisibility').value,
       description: $('createDescription').value.trim()
     };
+    var restore = setButtonBusy(btn, '创建中...');
     post('../api/vote_projects.php?action=create', body).then(function (data) {
       toast(data.success ? '企划已创建' : (data.message || '创建失败'));
       if (data.success) {
-        $('createCard').classList.remove('open');
+        setCreateCardOpen(false);
         $('createTitle').value = '';
         $('createDescription').value = '';
         $('suffixInput').value = '';
@@ -249,6 +329,8 @@
           if (data.id) selectProject(data.id);
         });
       }
+    }).finally(function () {
+      restore();
     });
   });
 
@@ -257,12 +339,12 @@
 
   (function initClubSearch() {
     var wrap = $('clubSearchInput');
-    var realInput = document.createElement('input');
-    realInput.type = 'text';
-    realInput.id = 'clubSearchReal';
-    realInput.style.cssText = 'border:none;outline:none;background:transparent;flex:1;font-size:12px;color:var(--am-text);min-width:0;';
+    var outer = $('clubSearchWrap');
+    var realInput = $('clubSearchReal');
+    if (!realInput) return;
     realInput.autocomplete = 'off';
-    wrap.insertBefore(realInput, wrap.firstChild);
+    realInput.setAttribute('aria-label', '搜索同好会');
+    realInput.setAttribute('aria-controls', 'clubSearchResults');
 
     realInput.addEventListener('input', function () {
       clearTimeout(clubSearchTimer);
@@ -274,9 +356,29 @@
       if (!state.selectedClub) performClubSearch(this.value.trim());
     });
 
+    realInput.addEventListener('keydown', function (e) {
+      var results = $('clubSearchResults');
+      if (e.key === 'Escape') {
+        results.classList.remove('visible');
+        setClubSearchExpanded(false);
+      } else if (e.key === 'Enter') {
+        var first = results.querySelector('.search-result-item');
+        if (first && results.classList.contains('visible')) {
+          e.preventDefault();
+          first.click();
+        }
+      }
+    });
+
+    wrap.addEventListener('click', function (e) {
+      if (e.target.closest('#clubSearchClear')) return;
+      if (!state.selectedClub) realInput.focus();
+    });
+
     document.addEventListener('click', function (e) {
-      if (!wrap.contains(e.target)) {
+      if (!outer.contains(e.target)) {
         $('clubSearchResults').classList.remove('visible');
+        setClubSearchExpanded(false);
       }
     });
   })();
@@ -285,43 +387,57 @@
     var results = $('clubSearchResults');
     var clubs = allClubs();
     if (!clubs.length) {
-      results.innerHTML = '<div style="padding:10px;color:var(--am-text-secondary);font-size:12px;">俱乐部数据加载中...</div>';
+      results.innerHTML = loadingMarkup('俱乐部数据加载中');
       results.classList.add('visible');
+      setClubSearchExpanded(true);
       return;
     }
-    var q = (query || '').toLowerCase();
-    var filtered = clubs.filter(function (c) {
-      if (!q) return true;
-      return (c.name || '').toLowerCase().indexOf(q) !== -1 ||
-             (c.school || '').toLowerCase().indexOf(q) !== -1;
-    }).slice(0, 8);
+    var q = normalizeSearchText(query);
+    var filtered = clubs.filter(function (c) { return clubMatchesQuery(c, q); }).slice(0, 10);
 
     if (!filtered.length) {
-      results.innerHTML = '<div style="padding:10px;color:var(--am-text-secondary);font-size:12px;">未找到匹配的同好会</div>';
+      results.innerHTML = '<div class="search-result-empty">未找到匹配的同好会<br><span>可尝试输入学校名、同好会简称或地区。</span></div>';
       results.classList.add('visible');
+      setClubSearchExpanded(true);
       return;
     }
 
-    results.innerHTML = filtered.map(function (c) {
+    results.innerHTML = filtered.map(function (c, index) {
       var country = c.country || 'china';
-      return '<div class="search-result-item" data-club-id="' + c.id + '" data-club-country="' + country + '" data-club-name="' + esc(c.name || '') + '">' +
-        '<div class="search-result-token" style="background:' + (country === 'japan' ? 'rgba(200,60,100,0.1)' : 'rgba(47,111,237,0.1)') + ';color:' + (country === 'japan' ? 'var(--am-moe-color)' : 'var(--am-twelve-color)') + ';">' + (country === 'japan' ? '日' : '中') + '</div>' +
-        '<div><div class="search-result-name">' + esc(c.name || '未命名') + '</div>' +
-        '<div class="search-result-meta">' + (country === 'japan' ? '日本' : '中国') + '</div></div>' +
+      var name = clubSearchName(c);
+      var meta = clubSearchMeta(c);
+      return '<div class="search-result-item" role="option" tabindex="0" data-result-index="' + index + '">' +
+        '<div class="search-result-token" style="background:' + (country === 'japan' ? 'rgba(244,114,182,0.1)' : 'rgba(47,111,237,0.1)') + ';color:' + (country === 'japan' ? 'var(--am-moe-color)' : 'var(--am-twelve-color)') + ';">' + (country === 'japan' ? '日' : '中') + '</div>' +
+        '<div class="search-result-copy"><div class="search-result-name">' + esc(name || '未命名') + '</div>' +
+        '<div class="search-result-meta">' + esc(meta) + '</div></div>' +
       '</div>';
     }).join('');
 
     results.classList.add('visible');
+    setClubSearchExpanded(true);
 
     results.querySelectorAll('.search-result-item').forEach(function (item) {
       item.addEventListener('click', function () {
+        var club = filtered[Number(this.dataset.resultIndex)];
+        if (!club) return;
         selectClub({
-          id: this.dataset.clubId,
-          name: this.dataset.clubName,
-          country: this.dataset.clubCountry
+          id: club.id,
+          name: clubSearchName(club),
+          country: club.country || 'china'
         });
         results.classList.remove('visible');
+        setClubSearchExpanded(false);
         $('clubSearchReal').value = '';
+      });
+      item.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.click();
+        } else if (e.key === 'Escape') {
+          results.classList.remove('visible');
+          setClubSearchExpanded(false);
+          $('clubSearchReal').focus();
+        }
       });
     });
   }
@@ -333,6 +449,7 @@
     chip.style.display = 'inline-flex';
     $('clubSearchChipName').textContent = club.name;
     $('clubSearchReal').style.display = 'none';
+    if ($('createCountry')) $('createCountry').value = club.country || 'china';
   }
 
   function clearClubSelection() {
@@ -341,6 +458,9 @@
     $('clubSearchChip').style.display = 'none';
     $('clubSearchReal').style.display = '';
     $('clubSearchReal').value = '';
+    $('clubSearchResults').classList.remove('visible');
+    setClubSearchExpanded(false);
+    $('clubSearchReal').focus();
   }
 
   $('clubSearchClear').addEventListener('click', function (e) {
@@ -377,8 +497,9 @@
 
     host.innerHTML =
       renderProjectHeader(p) +
+      renderProjectSettingsCard(p) +
       '<div class="card"><div class="card-header"><span>赛程阶段</span></div>' +
-      '<div class="card-body" style="display:flex;flex-direction:column;gap:6px;">' + (stageRows || '<div style="text-align:center;padding:12px;color:var(--am-text-secondary);font-size:13px;">暂无阶段数据</div>') + '</div></div>' +
+      '<div class="card-body card-body--stack">' + (stageRows || '<div class="workbench-empty">暂无阶段数据</div>') + '</div></div>' +
       renderPoolCard() +
       (isMoe ? renderAwardsCard() : '');
 
@@ -390,60 +511,77 @@
 
   function renderProjectHeader(p) {
     return '<div class="card"><div class="card-body">' +
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
-        '<div><h3 style="margin:0;font-size:17px;">' + esc(p.title) + '</h3>' +
-        '<div style="font-size:12px;color:var(--am-text-secondary);margin-top:3px;">' + typeLabel(p.project_type) + ' · ' + esc(clubDisplayName(p.club_id, p.country || 'china')) + ' · ' + (p.country === 'japan' ? '日本' : '中国') + ' · ' + esc(p.year_label || '') + ' · <span style="color:' + (p.status === 'running' ? 'var(--am-status-open-text)' : 'var(--am-text-secondary)') + ';">' + statusLabel(p.status) + '</span></div></div>' +
-        '<div style="display:flex;gap:6px;">' +
-          '<button class="stage-btn" data-action="publish">发布</button>' +
+      '<div class="project-header">' +
+        '<div><h3>' + esc(p.title) + '</h3>' +
+        '<div class="project-header-meta">' +
+          '<span>' + typeLabel(p.project_type) + '</span><span>·</span>' +
+          '<span>' + esc(clubDisplayName(p.club_id, p.country || 'china')) + '</span><span>·</span>' +
+          '<span>' + (p.country === 'japan' ? '日本' : '中国') + '</span><span>·</span>' +
+          '<span>' + esc(p.year_label || '') + '</span><span>·</span>' +
+          '<span class="' + (p.status === 'running' ? 'project-header-status' : '') + '">' + statusLabel(p.status) + '</span>' +
+        '</div></div>' +
+        '<div class="project-header-actions">' +
+          '<button class="stage-btn primary" data-action="publish">发布</button>' +
           '<button class="stage-btn" data-action="archive">归档</button>' +
-          '<button class="stage-btn" style="color:var(--am-danger-text);border-color:rgba(214,69,69,0.3);" data-action="delete">删除</button>' +
+          '<button class="stage-btn danger" data-action="delete">删除</button>' +
         '</div>' +
       '</div></div></div>';
   }
 
+  function resultVisibilityOptions(current) {
+    var options = [
+      ['live_rank_only', '实时排名'],
+      ['live_votes', '实时票数'],
+      ['after_stage', '阶段后公开'],
+      ['after_event', '活动结束后公开'],
+      ['hidden', '隐藏']
+    ];
+    return options.map(function (item) {
+      return '<option value="' + item[0] + '"' + (current === item[0] ? ' selected' : '') + '>' + item[1] + '</option>';
+    }).join('');
+  }
+
+  function renderProjectSettingsCard(p) {
+    var eligibility = p.eligibility_mode === 'public' ? 'public' : 'club_member';
+    var unsupportedEligibility = p.eligibility_mode && ['club_member', 'public'].indexOf(p.eligibility_mode) === -1;
+    return '<div class="card"><div class="card-header"><span>活动设置</span><span class="card-header-note">影响活动基础信息与默认公开策略</span></div>' +
+      '<div class="card-body card-body--stack project-settings" id="projectSettings">' +
+        '<div class="form-row">' +
+          '<div class="form-field"><label class="field-label" for="projectTitle">标题</label><input class="form-input" id="projectTitle" value="' + esc(p.title || '') + '"></div>' +
+          '<div class="form-field"><label class="field-label" for="projectYear">年份</label><input class="form-input" id="projectYear" value="' + esc(p.year_label || '') + '"></div>' +
+        '</div>' +
+        '<div class="form-row">' +
+          '<div class="form-field"><label class="field-label" for="projectVisibility">可见性</label><select class="form-select" id="projectVisibility">' +
+            '<option value="public"' + (p.visibility === 'public' ? ' selected' : '') + '>公开浏览</option>' +
+            '<option value="club_only"' + (p.visibility === 'club_only' ? ' selected' : '') + '>成员可见</option>' +
+            '<option value="unlisted"' + (p.visibility === 'unlisted' ? ' selected' : '') + '>不列入广场</option>' +
+          '</select></div>' +
+          '<div class="form-field"><label class="field-label" for="projectEligibility">参与资格</label><select class="form-select" id="projectEligibility">' +
+            '<option value="club_member"' + (eligibility === 'club_member' ? ' selected' : '') + '>同好会成员</option>' +
+            '<option value="public"' + (eligibility === 'public' ? ' selected' : '') + '>登录用户</option>' +
+          '</select>' + (unsupportedEligibility ? '<div class="modal-field-hint">当前历史配置为未开放模式，保存后会改为可用模式。</div>' : '') + '</div>' +
+        '</div>' +
+        '<div class="form-field"><label class="field-label" for="projectResultVisibility">默认结果公开</label><select class="form-select" id="projectResultVisibility">' + resultVisibilityOptions(p.result_visibility || 'live_rank_only') + '</select><div class="modal-field-hint">用于活动级默认值；已生成阶段仍以各阶段配置为准。</div></div>' +
+        '<div class="form-field"><label class="field-label" for="projectDescription">说明</label><textarea class="form-textarea" id="projectDescription">' + esc(p.description || '') + '</textarea></div>' +
+        '<div class="project-settings-actions"><button class="stage-btn primary" id="projectSettingsSave" type="button">保存活动设置</button></div>' +
+      '</div></div>';
+  }
+
   function deprecatedNominationFlow(btn) {
     return rebuildFlowFromNomination(btn);
-    /*
-    if (!state.selected) return;
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '生成中...';
-    }
-      if (data.success) {
-        state.stageEntriesCache = {};
-        var qualifierId = Number(data.qualifier_stage_id || 0);
-        return (qualifierId ? loadStageEntries(qualifierId) : Promise.resolve([])).then(function (entries) {
-          var msg = data.reseeded
-            ? (data.already_seeded ? '已重新生成海选池并打开海选' : '已生成海选池并打开海选')
-            : '已打开海选，已保留现有海选池';
-          msg += ' · 写入 ' + Number(data.readback_count || data.seeded_count || 0) + ' · 读取 ' + entries.length;
-          if (Number(entries.rawCount || entries.length || 0) !== entries.length) {
-            msg += ' · 原始 ' + Number(entries.rawCount || 0);
-          }
-          toast(msg);
-          if (state.selected) return reloadProjectWithQualifierPool(state.selected.id, qualifierId, entries);
-        });
-      } else {
-        toast(data.message || '生成海选失败');
-      }
-      if (state.selected) selectProject(state.selected.id);
-    }).catch(function (error) {
-      console.error('advance_from_nomination failed', error);
-      toast('生成海选失败，请刷新后重试');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = '生成海选池并打开海选';
-      }
-    });
-    */
   }
 
   function rebuildFlowFromNomination(btn) {
+    console.log('[rebuildFlowFromNomination] clicked, project=' + (state.selected ? state.selected.id : 'null'));
     if (!state.selected) return;
-    if (state.rebuildFlowInFlight) return;
+    if (state.rebuildFlowInFlight) {
+      console.log('[rebuildFlowFromNomination] skipped: already in flight');
+      return;
+    }
     state.rebuildFlowInFlight = true;
     if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
     return post('../api/vote_stages.php?action=rebuild_from_nomination_and_open', { project_id: Number(state.selected.id) }).then(function (data) {
+      console.log('[rebuildFlowFromNomination] response', data);
       if (!data.success) {
         toast(data.message || '生成海选池失败');
         if (state.selected) selectProject(state.selected.id);
@@ -463,54 +601,99 @@
         if (state.selected) return reloadProjectWithQualifierPool(state.selected.id, qualifierId, entries);
       });
     }).catch(function (error) {
-      console.error('rebuild_from_nomination_and_open failed', error);
+      console.error('[rebuildFlowFromNomination] request failed', error);
       toast('生成海选池失败，请刷新后重试');
       if (state.selected) selectProject(state.selected.id);
     }).finally(function () {
       state.rebuildFlowInFlight = false;
       if (btn) { btn.disabled = false; btn.textContent = '生成海选池并打开海选'; }
     });
-    if (btn) { btn.disabled = true; btn.textContent = '重建中...'; }
-    post('../api/vote_stages.php?action=rebuild_from_nomination_and_open', { project_id: Number(state.selected.id) }).then(function (data) {
-      toast(data.success ? ('已从有效提名生成海选池 · ' + Number(data.seeded_count || 0)) : (data.message || '重建失败'));
+  }
+
+  function entryLabelById(entryId) {
+    var id = Number(entryId);
+    var row = (state.entries || []).find(function (item) {
+      return Number(item.entry_id || item.id) === id;
+    });
+    if (!row) return '候选 #' + id;
+    return row.title_cn || row.title || row.name || ('候选 #' + id);
+  }
+
+  function closeTieModal() {
+    $('tieModal').style.display = 'none';
+    state.tieDecision = null;
+  }
+
+  function openTieModal(poolId, btn) {
+    var reviewingPool = state.flow && Array.isArray(state.flow.pools)
+      ? state.flow.pools.find(function (pool) { return Number(pool.id) === Number(poolId); })
+      : null;
+    var tieBreaks = reviewingPool && reviewingPool.runtime && reviewingPool.runtime.tie_breaks;
+    if (!Array.isArray(tieBreaks) || !tieBreaks.length) {
+      toast('没有可裁定的晋级线同分');
+      return;
+    }
+    state.tieDecision = { poolId: Number(poolId), button: btn, tieBreaks: tieBreaks };
+    var body = '<div class="tie-modal-list">';
+    tieBreaks.forEach(function (tie, index) {
+      var group = String(tie.group_key || ('G' + (index + 1)));
+      var slots = Math.max(1, Number(tie.slots || 1));
+      body += '<section class="tie-group" data-tie-index="' + index + '" data-slots="' + slots + '">' +
+        '<div class="tie-group-head"><strong>' + esc(group) + '</strong><span>请选择 ' + slots + ' 项晋级</span></div>' +
+        '<div class="tie-candidate-list">';
+      (tie.entry_ids || []).forEach(function (entryId) {
+        var id = Number(entryId);
+        body += '<label class="tie-candidate">' +
+          '<input type="checkbox" data-tie-choice="' + index + '" value="' + id + '">' +
+          '<span><strong>' + esc(entryLabelById(id)) + '</strong><small>#' + id + '</small></span>' +
+        '</label>';
+      });
+      body += '</div></section>';
+    });
+    body += '</div>';
+    $('tieModalBody').innerHTML = body;
+    $('tieModal').style.display = 'flex';
+    var first = $('tieModal').querySelector('input, button');
+    if (first) first.focus();
+  }
+
+  function submitTieDecision() {
+    if (!state.tieDecision) return;
+    var decisions = [];
+    for (var i = 0; i < state.tieDecision.tieBreaks.length; i++) {
+      var tie = state.tieDecision.tieBreaks[i];
+      var slots = Math.max(1, Number(tie.slots || 1));
+      var checked = Array.prototype.slice.call(document.querySelectorAll('[data-tie-choice="' + i + '"]:checked'));
+      if (checked.length !== slots) {
+        toast(String(tie.group_key || '分组') + ' 需要选择 ' + slots + ' 项');
+        return;
+      }
+      decisions.push({
+        group_key: tie.group_key,
+        entry_ids: checked.map(function (input) { return Number(input.value); })
+      });
+    }
+    var submit = $('tieModalSubmit');
+    var restoreModalBtn = setButtonBusy(submit, '提交中...');
+    var flowBtn = state.tieDecision.button;
+    var restoreFlowBtn = setButtonBusy(flowBtn, '提交中...');
+    post('../api/vote_stages.php?action=resolve_flow_tie', {
+      pool_id: state.tieDecision.poolId,
+      decisions: decisions
+    }).then(function (data) {
+      toast(data.success ? '同分裁定已提交' : (data.message || '裁定失败'));
+      closeTieModal();
       if (state.selected) selectProject(state.selected.id);
     }).finally(function () {
-      if (btn) { btn.disabled = false; btn.textContent = '从当前有效提名重建流程'; }
+      restoreModalBtn();
+      restoreFlowBtn();
     });
   }
 
   function runFlowAction(action, poolId, btn) {
     if (!state.selected || !poolId) return;
     if (action === 'resolve_flow_tie') {
-      var reviewingPool = state.flow && Array.isArray(state.flow.pools)
-        ? state.flow.pools.find(function (pool) { return Number(pool.id) === Number(poolId); })
-        : null;
-      var tieBreaks = reviewingPool && reviewingPool.runtime && reviewingPool.runtime.tie_breaks;
-      if (!Array.isArray(tieBreaks) || !tieBreaks.length) {
-        toast('没有可裁定的晋级线同分');
-        return;
-      }
-      var decisions = [];
-      for (var tieIndex = 0; tieIndex < tieBreaks.length; tieIndex++) {
-        var tie = tieBreaks[tieIndex];
-        var answer = window.prompt(
-          String(tie.group_key || '分组') + ' 需选择 ' + Number(tie.slots || 1) +
-          ' 项。候选 ID：' + (tie.entry_ids || []).join(', ') + '。请输入选中的 ID，多个用逗号分隔：'
-        );
-        if (answer === null) return;
-        var selectedIds = answer.split(',').map(function (value) { return Number(value.trim()); }).filter(Boolean);
-        decisions.push({ group_key: tie.group_key, entry_ids: selectedIds });
-      }
-      if (btn) btn.disabled = true;
-      post('../api/vote_stages.php?action=resolve_flow_tie', {
-        pool_id: Number(poolId),
-        decisions: decisions
-      }).then(function (data) {
-        toast(data.success ? '同分裁定已提交' : (data.message || '裁定失败'));
-        if (state.selected) selectProject(state.selected.id);
-      }).finally(function () {
-        if (btn) btn.disabled = false;
-      });
+      openTieModal(poolId, btn);
       return;
     }
     if (action === 'generate_matches') {
@@ -519,12 +702,12 @@
         return pool && Number(pool.id) === Number(poolId);
       });
       if (!stage) return;
-      if (btn) { btn.disabled = true; btn.textContent = '生成中...'; }
+      var restoreGenerateBtn = setButtonBusy(btn, '生成中...');
       post('../api/vote_matches.php?action=generate', { stage_id: Number(stage.id) }).then(function (data) {
         toast(data.success ? '对阵已生成' : (data.message || '生成失败'));
         if (state.selected) selectProject(state.selected.id);
       }).finally(function () {
-        if (btn) btn.disabled = false;
+        restoreGenerateBtn();
       });
       return;
     }
@@ -534,7 +717,7 @@
         return pool && Number(pool.id) === Number(poolId);
       });
       if (!settleStage) return;
-      if (btn) { btn.disabled = true; btn.textContent = '结算中...'; }
+      var restoreSettleBtn = setButtonBusy(btn, '结算中...');
       post('../api/vote_matches.php?action=settle_by_votes', { stage_id: Number(settleStage.id) }).then(function (data) {
         var msg = data.success ? ('已按票数结算 ' + Number(data.settled_count || 0) + ' 场') : (data.message || '结算失败');
         if (data.success && Number(data.unresolved_count || 0) > 0) msg += ' · 平票/缺项 ' + Number(data.unresolved_count || 0) + ' 场';
@@ -547,16 +730,16 @@
           });
         }
       }).finally(function () {
-        if (btn) btn.disabled = false;
+        restoreSettleBtn();
       });
       return;
     }
-    if (btn) { btn.disabled = true; btn.textContent = '处理中...'; }
+    var restoreFlowBtn = setButtonBusy(btn, '处理中...');
     post('../api/vote_stages.php?action=' + encodeURIComponent(action), { pool_id: Number(poolId) }).then(function (data) {
       toast(data.success ? '流程已更新' : (data.message || '操作失败'));
       if (state.selected) selectProject(state.selected.id);
     }).finally(function () {
-      if (btn) btn.disabled = false;
+      restoreFlowBtn();
     });
   }
 
@@ -579,8 +762,10 @@
       ));
     return '<div class="stage-row" data-stage-id="' + Number(s.id) + '">' +
       '<span class="stage-tag ' + typeClass + '">' + typeLabelText + '</span>' +
-      '<span class="stage-title">' + esc(s.title) + '</span>' +
-      '<span class="stage-summary">' + esc(summary) + '</span>' +
+      '<span class="stage-main">' +
+        '<span class="stage-title" title="' + esc(s.title) + '">' + esc(s.title) + '</span>' +
+        '<span class="stage-summary" title="' + esc(summary) + '">' + esc(summary) + '</span>' +
+      '</span>' +
       '<span class="stage-status ' + (s.status === 'open' ? 'open' : 'pending') + '">' + (s.status === 'open' ? '开放中' : (s.status === 'locked' ? '已锁定' : '待开放')) + '</span>' +
       '<span class="stage-actions">' +
         rowActions +
@@ -621,15 +806,42 @@
 
   /* ===== Detail Event Binding ===== */
   function bindDetailEvents() {
+    var settingsSave = $('projectSettingsSave');
+    if (settingsSave) {
+      settingsSave.addEventListener('click', function () {
+        if (!state.selected) return;
+        var body = {
+          title: $('projectTitle').value.trim(),
+          year_label: $('projectYear').value.trim(),
+          visibility: $('projectVisibility').value,
+          eligibility_mode: $('projectEligibility').value,
+          result_visibility: $('projectResultVisibility').value,
+          description: $('projectDescription').value.trim(),
+          config: state.selected.config || {}
+        };
+        if (!body.title) { toast('请填写活动标题'); return; }
+        var restore = setButtonBusy(settingsSave, '保存中...');
+        post('../api/vote_projects.php?action=update&id=' + encodeURIComponent(state.selected.id), body).then(function (data) {
+          toast(data.success ? '活动设置已保存' : (data.message || '保存失败'));
+          if (data.success) selectProject(state.selected.id);
+        }).finally(function () {
+          restore();
+        });
+      });
+    }
+
     document.querySelectorAll('[data-action]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         var action = this.dataset.action;
         if (!state.selected) return;
         if (action === 'delete' && !confirm('确定删除该企划及全部数据？此操作不可撤销。')) return;
+        var restore = setButtonBusy(this, action === 'delete' ? '删除中...' : '处理中...');
         post('../api/vote_projects.php?action=' + action + '&id=' + state.selected.id, {}).then(function (data) {
           toast(data.success ? '操作完成' : (data.message || '操作失败'));
           state.selected = null;
           loadManageable();
+        }).finally(function () {
+          restore();
         });
       });
     });
@@ -642,20 +854,17 @@
       btn.addEventListener('click', function () {
         var action = this.dataset.stageAction;
         var id = this.dataset.stageId;
+        var restore = setButtonBusy(this, action === 'settle' ? '结算中...' : '处理中...');
         post('../api/vote_stages.php?action=' + action + '&id=' + encodeURIComponent(id), {}).then(function (data) {
           var msg = data.success ? '阶段已更新' : (data.message || '操作失败');
           if (data.success && action === 'open' && data.seeded_count != null) msg += ' · 候选 ' + Number(data.seeded_count);
           if (data.success && action === 'settle' && data.advanced_count != null) msg += ' · 晋级 ' + Number(data.advanced_count);
           toast(msg);
           if (state.selected) selectProject(state.selected.id);
+        }).finally(function () {
+          restore();
         });
       });
-    });
-
-    document.querySelectorAll('[data-rebuild-flow]').forEach(function (btn) {
-      if (btn.dataset.boundRebuildFlow === '1') return;
-      btn.dataset.boundRebuildFlow = '1';
-      btn.addEventListener('click', function () { rebuildFlowFromNomination(btn); });
     });
 
     document.querySelectorAll('[data-flow-action]').forEach(function (btn) {
@@ -688,22 +897,24 @@
     var s = state.stages.find(function (st) { return Number(st.id) === Number(stageId); });
     if (!s) return;
     state.editingStageId = stageId;
+    state.modalReturnFocus = document.activeElement;
     var config = parseConfig(s.config_json);
 
     var tag = $('modalStageTag');
     tag.textContent = STAGE_TYPE_LABELS[s.stage_type] || s.stage_type;
     tag.className = 'stage-tag ' + (s.stage_type);
-    $('modalStageTitle').textContent = '编辑：' + esc(s.title);
+    $('modalStageTitle').textContent = '编辑：' + (s.title || '');
 
     var voteModes = allowedVoteModesForStage(s);
     if (!voteModes.some(function (m) { return m.value === s.vote_mode; })) s.vote_mode = voteModes[0].value;
 
-    var html = '<div class="form-field" style="margin-bottom:16px;"><label class="field-label">投票方式</label><div class="segmented" id="modalVoteMode">';
+    var html = '<div class="form-field modal-mode-field"><label class="field-label">投票方式</label><div class="segmented" id="modalVoteMode">';
     voteModes.forEach(function (m) {
-      html += '<button class="segmented-btn' + (s.vote_mode === m.value ? ' active' : '') + '" data-mode="' + m.value + '">' + m.label + '</button>';
+      var active = s.vote_mode === m.value;
+      html += '<button class="segmented-btn' + (active ? ' active' : '') + '" type="button" data-mode="' + m.value + '" aria-pressed="' + (active ? 'true' : 'false') + '">' + m.label + '</button>';
     });
     html += '</div></div>';
-    html += '<div id="modalFields" style="display:flex;flex-direction:column;gap:10px;">';
+    html += '<div id="modalFields" class="modal-field-stack">';
     html += buildModalFields(s, config);
     html += '</div>';
     html += '<div class="modal-logic-hint" id="modalLogicHint"></div>';
@@ -711,15 +922,29 @@
     $('modalBody').innerHTML = html;
     updateModalFieldVisibility(s.vote_mode);
     updateModalLogicHint(s.vote_mode);
+    updateGroupAdvancePreview();
+    $('modalBody').addEventListener('input', function (e) {
+      if (e.target.id === 'mfGroupCount' || e.target.id === 'mfAdvance') {
+        updateGroupAdvancePreview();
+      }
+    });
 
     $('stageModal').style.display = 'flex';
+    setTimeout(function () {
+      var firstInput = $('stageModal').querySelector('input, select, button');
+      if (firstInput) firstInput.focus();
+    }, 0);
 
     $('modalVoteMode').addEventListener('click', function (e) {
       var btn = e.target.closest('.segmented-btn');
       if (!btn) return;
       var mode = btn.dataset.mode;
-      this.querySelectorAll('.segmented-btn').forEach(function (b) { b.classList.remove('active'); });
+      this.querySelectorAll('.segmented-btn').forEach(function (b) {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
       btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
       s.vote_mode = mode;
       $('modalFields').innerHTML = buildModalFields(s, config);
       updateModalFieldVisibility(mode);
@@ -737,13 +962,28 @@
     return String(value).replace('T', ' ') + ':00';
   }
 
+  function isPowerOfTwo(value) {
+    value = Number(value || 0);
+    return value > 0 && (value & (value - 1)) === 0;
+  }
+
+  function knownStageEntryCount(stage) {
+    var flowPool = getFlowPoolForStage(stage);
+    if (flowPool && flowPool.entry_count != null) return Number(flowPool.entry_count || 0);
+    if (flowPool && flowPool.raw_count != null) return Number(flowPool.raw_count || 0);
+    return 0;
+  }
+
   function buildModalFields(s, config) {
     var html = '';
     var mode = s.vote_mode;
 
     html += '<div class="form-row"><div class="form-field"><label class="field-label">阶段标题</label><input class="form-input" id="mfTitle" value="' + esc(s.title) + '"></div>';
     html += '<div class="form-field"><label class="field-label">晋级数</label><input class="form-input" id="mfAdvance" type="number" min="0" value="' + Number(s.advance_count || 0) + '"></div></div>';
-    html += '<div class="form-field"><label class="field-label">结束时间 <span class="modal-field-hint">用于后台定时结算</span></label><input class="form-input" id="mfEndsAt" type="datetime-local" value="' + esc(toDateTimeLocalValue(s.ends_at || '')) + '"></div>';
+    html += '<div class="form-field"><label class="field-label">结束时间 <span class="modal-field-hint">到点后停止投票</span></label><input class="form-input" id="mfEndsAt" type="datetime-local" value="' + esc(toDateTimeLocalValue(s.ends_at || '')) + '"></div>';
+    if (getFlowPoolForStage(s)) {
+      html += '<div class="modal-logic-hint"><strong>运行池已生成：</strong>投票方式、晋级数、分组数、评分范围和改票规则属于核心配置；无投票/对阵/结果时会重建运行池，已有数据后只能改标题、结束时间和结果公开。</div>';
+    }
 
     if (mode !== 'match_single') {
       var maxLabel = mode === 'nomination' ? '每人可提名' : '每人可选';
@@ -751,18 +991,10 @@
     }
 
     if (mode === 'multi_select' || mode === 'score') {
-      html += '<div class="form-field" data-field-group="group"><label class="field-label">分组数 <span class="modal-field-hint">分组</span></label>';
-      html += '<div class="segmented" id="mfGroupCount">';
-      var groupOptions = state.selected && state.selected.project_type === 'moe' && s.stage_type === 'qualifier'
-        ? [1, 2, 4]
-        : (s.stage_type === 'qualifier' ? [2, 4] : [1, 2, 4, 8]);
-      if (groupOptions.indexOf(Number(s.group_count)) === -1) s.group_count = groupOptions[0];
-      groupOptions.forEach(function (n) {
-        html += '<button class="segmented-btn' + (Number(s.group_count) === n ? ' active' : '') + '" data-value="' + n + '">' + n + '</button>';
-      });
-      html += '</div>';
-      if (s.stage_type === 'qualifier') {
-        html += '<div class="modal-field-hint" id="mfGroupAdvancePreview">每组晋级 ' + Math.floor(Number(s.advance_count || 0) / Number(s.group_count || 1)) + '</div>';
+      html += '<div class="form-field" data-field-group="group"><label class="field-label">分组数 <span class="modal-field-hint">输入 1 表示不分组</span></label>';
+      html += '<input class="form-input" id="mfGroupCount" type="number" min="1" value="' + Number(s.group_count || 1) + '">';
+      if (s.stage_type === 'qualifier' || s.stage_type === 'group_vote') {
+        html += '<div class="modal-field-hint" id="mfGroupAdvancePreview">每组晋级 ' + Math.floor(Number(s.advance_count || 0) / Number(s.group_count || 1)) + ' 人</div>';
       }
       html += '</div>';
     }
@@ -798,7 +1030,7 @@
       '<option value="hidden"' + (s.result_visibility === 'hidden' ? ' selected' : '') + '>隐藏</option>' +
       '</select></div>';
 
-    html += '<div style="display:flex;gap:16px;padding-top:8px;">';
+    html += '<div class="modal-check-row">';
     html += '<label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="mfAllowChange"' + (Number(s.allow_vote_change) ? ' checked' : '') + '> 允许改票</label>';
     html += '<label style="display:flex;align-items:center;gap:6px;font-size:13px;"><input type="checkbox" id="mfZeroFill"' + (config.allow_zero_fill ? ' checked' : '') + '> 0票补位</label>';
     html += '</div>';
@@ -823,22 +1055,62 @@
     if (!hint) return;
     var hints = {
       nomination: '<strong>提名投票模式：</strong>用户提交提名，自动进入候选池。不涉及评分和分组。',
-      multi_select: '<strong>多选投票模式：</strong>用户选择多个条目。可配置分组数（1/2/4/8）。不涉及评分。',
+      multi_select: '<strong>多选投票模式：</strong>用户选择多个条目。可配置任意分组数（输入 1 表示不分组）。不涉及评分。',
       score: '<strong>评分制模式：</strong>用户对每个条目打分。显示最低分/最高分字段。可配置分组。',
       match_single: '<strong>1v1 对决模式：</strong>两两对决投票。显示对阵规模（16/32强）。不显示评分和分组字段。'
     };
     hint.innerHTML = hints[mode] || '';
   }
 
+  function updateGroupAdvancePreview() {
+    var groupEl = $('mfGroupCount');
+    var advanceEl = $('mfAdvance');
+    var previewEl = $('mfGroupAdvancePreview');
+    if (!previewEl) return;
+    var groupCount = Math.max(1, Number(groupEl ? groupEl.value : 1) || 1);
+    var advanceCount = Math.max(0, Number(advanceEl ? advanceEl.value : 0) || 0);
+    previewEl.textContent = '每组晋级 ' + (groupCount > 0 ? Math.floor(advanceCount / groupCount) : 0) + ' 人';
+  }
+
   function closeStageModal() {
     $('stageModal').style.display = 'none';
     state.editingStageId = null;
+    if (state.modalReturnFocus && typeof state.modalReturnFocus.focus === 'function') {
+      state.modalReturnFocus.focus();
+    }
+    state.modalReturnFocus = null;
   }
 
   $('modalClose').addEventListener('click', closeStageModal);
   $('modalCancel').addEventListener('click', closeStageModal);
   $('stageModal').addEventListener('click', function (e) {
     if (e.target === this) closeStageModal();
+  });
+  $('tieModalClose').addEventListener('click', closeTieModal);
+  $('tieModalCancel').addEventListener('click', closeTieModal);
+  $('tieModalSubmit').addEventListener('click', submitTieDecision);
+  $('tieModal').addEventListener('click', function (e) {
+    if (e.target === this) closeTieModal();
+  });
+  $('tieModal').addEventListener('change', function (e) {
+    var input = e.target.closest('[data-tie-choice]');
+    if (!input || !input.checked) return;
+    var group = input.closest('.tie-group');
+    if (!group) return;
+    var slots = Math.max(1, Number(group.dataset.slots || 1));
+    var checked = group.querySelectorAll('[data-tie-choice]:checked');
+    if (checked.length > slots) {
+      input.checked = false;
+      toast('该分组最多选择 ' + slots + ' 项');
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && $('stageModal').style.display === 'flex') {
+      closeStageModal();
+    }
+    if (e.key === 'Escape' && $('tieModal').style.display === 'flex') {
+      closeTieModal();
+    }
   });
 
   $('modalSave').addEventListener('click', function () {
@@ -849,8 +1121,8 @@
     function val(id) { var el = $(id); return el ? (el.type === 'checkbox' ? el.checked : el.value) : ''; }
 
     var groupCount = Number(s.group_count || 1);
-    var groupEl = document.querySelector('#mfGroupCount .segmented-btn.active');
-    if (groupEl) groupCount = Number(groupEl.dataset.value);
+    var groupInput = $('mfGroupCount');
+    if (groupInput) groupCount = Math.max(1, Number(groupInput.value) || 1);
 
     var originalConfig = parseConfig(s.config_json);
     var bracketSize = Number(originalConfig.bracket_size || 0);
@@ -872,13 +1144,22 @@
       config: { allow_zero_fill: val('mfZeroFill') ? true : false, bracket_size: bracketSize, tie_rule: 'manual' }
     };
 
-    if (state.selected && state.selected.project_type === 'moe' && s.stage_type === 'qualifier') {
-      if ([1, 2, 4].indexOf(groupCount) === -1) {
-        toast('萌战海选仅支持 1、2 或 4 组');
+    if (s.vote_mode === 'multi_select' && (s.stage_type === 'qualifier' || s.stage_type === 'group_vote')) {
+      if (groupCount < 1) {
+        toast('分组数必须大于 0');
         return;
       }
       if (body.advance_count <= 0 || body.advance_count % groupCount !== 0) {
         toast('晋级数必须大于 0 且能被分组数整除');
+        return;
+      }
+      var knownCount = knownStageEntryCount(s);
+      if (knownCount > 0 && body.advance_count > knownCount) {
+        toast('晋级数不能超过当前候选数 ' + knownCount);
+        return;
+      }
+      if (knownCount > 0 && Math.floor(body.advance_count / groupCount) > Math.floor(knownCount / groupCount)) {
+        toast('每组候选数不足以满足晋级名额');
         return;
       }
     }
@@ -902,20 +1183,19 @@
       updateAction = 'update_and_rebuild';
     }
 
+    var restore = setButtonBusy(this, '保存中...');
     post('../api/vote_stages.php?action=' + updateAction + '&id=' + encodeURIComponent(state.editingStageId), body).then(function (data) {
       toast(data.success ? '阶段配置已保存' : (data.message || '保存失败'));
       closeStageModal();
       if (state.selected) selectProject(state.selected.id);
+    }).finally(function () {
+      restore();
     });
   });
 
   /* ===== Pool Card ===== */
   function renderPoolCard() {
-    return '<div class="card" id="poolCard"><div class="card-header"><span>候选池</span><span style="font-size:11px;color:var(--am-text-secondary);font-weight:400;" id="poolStats"></span></div><div class="pool-pipeline" id="poolPipeline"></div><div class="card-body" id="poolContent" style="padding:0;"><div style="text-align:center;padding:20px;color:var(--am-text-secondary);font-size:13px;">加载中...</div></div></div>';
-  }
-
-  function renderPoolCard() {
-    return '<div class="card" id="poolCard"><div class="card-header"><span>活动工作台</span><span style="font-size:11px;color:var(--am-text-secondary);font-weight:400;" id="poolStats"></span></div><div class="pool-pipeline" id="poolPipeline"></div><div class="card-body activity-workbench" id="poolContent"><div style="text-align:center;padding:20px;color:var(--am-text-secondary);font-size:13px;">加载中...</div></div></div>';
+    return '<div class="card" id="poolCard"><div class="card-header"><span>活动工作台</span><span style="font-size:11px;color:var(--am-text-secondary);font-weight:400;" id="poolStats"></span></div><div class="pool-pipeline" id="poolPipeline"></div><div class="card-body activity-workbench" id="poolContent">' + loadingMarkup('加载中') + '</div></div>';
   }
 
   function getSelectedEntryIds() {
@@ -967,6 +1247,7 @@
     return api('../api/vote_stages.php?action=stage_entries&stage_id=' + encodeURIComponent(stageId) + '&_=' + Date.now()).then(function (data) {
       var entries = data.success ? (data.data || []) : [];
       entries.rawCount = Number(data.raw_count || entries.length || 0);
+      entries.canManage = !!data.can_manage;
       state.stageEntriesCache[stageId] = entries;
       return entries;
     }).catch(function () {
@@ -1332,6 +1613,18 @@
     if (!stage) return '';
     var entries = state.stageEntriesCache[String(stage.id)] || [];
     var visibleEntries = filterEntriesByGroup(entries);
+    var canManage = !!entries.canManage;
+    if (canManage) {
+      visibleEntries = visibleEntries.slice().sort(function (a, b) {
+        var va = a.votes != null ? Number(a.votes || 0) : 0;
+        var vb = b.votes != null ? Number(b.votes || 0) : 0;
+        if (vb !== va) return vb - va;
+        var sa = Number(a.seed_no || 0);
+        var sb = Number(b.seed_no || 0);
+        if (sa !== sb) return sa - sb;
+        return Number(a.entry_id || a.id || 0) - Number(b.entry_id || b.id || 0);
+      });
+    }
     var flowPool = getFlowPoolForStage(stage);
     var canRebuild = stageType === 'qualifier' && !flowPool;
     var emptyText = canRebuild
@@ -1342,6 +1635,7 @@
       empty: emptyText,
       meta: function (e) {
         var parts = [];
+        if (canManage && e.rank != null) parts.push('第' + Number(e.rank) + '名');
         if (e.group_key) parts.push(e.group_key);
         if (e.seed_no) parts.push('#' + Number(e.seed_no));
         if (e.votes != null) parts.push(Number(e.votes || 0) + '票');
@@ -1456,12 +1750,6 @@
       renderPoolContent();
     });
 
-    document.querySelectorAll('[data-rebuild-flow]').forEach(function (btn) {
-      if (btn.dataset.boundRebuildFlow === '1') return;
-      btn.dataset.boundRebuildFlow = '1';
-      btn.addEventListener('click', function () { rebuildFlowFromNomination(btn); });
-    });
-
     document.querySelectorAll('[data-flow-action]').forEach(function (btn) {
       btn.addEventListener('click', function () {
         runFlowAction(this.dataset.flowAction, this.dataset.poolId, btn);
@@ -1570,12 +1858,24 @@
       var body = rows.map(function (m) {
         var a = esc(m.slot_a_title_cn || m.slot_a_title || '待定');
         var b = esc(m.slot_b_title_cn || m.slot_b_title || '待定');
+        var hasVotes = m.slot_a_votes != null || m.slot_b_votes != null;
+        var aVotes = hasVotes ? Number(m.slot_a_votes || 0) : null;
+        var bVotes = hasVotes ? Number(m.slot_b_votes || 0) : null;
+        if (hasVotes) {
+          a += ' <span style="font-size:11px;color:var(--am-text-secondary);">(' + aVotes + '票)</span>';
+          b += ' <span style="font-size:11px;color:var(--am-text-secondary);">(' + bVotes + '票)</span>';
+        }
         var issue = issueMap[Number(m.id)];
         var issueText = issue ? (issue.reason === 'tie' ? '平票待处理' : '缺槽待处理') : '';
         var missingSlot = !Number(m.slot_a_entry_id || 0) || !Number(m.slot_b_entry_id || 0);
+        var winnerName = esc(m.winner_title_cn || m.winner_title || m.winner_entry_id || '');
+        var winnerVotes = '';
+        if (hasVotes && m.status === 'settled' && Number(m.winner_entry_id || 0)) {
+          winnerVotes = ' <span style="font-size:11px;color:var(--am-text-secondary);">(' + (Number(m.winner_entry_id || 0) === Number(m.slot_a_entry_id || 0) ? aVotes : bVotes) + '票)</span>';
+        }
         var controls = m.status === 'settled'
-          ? '<span class="stage-status open">胜者：' + esc(m.winner_title_cn || m.winner_title || m.winner_entry_id || '') + '</span>'
-          : '<span class="stage-actions"><button class="stage-btn success" data-match-winner="' + Number(m.id) + '" data-winner-id="' + Number(m.slot_a_entry_id || 0) + '"' + (!Number(m.slot_a_entry_id || 0) ? ' disabled' : '') + '>' + a + ' 胜</button><button class="stage-btn success" data-match-winner="' + Number(m.id) + '" data-winner-id="' + Number(m.slot_b_entry_id || 0) + '"' + (!Number(m.slot_b_entry_id || 0) ? ' disabled' : '') + '>' + b + ' 胜</button></span>';
+          ? '<span class="stage-status open">胜者：' + winnerName + winnerVotes + '</span>'
+          : '<span class="stage-actions"><button class="stage-btn success" data-match-winner="' + Number(m.id) + '" data-winner-id="' + Number(m.slot_a_entry_id || 0) + '"' + (!Number(m.slot_a_entry_id || 0) ? ' disabled' : '') + '>' + esc(m.slot_a_title_cn || m.slot_a_title || '待定') + ' 胜</button><button class="stage-btn success" data-match-winner="' + Number(m.id) + '" data-winner-id="' + Number(m.slot_b_entry_id || 0) + '"' + (!Number(m.slot_b_entry_id || 0) ? ' disabled' : '') + '>' + esc(m.slot_b_title_cn || m.slot_b_title || '待定') + ' 胜</button></span>';
         return '<div style="display:grid;grid-template-columns:64px 1fr auto auto;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--am-card-border);opacity:' + (missingSlot && m.status !== 'settled' ? '.65' : '1') + ';">' +
           '<strong style="font-size:12px;">R' + Number(m.round_no) + '-' + Number(m.match_no) + '</strong>' +
           '<span style="font-size:13px;">' + a + ' vs ' + b + (issueText ? '<em style="font-style:normal;color:#d97706;margin-left:8px;">' + esc(issueText) + '</em>' : '') + '</span>' +
@@ -1713,6 +2013,23 @@
   document.addEventListener('click', function (event) {
     var item = event.target.closest('[data-project-id]');
     if (item) selectProject(item.dataset.projectId);
+  });
+
+  // boundRebuildFlow: use a single delegated listener to avoid duplicate per-render bindings
+  document.addEventListener('click', function (event) {
+    var rebuildBtn = event.target.closest('[data-rebuild-flow]');
+    if (rebuildBtn) {
+      event.preventDefault();
+      rebuildFlowFromNomination(rebuildBtn);
+    }
+  });
+
+  document.addEventListener('keydown', function (event) {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    var item = event.target.closest('[data-project-id]');
+    if (!item) return;
+    event.preventDefault();
+    selectProject(item.dataset.projectId);
   });
 
   /* ===== Init ===== */

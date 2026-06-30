@@ -1,99 +1,27 @@
 /**
- * build-apk.mjs - Build APK for Galgame Map
- *
- * Steps:
- *   1. Clean and create www/ directory
- *   2. Copy frontend files (HTML/CSS/JS/images) to www/
- *   3. Replace relative API paths with absolute URLs in www/
- *   4. Run npx cap copy to sync frontend to Android project
- *   5. Run npx cap sync to sync Capacitor config
- *   6. Build APK via gradle assembleDebug
+ * Build an Android debug APK for the static client.
  */
 
 import { execSync } from 'child_process';
-import { copyFileSync, readdirSync, mkdirSync, existsSync, rmSync, readFileSync, writeFileSync } from 'fs';
-import { join, extname, relative } from 'path';
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from 'fs';
+import { homedir } from 'os';
+import { join } from 'path';
 import { fileURLToPath } from 'url';
-import { rewriteFrontendPaths } from './frontend-paths.mjs';
+import { buildWww } from './build-www.mjs';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const ROOT = join(__dirname, '..');
-const WWW = join(ROOT, 'www');
 const ANDROID_DIR = join(ROOT, 'android');
 
-console.log('Generating wiki pages...');
-execSync('node scripts/generate-wiki-pages.mjs', { cwd: ROOT, stdio: 'inherit' });
-
-// ============================================================
-// Step 1: Clean and create www/ directory
-// ============================================================
-console.log('Cleaning www/ directory...');
-if (existsSync(WWW)) {
-  rmSync(WWW, { recursive: true });
+function run(command, options = {}) {
+  execSync(command, { cwd: ROOT, stdio: 'inherit', ...options });
 }
-mkdirSync(WWW, { recursive: true });
-
-// ============================================================
-// Step 2: Copy frontend files
-// ============================================================
-console.log('Copying frontend files...');
-
-const ALLOWED_EXTENSIONS = new Set([
-  '.html', '.js', '.css', '.json', '.ico', '.png', '.jpg',
-  '.jpeg', '.gif', '.svg', '.webp', '.woff', '.woff2', '.ttf',
-  '.eot', '.map'
-]);
-
-const ALLOWED_ROOT_FILES = new Set([
-  'index.html', 'submit.html', 'submit_event.html', 'submit_publication.html',
-  'feedback.html', 'favicon.ico'
-]);
-
-function isExcluded(relPath) {
-  const topDir = relPath.split(/[/\\]/)[0];
-  // Exclude these top-level directories
-  const excluded = ['www', 'node_modules', 'android', 'electron', '.git', 'api', 'admin',
-                    'includes', 'data', 'uploads', 'scripts', 'docs', 'dist'];
-  if (excluded.includes(topDir)) return true;
-  return false;
-}
-
-function copyDir(src, dest) {
-  if (!existsSync(src)) return;
-  const entries = readdirSync(src, { withFileTypes: true });
-  for (const entry of entries) {
-    const srcPath = join(src, entry.name);
-    const destPath = join(dest, entry.name);
-    const relPath = relative(ROOT, srcPath);
-
-    if (entry.isDirectory()) {
-      if (isExcluded(relPath)) continue;
-      mkdirSync(destPath, { recursive: true });
-      copyDir(srcPath, destPath);
-    } else if (entry.isFile()) {
-      if (ALLOWED_ROOT_FILES.has(relPath) || ALLOWED_EXTENSIONS.has(extname(entry.name))) {
-        mkdirSync(dest, { recursive: true });
-        copyFileSync(srcPath, destPath);
-      }
-    }
-  }
-}
-
-copyDir(ROOT, WWW);
-console.log('Frontend files copied.');
-
-// ============================================================
-// Step 3: Replace API paths in JS/HTML files
-// ============================================================
-console.log('Replacing API/data paths with remote URL...');
-const replacedCount = rewriteFrontendPaths(WWW, ROOT);
-console.log(`Replaced ${replacedCount} file(s).`);
-console.log('API path replacement done.');
-
-// ============================================================
-// Step 4: Sync native Android metadata
-// ============================================================
-console.log('Syncing Android version and launcher icons...');
 
 function getPackageVersion() {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
@@ -108,10 +36,19 @@ function versionToCode(version) {
   return major * 10000 + minor * 100 + patch;
 }
 
+function ensureAndroidProject() {
+  if (existsSync(join(ANDROID_DIR, 'app', 'build.gradle'))) return;
+
+  console.log('Android project is missing; creating it with Capacitor...');
+  run('npx cap add android');
+}
+
 function syncAndroidVersion() {
+  const gradlePath = join(ANDROID_DIR, 'app', 'build.gradle');
+  if (!existsSync(gradlePath)) return;
+
   const versionName = getPackageVersion();
   const versionCode = versionToCode(versionName);
-  const gradlePath = join(ANDROID_DIR, 'app', 'build.gradle');
   let gradle = readFileSync(gradlePath, 'utf8');
   gradle = gradle
     .replace(/versionCode\s+\d+/, `versionCode ${versionCode}`)
@@ -120,8 +57,21 @@ function syncAndroidVersion() {
   console.log(`Android versionName=${versionName}, versionCode=${versionCode}`);
 }
 
+function allowNonAsciiAndroidPath() {
+  const propertiesPath = join(ANDROID_DIR, 'gradle.properties');
+  if (!existsSync(propertiesPath)) return;
+
+  const content = readFileSync(propertiesPath, 'utf8');
+  if (content.includes('android.overridePathCheck=true')) return;
+
+  writeFileSync(propertiesPath, `${content.trimEnd()}\nandroid.overridePathCheck=true\n`);
+  console.log('Enabled Android Gradle path override for this workspace path.');
+}
+
 function syncAndroidIcons() {
   const iconSource = join(ROOT, 'images', 'logo.png');
+  if (!existsSync(iconSource)) return;
+
   const mipmapDirs = ['mipmap-mdpi', 'mipmap-hdpi', 'mipmap-xhdpi', 'mipmap-xxhdpi', 'mipmap-xxxhdpi'];
   const iconNames = ['ic_launcher.png', 'ic_launcher_round.png', 'ic_launcher_foreground.png'];
 
@@ -132,33 +82,98 @@ function syncAndroidIcons() {
       copyFileSync(iconSource, join(destDir, iconName));
     }
   }
+  console.log('Android launcher icons synced.');
 }
+
+function patchAndroidSslForBackendIp() {
+  const activityPath = join(ANDROID_DIR, 'app', 'src', 'main', 'java', 'top', 'vnfest', 'map', 'MainActivity.java');
+  if (!existsSync(activityPath)) return;
+
+  const patched = `package top.vnfest.map;
+
+import android.net.http.SslError;
+import android.os.Bundle;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebView;
+import com.getcapacitor.Bridge;
+import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebViewClient;
+
+public class MainActivity extends BridgeActivity {
+  private static final String BACKEND_HOST = "162.251.93.178";
+
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    allowBackendIpCertificateForTestPackage();
+  }
+
+  private void allowBackendIpCertificateForTestPackage() {
+    Bridge currentBridge = getBridge();
+    if (currentBridge == null) return;
+
+    currentBridge.setWebViewClient(new BridgeWebViewClient(currentBridge) {
+      @Override
+      public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+        String url = error != null && error.getUrl() != null ? error.getUrl() : "";
+        if (url.startsWith("https://" + BACKEND_HOST + "/")) {
+          handler.proceed();
+          return;
+        }
+        super.onReceivedSslError(view, handler, error);
+      }
+    });
+  }
+}
+`;
+
+  const current = readFileSync(activityPath, 'utf8');
+  if (current === patched) return;
+  writeFileSync(activityPath, patched, 'utf8');
+  console.log('Android MainActivity patched to allow the backend IP certificate for test builds.');
+}
+
+function configureGradleDistribution() {
+  const wrapperProperties = join(ANDROID_DIR, 'gradle', 'wrapper', 'gradle-wrapper.properties');
+  if (!existsSync(wrapperProperties)) return;
+
+  let content = readFileSync(wrapperProperties, 'utf8');
+  const match = content.match(/gradle-([0-9.]+)-(all|bin)\.zip/);
+  if (!match) return;
+
+  const version = match[1];
+  const cachedAllDir = join(homedir(), '.gradle', 'wrapper', 'dists', `gradle-${version}-all`);
+  const hasCachedAll = existsSync(cachedAllDir);
+  const classifier = hasCachedAll ? 'all' : 'bin';
+  const next = content.replace(/gradle-([0-9.]+)-(all|bin)\.zip/g, `gradle-$1-${classifier}.zip`);
+
+  if (next !== content) {
+    writeFileSync(wrapperProperties, next);
+    console.log(`Gradle wrapper distribution switched to ${classifier}.`);
+  }
+}
+
+buildWww();
+ensureAndroidProject();
+configureGradleDistribution();
+allowNonAsciiAndroidPath();
+
+console.log('Syncing Capacitor Android project...');
+run('npx cap sync android');
 
 syncAndroidVersion();
 syncAndroidIcons();
-console.log('Android native metadata synced.');
+patchAndroidSslForBackendIp();
 
-// ============================================================
-// Step 5: Run Capacitor sync
-// ============================================================
-console.log('Running capacitor sync...');
-execSync('npx cap copy', { cwd: ROOT, stdio: 'inherit' });
-execSync('npx cap sync', { cwd: ROOT, stdio: 'inherit' });
-console.log('Capacitor sync done.');
-
-// ============================================================
-// Step 6: Build APK
-// ============================================================
-console.log('Building APK...');
+console.log('Building Android debug APK...');
 const env = { ...process.env, ANDROID_HOME: process.env.ANDROID_HOME || 'C:/Android' };
-
-// Auto-detect JDK 17 (required for Gradle 7.x compatibility)
-const JDK17_CANDIDATES = [
+const jdkCandidates = [
   'C:/Java/jdk-17.0.14+7',
   'C:/Program Files/Java/jdk-17',
   'C:/Program Files/Eclipse Adoptium/jdk-17',
 ];
-for (const jdk of JDK17_CANDIDATES) {
+
+for (const jdk of jdkCandidates) {
   if (existsSync(jdk)) {
     env.JAVA_HOME = jdk;
     break;
@@ -171,9 +186,5 @@ if (process.platform === 'win32') {
   execSync('./gradlew assembleDebug', { cwd: ANDROID_DIR, stdio: 'inherit', env });
 }
 
-// ============================================================
-// Done
-// ============================================================
-const apkPath = join(ANDROID_DIR, 'app/build/outputs/apk/debug/app-debug.apk');
 console.log('\nAPK build complete!');
-console.log('Output: ' + apkPath);
+console.log('Output: ' + join(ANDROID_DIR, 'app/build/outputs/apk/debug/app-debug.apk'));

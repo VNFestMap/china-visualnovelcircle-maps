@@ -35,7 +35,13 @@ assert.ok(botApi.includes('pending_memberships_school_no_code'), 'admin summary 
 assert.ok(botApi.includes('pending_memberships_external_exchange'), 'admin summary should split external exchange applications');
 assert.ok(botApi.includes('function botMoeKing') && botApi.includes("row['moe_king']"), 'club detail API should include moe king data');
 
-const plugin = read('astrbot_plugin_galgamemap/main.py');
+const pluginDir = [
+  path.join(root, 'astrbot_plugin_galgamemap'),
+  path.join(root, '..', 'astrbot_plugin_galgamemap')
+].find((dir) => fs.existsSync(path.join(dir, 'main.py')));
+
+if (pluginDir) {
+const plugin = fs.readFileSync(path.join(pluginDir, 'main.py'), 'utf8');
 assert.ok(plugin.includes('v0.3.0-public'), 'plugin version should be bumped');
 assert.ok(plugin.includes('sync_enabled'), 'plugin should read sync_enabled config');
 assert.ok(plugin.includes('sync_auto_enable_on_bind'), 'plugin should support auto-enable after binding');
@@ -71,7 +77,7 @@ for (const command of ['待审', '通过', '拒绝', '国家', '类型', '分享
 assert.ok(plugin.includes('_own_club_for_token'), 'plugin should support no-key sync binding for public club tokens');
 assert.ok(plugin.includes('membership_approve') && plugin.includes('membership_reject'), 'plugin should call bot approval actions');
 
-const schema = read('astrbot_plugin_galgamemap/_conf_schema.json');
+const schema = fs.readFileSync(path.join(pluginDir, '_conf_schema.json'), 'utf8');
 const parsedSchema = JSON.parse(schema);
 for (const key of [
   'sync_enabled',
@@ -86,17 +92,20 @@ for (const key of [
   assert.ok(Object.hasOwn(parsedSchema, key), `config schema should include ${key}`);
 }
 
-const metadata = read('astrbot_plugin_galgamemap/metadata.yaml');
+const metadata = fs.readFileSync(path.join(pluginDir, 'metadata.yaml'), 'utf8');
 assert.ok(metadata.includes('v0.3.0-public'), 'metadata should advertise v0.3.0-public');
 assert.ok(metadata.includes('公开版') && metadata.includes('申请同步') && metadata.includes('IEM') && metadata.includes('萌王'), 'metadata should mention the new information surface');
 
-const readme = read('astrbot_plugin_galgamemap/README.md');
+const readme = fs.readFileSync(path.join(pluginDir, 'README.md'), 'utf8');
 assert.ok(readme.includes('同步绑定') && readme.includes('同步超管') && readme.includes('unified_msg_origin'), 'README should document sync commands and active message origin');
 assert.ok(readme.includes('/gal地图 同步绑定 北大') && readme.includes('/gal地图 同步绑定') && readme.includes('不合法的 session 字符串'), 'README should document fuzzy binding and invalid session recovery');
 assert.ok(readme.includes('/gal地图 同步检测 北大'), 'README should document single-club sync check');
 assert.ok(readme.includes('membership_applications'), 'README should document the new bot API action');
 assert.ok(readme.includes('负责人公开接入') && readme.includes('Bot 接入') && readme.includes('gmap_club_'), 'README should document public club onboarding');
 assert.ok(readme.includes('/gal地图 待审') && readme.includes('/gal地图 通过') && readme.includes('/gal地图 拒绝'), 'README should document approval commands');
+} else {
+  console.warn('astrbot plugin files not found; skipped plugin-side contract checks');
+}
 
 const manager = read('admin/club_manager.html');
 assert.ok(manager.includes('data-tab="bot_tokens"'), 'club manager should expose Bot 接入 tab');

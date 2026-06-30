@@ -1,0 +1,18 @@
+{
+  "name": "galgame-club-sim",
+  "private": true,
+  "version": "7.0.0",
+  "type": "module",
+  "description": "Galgame同好会模拟器 — 软 UI 校园经营策略游戏",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "validate": "node tools/validate-content.js",
+    "test": "node tools/test-balance.js && node src/game/__tests__/formulas.test.js && node src/game/__tests__/conditions.test.js",
+    "simulate": "node tools/simulate-balance.js --runs 1000"
+  },
+  "devDependencies": {
+    "vite": "^5.4.0"
+  }
+}

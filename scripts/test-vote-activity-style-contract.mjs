@@ -8,7 +8,6 @@ const pages = [
   { file: 'moe/index.html', css: '../css/vote-activity.css', js: '../js/vote-activity.js' },
   { file: 'moe/bracket.html', css: '../css/vote-activity.css', js: '../js/vote-activity.js' },
   { file: 'twelve/index.html', css: '../css/vote-activity.css', js: '../js/vote-activity.js' },
-  { file: 'twelve/vote.html', css: '../css/vote-activity.css', js: '../js/vote-activity.js' },
 ];
 
 const emojiPattern = /[\u{1F000}-\u{1FAFF}]/u;

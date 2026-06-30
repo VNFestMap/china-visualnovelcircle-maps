@@ -18,12 +18,14 @@ const i18n = fs.readFileSync(i18nPath, 'utf8');
 });
 
 [
-  ['user.html', './js/page-i18n.js'],
   ['star_map.html', 'js/page-i18n.js'],
 ].forEach(([file, script]) => {
   const html = fs.readFileSync(path.join(root, file), 'utf8');
   assert.ok(html.includes(script), `${file} should load page-i18n.js`);
   assert.match(html, /data-i18n-lang="zh"[\s\S]*data-i18n-lang="ja"/, `${file} should expose zh/ja language controls`);
 });
+
+const userHtml = fs.readFileSync(path.join(root, 'user.html'), 'utf8');
+assert.ok(userHtml.includes('user-v2-assets/'), 'user.html should load the React user center assets');
 
 console.log('page i18n contract tests passed');

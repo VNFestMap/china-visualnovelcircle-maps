@@ -51,4 +51,21 @@ for (const page of userPages) {
 }
 
 assert.deepEqual(missing, [], `Missing local user-page assets:\n${missing.join('\n')}`);
+
+const userSource = fs.readFileSync(path.join(root, 'user.html'), 'utf8');
+const jsAsset = userSource.match(/src=["']\.\/([^"']+\.js)["']/)?.[1];
+assert.ok(jsAsset, 'user center should load a built JavaScript asset');
+const jsSource = fs.readFileSync(path.join(root, jsAsset), 'utf8');
+
+assert.match(jsSource, /接口返回的不是 JSON/, 'user center should validate backend JSON responses');
+assert.match(jsSource, /api\/auth\.php\?action=me/, 'user center should initialize from the backend auth session');
+assert.match(jsSource, /credentials:"same-origin"/, 'user center should keep same-origin PHP session credentials');
+assert.doesNotMatch(jsSource, /mockUser|showDemoMode\s*\(/, 'user center should not fall back to offline demo data');
+assert.doesNotMatch(jsSource, /Promise\.race\(\[/, 'user center should not hide backend failures behind a timeout demo mode');
+
+const inlineScripts = [...userSource.matchAll(/<script(?![^>]+\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)].map((match) => match[1]);
+for (const script of inlineScripts) {
+  new Function(script);
+}
+
 console.log('user page asset checks passed');

@@ -9,9 +9,16 @@ const core = read('includes/vote_projects.php');
 const stagesApi = read('api/vote_stages.php');
 const votesApi = read('api/vote_votes.php');
 const matchesApi = read('api/vote_matches.php');
+const sourcesApi = read('api/vote_sources.php');
 const managerJs = read('js/club-project-manager.js');
 const moeJs = read('js/moe-contest.js');
+const twelveDetailJs = read('twelve/twelve-detail.js');
+const moeDetailHtml = read('moe/contest.html');
+const moeDetailJs = read('moe/moe-detail.js');
+const moeBracketHtml = read('moe/bracket.html');
+const moeBracketJs = read('moe/moe-bracket.js');
 const twelveJs = read('js/twelve-contest.js');
+const vndbProxy = read('api/vndb_proxy.php');
 const settlementCli = read('scripts/settle-moe-contests.php');
 
 [
@@ -108,7 +115,18 @@ assert.ok(core.includes("'rule_version' => 2") && core.includes("'group_ticket_s
 assert.ok(core.includes('score_total') && core.includes('rating_count') && core.includes('voteFlowResolvePoolTie'), 'flow results should persist score metrics and support manual tie resolution');
 assert.ok(stagesApi.includes('update_and_rebuild') && stagesApi.includes('POOL_HAS_ACTIVITY'), 'stage API should expose atomic no-data rebuild and reject active pools');
 assert.ok(votesApi.includes('rank_visible') && votesApi.includes('metrics_visible') && votesApi.includes('voteTrimMoeResultRows'), 'results API should enforce rank and metric visibility');
+assert.ok(twelveDetailJs.includes('vote_sources.php?action=search&project_type=twelve') && twelveDetailJs.includes("work.source_type || 'manual'") && twelveDetailJs.includes('sourceLabelVote(work.source_type)'), 'twelve detail nomination search should use unified Bangumi/VNDB source search and preserve source type');
+assert.ok(twelveJs.includes('vote_sources.php?action=search&project_type=twelve') && twelveJs.includes("work.source_type || 'manual'") && twelveJs.includes('sourceLabelVote(work.source_type)'), 'legacy twelve contest nomination search should use unified Bangumi/VNDB source search and preserve source type');
+assert.ok(sourcesApi.includes('https://api.vndb.org/kana/vn') && sourcesApi.includes("'source_type' => 'vndb_vn'") && sourcesApi.includes("['search', '=', $keyword]"), 'vote source API should query VNDB Kana API for twelve works');
+assert.ok(vndbProxy.includes('ignore_errors') && vndbProxy.includes("'_error'") && vndbProxy.includes('https://api.vndb.org/kana/vn'), 'VNDB standalone proxy should surface upstream failures instead of silently returning empty data');
 assert.ok(moeJs.includes('renderScoreVoting') && moeJs.includes('mo-score-input') && moeJs.includes('group_rank'), 'moe page should support grouped score voting and grouped results');
+assert.ok(moeDetailHtml.includes('id="mdBracketLink"') && moeDetailJs.includes('bracket.html?project_id='), 'moe detail page should link to the standalone live bracket board by project id');
+assert.ok(moeBracketHtml.includes('moe-bracket.css') && moeBracketHtml.includes('moe-bracket.js'), 'standalone bracket page should use dedicated bracket assets');
+assert.ok(moeBracketJs.includes("params.get('project_id')") && moeBracketJs.includes("params.get('id')") && moeBracketJs.includes("params.get('contest_id')"), 'standalone bracket page should accept project_id, id, and contest_id');
+assert.ok(moeBracketJs.includes('moe_contests.php?action=get') && moeBracketJs.includes('moe_stages.php?action=list') && moeBracketJs.includes('moe_matches.php?action=list') && moeBracketJs.includes('moe_votes.php?action=results'), 'standalone bracket page should load real contest, stage, match, and result APIs');
+assert.ok(moeBracketJs.includes("stage.status === 'open'") && moeBracketJs.includes('matches.length'), 'standalone bracket page should choose open bracket/final stages before falling back to stages with generated matches');
+assert.ok(moeBracketJs.includes('result.rank_visible') && moeBracketJs.includes('result.metrics_visible'), 'standalone bracket page should obey backend result visibility for winners and vote counts');
+assert.ok(!moeBracketJs.includes('古河渚') && !moeBracketJs.includes('2026 夏季萌战'), 'standalone bracket page should not retain Open Design sample entrants or sample titles');
 assert.ok(managerJs.includes('renderMoeAwardsFromResults') && managerJs.includes("club_moe_king.php?action=set"), 'manager should fill final awards from results and sync champion to moe king');
 assert.ok(votesApi.includes('score_avg DESC, votes DESC'), 'results API should order live score stages by average score before vote count');
 assert.ok(moeJs.includes('阶段池尚未生成，请联系负责人') || moeJs.includes('闃舵姹犲皻鏈敓鎴愶紝璇疯仈绯昏礋璐ｄ汉'), 'moe page should explain missing pools');

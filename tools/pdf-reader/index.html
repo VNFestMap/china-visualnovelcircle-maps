@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <title>刊物 3D 阅读</title>
+  <link rel="stylesheet" href="./vendor/pdfReader/css/style.css">
+  <link rel="stylesheet" href="./vendor/pdfReader/css/player.css">
+  <link rel="stylesheet" href="./vendor/pdfReader/css/phoneTemplate.css">
+  <link rel="stylesheet" href="./vendor/pdfReader/css/template.css">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --line: #d7dce3;
+      --text: #1d252f;
+      --muted: #5f6b7a;
+      --primary: #2457a6;
+      --primary-soft: #e7eefb;
+      --danger: #9b2c2c;
+      --shadow: 0 10px 26px rgba(28, 36, 48, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      width: 100%;
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    body:not(.reader-loading) {
+      width: 100%;
+      height: 100vh;
+      overflow: hidden;
+      touch-action: manipulation;
+      overscroll-behavior: none;
+    }
+
+    @supports (height: 100dvh) {
+      body:not(.reader-loading) {
+        height: 100dvh;
+      }
+    }
+
+    .page {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 180px;
+    }
+
+    .brand strong {
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .tabs {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #eef1f5;
+      flex-shrink: 0;
+    }
+
+    .tab {
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      min-height: 34px;
+      padding: 0 14px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(28, 36, 48, 0.12);
+    }
+
+    .viewer-shell {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      min-height: 0;
+      padding: 14px;
+      gap: 12px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: end;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .field input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+      padding: 8px 10px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .btn {
+      min-height: 38px;
+      border: 1px solid var(--primary);
+      border-radius: 6px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      padding: 0 14px;
+      white-space: nowrap;
+    }
+
+    .btn.secondary {
+      background: #fff;
+      color: var(--primary);
+    }
+
+    .notice {
+      display: none;
+      color: var(--danger);
+      font-size: 13px;
+      line-height: 1.45;
+      margin: -4px 2px 0;
+    }
+
+    .notice.show {
+      display: block;
+    }
+
+    .frame-wrap {
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: calc(100vh - 146px);
+      border: 0;
+      background: #fff;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .tabs {
+        width: 100%;
+      }
+
+      .tab {
+        flex: 1;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      iframe {
+        min-height: calc(100vh - 252px);
+      }
+    }
+    body.reader-loading {
+      margin: 0;
+      min-height: 100vh;
+      background: #f8f9fa;
+      color: #202122;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .reader-status {
+      max-width: 760px;
+      margin: 12vh auto;
+      padding: 24px;
+      border: 1px solid #c8ccd1;
+      background: #fff;
+    }
+
+    .reader-status h1 {
+      margin: 0 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #a2a9b1;
+      font-family: Georgia, "Times New Roman", "Noto Serif SC", serif;
+      font-size: 30px;
+      font-weight: 400;
+      line-height: 1.25;
+    }
+
+    .reader-status p {
+      margin: 8px 0;
+      color: #54595d;
+      line-height: 1.7;
+    }
+
+    .reader-status a {
+      color: #36c;
+      text-decoration: none;
+    }
+
+    .reader-status a:hover {
+      text-decoration: underline;
+    }
+
+    .reader-settings-toggle {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 10020;
+      min-height: 36px;
+      border: 1px solid #a2a9b1;
+      background: #fff;
+      color: #202122;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      padding: 6px 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
+    }
+
+    .reader-settings-toggle svg {
+      display: none;
+    }
+
+    .reader-settings-toggle span {
+      display: inline;
+    }
+
+    .reader-settings-panel {
+      position: fixed;
+      top: 56px;
+      right: 12px;
+      z-index: 10021;
+      width: min(340px, calc(100vw - 24px));
+      max-height: calc(100vh - 76px);
+      overflow: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      border: 1px solid #a2a9b1;
+      background: #fff;
+      color: #202122;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      padding: 14px;
+    }
+
+    .reader-settings-panel h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .reader-settings-panel label {
+      display: grid;
+      gap: 5px;
+      margin: 10px 0;
+      color: #202122;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .reader-settings-panel select,
+    .reader-settings-panel input {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid #a2a9b1;
+      background: #fff;
+      color: #202122;
+      font: inherit;
+      font-size: 14px;
+      padding: 6px 8px;
+    }
+
+    .reader-settings-panel input[type="checkbox"] {
+      width: auto;
+      min-height: auto;
+    }
+
+    .reader-settings-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .reader-settings-check {
+      display: flex !important;
+      align-items: center;
+      gap: 8px !important;
+      grid-template-columns: none !important;
+    }
+
+    .reader-settings-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .reader-settings-actions button {
+      min-height: 34px;
+      border: 1px solid #36c;
+      background: #eaf2ff;
+      color: #36c;
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      padding: 6px 12px;
+    }
+
+    .reader-settings-actions button.secondary {
+      border-color: #a2a9b1;
+      background: #fff;
+      color: #202122;
+    }
+
+    .reader-settings-note {
+      margin: 8px 0 0;
+      color: #54595d;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    body.reader-theme-dark {
+      background: #111827;
+      color: #f3f4f6;
+    }
+
+    body.reader-theme-warm {
+      background: #f5efe2;
+      color: #2c2418;
+    }
+
+    @media (max-width: 640px) {
+      .reader-status {
+        margin: 8vh 12px;
+        padding: 18px;
+      }
+
+      .reader-status h1 {
+        font-size: 24px;
+      }
+
+      .reader-settings-toggle {
+        top: auto;
+        right: calc(10px + env(safe-area-inset-right));
+        bottom: calc(72px + env(safe-area-inset-bottom));
+        min-height: 42px;
+        padding: 8px 14px;
+      }
+
+      .reader-settings-panel {
+        inset: auto calc(10px + env(safe-area-inset-right)) calc(124px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left));
+        width: auto;
+        max-height: min(62vh, 520px);
+        max-height: min(62dvh, 520px);
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      }
+
+      .reader-settings-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reader-settings-panel select,
+      .reader-settings-panel input,
+      .reader-settings-actions button {
+        font-size: 16px;
+      }
+
+      .reader-settings-actions {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body class="reader-loading">
+  <main class="reader-status" id="readerStatus">
+    <h1>刊物 3D 阅读</h1>
+    <p id="readerMessage">正在加载刊物预览...</p>
+    <p><a href="../../wiki/publications.html">返回刊物资料库</a></p>
+  </main>
+
+  <button class="reader-settings-toggle" id="readerSettingsToggle" type="button" hidden>阅读设置</button>
+  <aside class="reader-settings-panel" id="readerSettingsPanel" aria-label="阅读设置" hidden>
+    <h2>阅读设置</h2>
+    <label>
+      尺寸
+      <select id="readerSettingSizePreset">
+        <option value="publication">使用刊物默认</option>
+        <option value="a4">A4 210 x 297 mm</option>
+        <option value="b5">B5 176 x 250 mm</option>
+        <option value="a5">A5 148 x 210 mm</option>
+        <option value="square">方形 210 x 210 mm</option>
+        <option value="custom">自定义尺寸</option>
+      </select>
+    </label>
+    <label>
+      方向
+      <select id="readerSettingOrientation">
+        <option value="portrait">纵向</option>
+        <option value="landscape">横向</option>
+      </select>
+    </label>
+    <div class="reader-settings-grid" id="readerSettingCustomSize" hidden>
+      <label>
+        宽度 mm
+        <input id="readerSettingWidthMm" type="number" min="1" step="0.1" inputmode="decimal">
+      </label>
+      <label>
+        高度 mm
+        <input id="readerSettingHeightMm" type="number" min="1" step="0.1" inputmode="decimal">
+      </label>
+    </div>
+    <label>
+      适配方式
+      <select id="readerSettingFitMode">
+        <option value="fit-page">适应页面</option>
+        <option value="fit-width">适应宽度</option>
+      </select>
+    </label>
+    <label>
+      显示模式
+      <select id="readerSettingDisplayMode">
+        <option value="auto">自动</option>
+        <option value="single">单页</option>
+        <option value="double">双页</option>
+      </select>
+    </label>
+    <label>
+      背景主题
+      <select id="readerSettingTheme">
+        <option value="wiki">Wiki 浅色</option>
+        <option value="dark">暗色</option>
+        <option value="warm">暖纸色</option>
+      </select>
+    </label>
+    <label>
+      壁纸
+      <select id="readerSettingBackground">
+        <option value="">不使用壁纸</option>
+      </select>
+    </label>
+    <label class="reader-settings-check">
+      <input id="readerSettingFlipSound" type="checkbox">
+      翻页音效
+    </label>
+    <p class="reader-settings-note">应用设置会刷新阅读器；设置保存在当前浏览器中。</p>
+    <div class="reader-settings-actions">
+      <button id="readerSettingsApply" type="button">应用设置</button>
+      <button class="secondary" id="readerSettingsReset" type="button">恢复默认</button>
+    </div>
+  </aside>
+
+  <script>
+    (function () {
+      var vendorRoot = './vendor/pdfReader/';
+      var apiUrl = '../../api/publication_previews.php?action=book_data&preview_id=';
+      var backgroundsUrl = '../../api/publication_previews.php?action=backgrounds';
+      var statusEl = document.getElementById('readerStatus');
+      var messageEl = document.getElementById('readerMessage');
+      var params = new URLSearchParams(window.location.search);
+      var previewId = parseInt(params.get('preview_id') || params.get('id') || '0', 10);
+      var settingsStorageKey = 'vnfest:pdfReader:settings:v1';
+      var settingsToggle = document.getElementById('readerSettingsToggle');
+      var settingsPanel = document.getElementById('readerSettingsPanel');
+      var settingSizePreset = document.getElementById('readerSettingSizePreset');
+      var settingOrientation = document.getElementById('readerSettingOrientation');
+      var settingCustomSize = document.getElementById('readerSettingCustomSize');
+      var settingWidthMm = document.getElementById('readerSettingWidthMm');
+      var settingHeightMm = document.getElementById('readerSettingHeightMm');
+      var settingFitMode = document.getElementById('readerSettingFitMode');
+      var settingDisplayMode = document.getElementById('readerSettingDisplayMode');
+      var settingTheme = document.getElementById('readerSettingTheme');
+      var settingBackground = document.getElementById('readerSettingBackground');
+      var settingFlipSound = document.getElementById('readerSettingFlipSound');
+      var settingsApply = document.getElementById('readerSettingsApply');
+      var settingsReset = document.getElementById('readerSettingsReset');
+      var sizePresets = {
+        a4: [210, 297],
+        b5: [176, 250],
+        a5: [148, 210],
+        square: [210, 210]
+      };
+      var activeReaderSettings = null;
+      var availableBackgrounds = [];
+      var readerHasUserInteraction = false;
+
+      function setMessage(message) {
+        if (messageEl) messageEl.textContent = message;
+      }
+
+      function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+        });
+      }
+
+      function resolveRootPath(path) {
+        if (!path) return '';
+        if (/^(https?:)?\/\//i.test(path) || path.indexOf('data:') === 0) return path;
+        return new URL('../../' + path.replace(/^\/+/, ''), window.location.href).href;
+      }
+
+      function resolveReaderAsset(path) {
+        return new URL(path, window.location.href).href;
+      }
+
+      function defaultReaderSettings() {
+        return {
+          page_size: {
+            preset: 'a4',
+            width_mm: 210,
+            height_mm: 297,
+            orientation: 'portrait'
+          },
+          theme: 'wiki',
+          background_path: '',
+          fit_mode: 'fit-page',
+          flip_sound: true,
+          display_mode: 'auto'
+        };
+      }
+
+      function normalizePageSize(pageSize, allowPublication) {
+        var defaults = defaultReaderSettings().page_size;
+        var preset = pageSize && pageSize.preset ? String(pageSize.preset).toLowerCase() : defaults.preset;
+        if (allowPublication && preset === 'publication') {
+          return {
+            preset: 'publication',
+            width_mm: defaults.width_mm,
+            height_mm: defaults.height_mm,
+            orientation: defaults.orientation
+          };
+        }
+        if (!sizePresets[preset] && preset !== 'custom') preset = 'a4';
+        var orientation = pageSize && pageSize.orientation ? String(pageSize.orientation).toLowerCase() : defaults.orientation;
+        if (orientation !== 'portrait' && orientation !== 'landscape') orientation = 'portrait';
+        var width = preset === 'custom' ? parseFloat(pageSize && pageSize.width_mm) : sizePresets[preset][0];
+        var height = preset === 'custom' ? parseFloat(pageSize && pageSize.height_mm) : sizePresets[preset][1];
+        if (!(width > 0) || !(height > 0)) {
+          preset = 'a4';
+          width = sizePresets.a4[0];
+          height = sizePresets.a4[1];
+        }
+        if (orientation === 'landscape' && height > width) {
+          var w = width;
+          width = height;
+          height = w;
+        }
+        if (orientation === 'portrait' && width > height) {
+          var h = height;
+          height = width;
+          width = h;
+        }
+        return {
+          preset: preset,
+          width_mm: width,
+          height_mm: height,
+          orientation: orientation
+        };
+      }
+
+      function normalizeReaderSettings(settings, allowPublication) {
+        var defaults = defaultReaderSettings();
+        settings = settings || {};
+        var theme = ['wiki', 'dark', 'warm'].indexOf(settings.theme) !== -1 ? settings.theme : defaults.theme;
+        var fitMode = ['fit-page', 'fit-width'].indexOf(settings.fit_mode) !== -1 ? settings.fit_mode : defaults.fit_mode;
+        var displayMode = ['auto', 'single', 'double'].indexOf(settings.display_mode) !== -1 ? settings.display_mode : defaults.display_mode;
+        var backgroundPath = settings.background_path ? String(settings.background_path) : '';
+        return {
+          page_size: normalizePageSize(settings.page_size, allowPublication),
+          theme: theme,
+          background_path: backgroundPath,
+          fit_mode: fitMode,
+          flip_sound: typeof settings.flip_sound === 'boolean' ? settings.flip_sound : defaults.flip_sound,
+          display_mode: displayMode
+        };
+      }
+
+      function loadLocalSettings() {
+        try {
+          var raw = localStorage.getItem(settingsStorageKey);
+          return raw ? normalizeReaderSettings(JSON.parse(raw), true) : normalizeReaderSettings({ page_size: { preset: 'publication' } }, true);
+        } catch (_error) {
+          return normalizeReaderSettings({ page_size: { preset: 'publication' } }, true);
+        }
+      }
+
+      function saveLocalSettings(settings) {
+        try {
+          localStorage.setItem(settingsStorageKey, JSON.stringify(settings));
+        } catch (_error) {}
+      }
+
+      function clearLocalSettings() {
+        try {
+          localStorage.removeItem(settingsStorageKey);
+        } catch (_error) {}
+      }
+
+      function buildEffectiveSettings(publicationSettings, localSettings) {
+        var publication = normalizeReaderSettings(publicationSettings || {}, false);
+        var local = localSettings ? normalizeReaderSettings(localSettings, true) : loadLocalSettings();
+        var effective = normalizeReaderSettings({
+          page_size: local.page_size.preset === 'publication' ? publication.page_size : local.page_size,
+          theme: local.theme || publication.theme,
+          background_path: local.background_path || '',
+          fit_mode: local.fit_mode || publication.fit_mode,
+          flip_sound: local.flip_sound,
+          display_mode: local.display_mode || 'auto'
+        }, false);
+        effective.publication_page_size = publication.page_size;
+        return effective;
+      }
+
+      function readerPixels(pageSize) {
+        var width = parseFloat(pageSize.width_mm) || 210;
+        var height = parseFloat(pageSize.height_mm) || 297;
+        if (height >= width) {
+          return {
+            width: Math.max(1, Math.round(1200 * width / height)),
+            height: 1200
+          };
+        }
+        return {
+          width: 1200,
+          height: Math.max(1, Math.round(1200 * height / width))
+        };
+      }
+
+      function isMobileReaderViewport() {
+        if (window.matchMedia) {
+          return window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+        }
+        return window.innerWidth <= 760;
+      }
+
+      function ensureVendorMobileMode() {
+        return;
+      }
+
+      function applyReaderTheme(theme) {
+        document.body.classList.toggle('reader-theme-dark', theme === 'dark');
+        document.body.classList.toggle('reader-theme-warm', theme === 'warm');
+      }
+
+      function updateSettingsCustomFields() {
+        if (!settingCustomSize || !settingSizePreset) return;
+        settingCustomSize.hidden = settingSizePreset.value !== 'custom';
+      }
+
+      function fillSettingsPanel(localSettings, publicationSettings) {
+        var local = normalizeReaderSettings(localSettings || { page_size: { preset: 'publication' } }, true);
+        var publication = normalizeReaderSettings(publicationSettings || {}, false);
+        settingSizePreset.value = local.page_size.preset || 'publication';
+        settingOrientation.value = local.page_size.preset === 'publication' ? publication.page_size.orientation : local.page_size.orientation;
+        settingWidthMm.value = local.page_size.preset === 'publication' ? publication.page_size.width_mm : local.page_size.width_mm;
+        settingHeightMm.value = local.page_size.preset === 'publication' ? publication.page_size.height_mm : local.page_size.height_mm;
+        settingFitMode.value = local.fit_mode;
+        settingDisplayMode.value = local.display_mode;
+        settingTheme.value = local.theme;
+        settingBackground.value = local.background_path || '';
+        settingFlipSound.checked = !!local.flip_sound;
+        updateSettingsCustomFields();
+      }
+
+      function collectSettingsPanel() {
+        return normalizeReaderSettings({
+          page_size: {
+            preset: settingSizePreset.value || 'publication',
+            width_mm: parseFloat(settingWidthMm.value || '0'),
+            height_mm: parseFloat(settingHeightMm.value || '0'),
+            orientation: settingOrientation.value || 'portrait'
+          },
+          fit_mode: settingFitMode.value || 'fit-page',
+          display_mode: settingDisplayMode.value || 'auto',
+          theme: settingTheme.value || 'wiki',
+          background_path: settingBackground.value || '',
+          flip_sound: !!settingFlipSound.checked
+        }, true);
+      }
+
+      function populateBackgroundOptions(backgrounds) {
+        availableBackgrounds = Array.isArray(backgrounds) ? backgrounds : [];
+        if (!settingBackground) return;
+        var current = settingBackground.value;
+        settingBackground.innerHTML = '<option value="">不使用壁纸</option>' + availableBackgrounds.map(function (item) {
+          return '<option value="' + escapeHtml(item.path) + '">' + escapeHtml(item.name) + '</option>';
+        }).join('');
+        settingBackground.value = current && availableBackgrounds.some(function (item) { return item.path === current; }) ? current : '';
+      }
+
+      function loadBackgroundOptions() {
+        return fetch(backgroundsUrl, { credentials: 'same-origin' })
+          .then(function (response) { return response.ok ? response.json() : { backgrounds: [] }; })
+          .then(function (json) { populateBackgroundOptions(json.backgrounds || []); })
+          .catch(function () { populateBackgroundOptions([]); });
+      }
+
+      function sanitizeLocalBackground(settings) {
+        settings = normalizeReaderSettings(settings || {}, true);
+        if (settings.background_path && !availableBackgrounds.some(function (item) { return item.path === settings.background_path; })) {
+          settings.background_path = '';
+          saveLocalSettings(settings);
+        }
+        return settings;
+      }
+
+      function initSettingsPanel(preview) {
+        return loadBackgroundOptions().then(function () {
+          var local = sanitizeLocalBackground(loadLocalSettings());
+          activeReaderSettings = buildEffectiveSettings(preview.reader_settings || null, local);
+          window.__vnfestReaderSettings = activeReaderSettings;
+          fillSettingsPanel(local, preview.reader_settings || null);
+          applyReaderTheme(activeReaderSettings.theme);
+          if (settingsToggle) settingsToggle.hidden = false;
+        });
+      }
+
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var script = document.createElement('script');
+          script.src = src;
+          script.onload = resolve;
+          script.onerror = function () { reject(new Error('加载脚本失败：' + src)); };
+          document.body.appendChild(script);
+        });
+      }
+
+      function markReaderUserInteraction(event) {
+        if (event && event.isTrusted === false) return;
+        readerHasUserInteraction = true;
+      }
+
+      ['pointerdown', 'touchstart', 'mousedown', 'keydown'].forEach(function (eventName) {
+        document.addEventListener(eventName, markReaderUserInteraction, { capture: true, passive: true });
+      });
+
+      function applyBookConfigSettings(settings) {
+        var pixels = readerPixels(settings.page_size);
+        var isMobile = isMobileReaderViewport();
+        var effectiveDisplayMode = settings.display_mode;
+        var desktopMargin = settings.fit_mode === 'fit-width' ? '0' : '10';
+        var mobileMargin = settings.fit_mode === 'fit-width' ? '0' : '6';
+        if (isMobile && effectiveDisplayMode === 'auto') effectiveDisplayMode = 'single';
+        window.__vnfestPagePixels = pixels;
+        window.__vnfestReaderIsMobile = isMobile;
+        window.__vnfestReaderDisplayMode = effectiveDisplayMode;
+        window.bookConfig.largePageWidth = String(pixels.width);
+        window.bookConfig.largePageHeight = String(pixels.height);
+        window.bookConfig.FlipSound = settings.flip_sound ? 'Yes' : 'No';
+        window.bookConfig.EnableReportButton = 'Hide';
+        if (effectiveDisplayMode === 'single') {
+          window.bookConfig.autoDoublePage = 'No';
+          window.bookConfig.alwaysDoublePageOnMobile = 'No';
+          window.bookConfig.isSingleBookFullWindowOnMobile = 'No';
+        } else if (effectiveDisplayMode === 'double') {
+          window.bookConfig.autoDoublePage = 'Yes';
+          window.bookConfig.alwaysDoublePageOnMobile = 'Yes';
+          window.bookConfig.isSingleBookFullWindowOnMobile = 'No';
+        } else {
+          window.bookConfig.autoDoublePage = 'Yes';
+          window.bookConfig.alwaysDoublePageOnMobile = 'No';
+          window.bookConfig.isSingleBookFullWindowOnMobile = 'No';
+        }
+
+        window.bookConfig.topMargin = desktopMargin;
+        window.bookConfig.bottomMargin = desktopMargin;
+        window.bookConfig.leftMargin = desktopMargin;
+        window.bookConfig.rightMargin = desktopMargin;
+        window.bookConfig.topMarginOnMobile = mobileMargin;
+        window.bookConfig.bottomMarginOnMobile = mobileMargin;
+        window.bookConfig.leftMarginOnMobile = mobileMargin;
+        window.bookConfig.rightMarginOnMobile = mobileMargin;
+        window.bookConfig.maxWidthToSmallMode = '280';
+        window.bookConfig.maxHeightToSmallMode = '280';
+        window.bookConfig.defaultZoomWidth = settings.fit_mode === 'fit-width' ? String(pixels.width) : '0';
+        window.bookConfig.maxZoomWidth = settings.fit_mode === 'fit-width' ? String(pixels.width * 3) : '0';
+
+        if (settings.theme === 'dark') {
+          window.bookConfig.bgBeginColor = '#111827';
+          window.bookConfig.bgEndColor = '#111827';
+          window.bookConfig.pageBackgroundColor = '#f7f7f2';
+          window.bookConfig.toolbarColor = '#1f2937';
+          window.bookConfig.iconColor = '#e5e7eb';
+          window.bookConfig.formBackgroundColor = '#111827';
+          window.bookConfig.formFontColor = '#f9fafb';
+        } else if (settings.theme === 'warm') {
+          window.bookConfig.bgBeginColor = '#f5efe2';
+          window.bookConfig.bgEndColor = '#eadfca';
+          window.bookConfig.pageBackgroundColor = '#fffaf0';
+          window.bookConfig.toolbarColor = '#6f5636';
+          window.bookConfig.iconColor = '#fff8ea';
+          window.bookConfig.formBackgroundColor = '#efe3ca';
+          window.bookConfig.formFontColor = '#2c2418';
+        } else {
+          window.bookConfig.bgBeginColor = '#f8f9fa';
+          window.bookConfig.bgEndColor = '#f8f9fa';
+          window.bookConfig.pageBackgroundColor = '#ffffff';
+          window.bookConfig.toolbarColor = '#444444';
+          window.bookConfig.iconColor = '#cccccc';
+          window.bookConfig.formBackgroundColor = '#ffffff';
+          window.bookConfig.formFontColor = '#202122';
+        }
+
+        if (settings.background_path) {
+          window.bookConfig.backGroundImgURL = resolveRootPath(settings.background_path);
+          window.bookConfig.backgroundPosition = 'Fill';
+          window.bookConfig.backgroundOpacity = '100';
+        }
+      }
+
+      function installBookData(preview) {
+        var pages = (preview.pages || []).map(resolveRootPath);
+        var settings = activeReaderSettings || buildEffectiveSettings(preview.reader_settings || null);
+        window.ols = pages.map(function (_page, index) {
+          return { caption: '第 ' + (index + 1) + ' 页', page: String(index + 1) };
+        });
+        document.title = preview.title || '刊物 3D 阅读';
+        window.title = preview.title || '刊物 3D 阅读';
+        window.desc = preview.description || '';
+        window.link = window.location.href;
+        window.imgUrl = preview.cover_path ? resolveRootPath(preview.cover_path) : '';
+        if (Array.isArray(window.shareObj)) {
+          window.shareObj.forEach(function (item) {
+            if (item.logo && item.logo.indexOf('qzone.ico') !== -1) item.logo = resolveReaderAsset(vendorRoot + 'images/qzone.ico');
+            if (item.logo && item.logo.indexOf('sina_weibo.ico') !== -1) item.logo = resolveReaderAsset(vendorRoot + 'images/sina_weibo.ico');
+          });
+        }
+        window.bookConfig.bookTitle = preview.title || '刊物 3D 阅读';
+        window.bookConfig.bookDescription = preview.description || '';
+        window.bookConfig.productName = 'VNFest Wiki Publications';
+        window.bookConfig.useTheAliCloudChart = false;
+        window.bookConfig.backGroundImgURL = resolveReaderAsset(vendorRoot + 'images/backGroundImgURL.jpg');
+        window.bookConfig.UIBaseURL = resolveReaderAsset(vendorRoot);
+        window.bookConfig.largePath = '';
+        window.bookConfig.normalPath = '';
+        window.bookConfig.thumbPath = '';
+        window.bookConfig.totalPageCount = pages.length;
+        applyBookConfigSettings(settings);
+        window.bookConfig.getPageURL = function (page) {
+          return pages[page - 1] || '';
+        };
+      }
+
+      function resetVendorTransform(target) {
+        if (!target || typeof target.css !== 'function') return;
+        target.css({
+          transform: 'translate(0px, 0px)',
+          '-webkit-transform': 'translate(0px, 0px)',
+          '-moz-transform': 'translate(0px, 0px)',
+          '-ms-transform': 'translate(0px, 0px)',
+          '-o-transform': 'translate(0px, 0px)'
+        });
+      }
+
+      function forceCloseVendorPhoneForm(panel) {
+        if (!panel) return;
+        panel.visible = false;
+        panel.animating = false;
+        resetVendorTransform(panel.stage);
+        resetVendorTransform(panel.parent);
+        if (panel.stage && typeof panel.stage.css === 'function' && panel.width) {
+          panel.stage.css({ left: '-' + panel.width + 'px' });
+        }
+        if (panel.mask && typeof panel.mask.hide === 'function') {
+          panel.mask.hide();
+        }
+      }
+
+      function hideVendorPanel(name) {
+        var panel = window[name];
+        if (!panel) return;
+        if (typeof panel.hide === 'function' && (panel.visible || (typeof panel.getShowStatu === 'function' && panel.getShowStatu()))) {
+          try {
+            panel.hide();
+          } catch (_error) {}
+        }
+        forceCloseVendorPhoneForm(panel);
+      }
+
+      function resetVendorPhoneFormDom() {
+        [
+          '.share_form.phone',
+          '.search_form.phone',
+          '.tableofcontent_form.phone',
+          '.bookmark_form.phone',
+          '.language_form.phone',
+          '.setting_form.phone',
+          '.print_form.phone',
+          '.about_form.phone'
+        ].forEach(function (selector) {
+          document.querySelectorAll(selector).forEach(function (element) {
+            element.style.transform = 'translate(0px, 0px)';
+            element.style.webkitTransform = 'translate(0px, 0px)';
+          });
+        });
+      }
+
+      function resetVendorInitialPanels() {
+        [
+          'sharePanel',
+          'frmSearch',
+          'frmTableOfContent',
+          'thumbnail',
+          'bookmark',
+          'languagePanel',
+          'phoneSettingBody',
+          'printBody',
+          'aboutBody',
+          'moreBar',
+          'foldingMenu'
+        ].forEach(hideVendorPanel);
+        document.querySelectorAll('.form_mask_phone').forEach(function (element) {
+          element.style.display = 'none';
+        });
+        resetVendorPhoneFormDom();
+      }
+
+      function scheduleInitialPanelReset() {
+        [0, 200, 500, 900, 1400, 2200, 3200, 4800, 6500].forEach(function (delay) {
+          window.setTimeout(function () {
+            if (!readerHasUserInteraction) resetVendorInitialPanels();
+          }, delay);
+        });
+      }
+
+      function bootFlipbook(preview) {
+        if (!preview || !preview.pages || !preview.pages.length) {
+          throw new Error('刊物页面为空');
+        }
+        if (statusEl) statusEl.hidden = true;
+        document.body.classList.remove('reader-loading');
+        return initSettingsPanel(preview)
+          .then(function () { return loadScript(vendorRoot + 'js/jquery.js'); })
+          .then(function () { return loadScript(vendorRoot + 'js/config.js'); })
+          .then(function () {
+            ensureVendorMobileMode();
+            installBookData(preview);
+            window.waitForLoading = true;
+          })
+          .then(function () { return loadScript(vendorRoot + 'js/main.js'); })
+          .then(function () { return loadScript(vendorRoot + 'js/check.js'); })
+          .then(function () { return loadScript(vendorRoot + 'js/LoadingJS.js'); })
+          .then(function () {
+            if (window.toolBar && typeof window.toolBar.onResize === 'function') {
+              window.toolBar.onResize();
+            }
+            scheduleInitialPanelReset();
+          });
+      }
+
+      if (settingsToggle && settingsPanel) {
+        settingsToggle.addEventListener('click', function () {
+          readerHasUserInteraction = false;
+          resetVendorInitialPanels();
+          readerHasUserInteraction = true;
+          settingsPanel.hidden = !settingsPanel.hidden;
+        });
+        ['click', 'mousedown', 'touchstart', 'pointerdown', 'wheel'].forEach(function (eventName) {
+          settingsPanel.addEventListener(eventName, function (event) {
+            event.stopPropagation();
+          }, { passive: true });
+        });
+      }
+      if (settingSizePreset) {
+        settingSizePreset.addEventListener('change', updateSettingsCustomFields);
+      }
+      if (settingTheme) {
+        settingTheme.addEventListener('change', function () {
+          applyReaderTheme(settingTheme.value);
+        });
+      }
+      if (settingsApply) {
+        settingsApply.addEventListener('click', function () {
+          saveLocalSettings(collectSettingsPanel());
+          window.location.reload();
+        });
+      }
+      if (settingsReset) {
+        settingsReset.addEventListener('click', function () {
+          clearLocalSettings();
+          window.location.reload();
+        });
+      }
+
+      if (!previewId) {
+        setMessage('缺少 preview_id，请从刊物资料库进入阅读。');
+        return;
+      }
+
+      fetch(apiUrl + encodeURIComponent(previewId), { credentials: 'same-origin' })
+        .then(function (response) {
+          return response.json().catch(function () { return {}; }).then(function (json) {
+            if (!response.ok || !json.success) {
+              throw new Error(json.message || '刊物预览不存在或尚未发布');
+            }
+            return json.preview;
+          });
+        })
+        .then(bootFlipbook)
+        .catch(function (error) {
+          setMessage(error.message || '加载失败');
+        });
+    }());
+  </script>
+</body>
+</html>

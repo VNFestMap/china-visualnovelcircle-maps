@@ -104,9 +104,7 @@ switch ($action) {
         if (!$stage) voteRespond(['success' => false, 'message' => '阶段不存在'], 404);
         [$user, $project] = voteRequireProjectManager((int)$stage['project_id']);
         $payload = voteStagePayload($input, $stage);
-        $flowPool = ($project['project_type'] ?? '') === 'moe'
-            ? voteFlowPoolForStage($db, (int)$stage['id'])
-            : null;
+        $flowPool = voteFlowPoolForStage($db, (int)$stage['id']);
         $coreChanged = voteStageCoreChanged($stage, $payload);
         if ($flowPool && $coreChanged && $action !== 'update_and_rebuild') {
             voteRespond([
@@ -145,7 +143,8 @@ switch ($action) {
                 'project_id' => (int)$project['id'],
             ];
             $updatedStage = array_merge($stage, $payload);
-            $runtimeConfig = voteMoeRuntimeConfig($run, $updatedStage);
+            $isMoe = ($project['project_type'] ?? '') === 'moe';
+            $runtimeConfig = $isMoe ? voteMoeRuntimeConfig($run, $updatedStage) : voteStageConfig($updatedStage);
             $previewPool = array_merge($flowPool, [
                 'stage_type' => $payload['stage_type'],
                 'vote_mode' => $payload['vote_mode'],
@@ -262,7 +261,15 @@ switch ($action) {
                 'FLOW_POOL_CREATE_FAILED' => '海选池创建失败',
                 'FLOW_POOL_READBACK_MISMATCH' => '海选池写入后读取数量不一致，已回滚',
             ];
-            voteRespond(['success' => false, 'code' => 'REBUILD_FLOW_AND_OPEN_FAILED', 'message' => $messages[$e->getMessage()] ?? $e->getMessage()], 400);
+            $message = $messages[$e->getMessage()] ?? $e->getMessage();
+            $validationHints = ['晋级数必须大于 0 且不能超过候选数', '晋级数必须能被分组数整除', '每组候选数不足以满足晋级名额', '阶段池没有可用候选'];
+            foreach ($validationHints as $hint) {
+                if (strpos($message, $hint) !== false) {
+                    $message .= '，请检查海选阶段配置（晋级数、分组数）是否与实际候选数匹配';
+                    break;
+                }
+            }
+            voteRespond(['success' => false, 'code' => 'REBUILD_FLOW_AND_OPEN_FAILED', 'message' => $message], 400);
         }
 
     case 'rebuild_from_nomination':
@@ -710,6 +717,7 @@ switch ($action) {
                 (string)($flowPool['status'] ?? ''),
                 (string)$runtime['result_visibility']
             );
+            $canManage = $user && voteCanManageProject($user, $project);
             $voteStmt = $db->prepare('SELECT entry_id, COALESCE(SUM(vote_value), 0) AS votes FROM vote_votes WHERE stage_id = ? GROUP BY entry_id');
             $voteStmt->execute([$stageId]);
             $voteCounts = [];
@@ -722,7 +730,7 @@ switch ($action) {
                 if (!empty($r['image_url'])) $r['image_url'] = proxyImageUrl($r['image_url']);
                 $r['stage_id'] = $stageId;
                 $r['entry_id'] = (int)$r['entry_id'];
-                if (($project['project_type'] ?? '') !== 'moe' || $visibility['metrics_visible']) {
+                if ($visibility['metrics_visible'] || $canManage) {
                     $r['votes'] = (int)($voteCounts[(int)$r['entry_id']] ?? 0);
                 } else {
                     unset($r['votes']);
@@ -732,6 +740,23 @@ switch ($action) {
                 if (!isset($groups[$groupKey])) $groups[$groupKey] = 0;
                 $groups[$groupKey]++;
                 if ($sourcePoolId === null && !empty($r['source_pool_id'])) $sourcePoolId = (int)$r['source_pool_id'];
+            }
+            unset($r);
+            if ($canManage) {
+                usort($rows, function ($a, $b) use ($voteCounts) {
+                    $va = (int)($voteCounts[(int)$a['entry_id']] ?? 0);
+                    $vb = (int)($voteCounts[(int)$b['entry_id']] ?? 0);
+                    if ($va !== $vb) return $vb <=> $va;
+                    $sa = (int)($a['seed_no'] ?? 0);
+                    $sb = (int)($b['seed_no'] ?? 0);
+                    if ($sa !== $sb) return $sa <=> $sb;
+                    return (int)$a['entry_id'] <=> (int)$b['entry_id'];
+                });
+                $rank = 1;
+                foreach ($rows as &$r) {
+                    $r['rank'] = $rank++;
+                }
+                unset($r);
             }
             voteRespond([
                 'success' => true,
@@ -747,6 +772,7 @@ switch ($action) {
                 'runtime' => $runtime,
                 'rank_visible' => $visibility['rank_visible'],
                 'metrics_visible' => $visibility['metrics_visible'],
+                'can_manage' => $canManage,
                 'data' => $rows,
             ]);
         }

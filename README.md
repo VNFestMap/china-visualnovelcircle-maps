@@ -1,276 +1,325 @@
-# VNFest Galgame 同好会地图
-
-> 中日高校 Galgame / 视觉小说同好会导航、社团资料维护、活动发布、刊物征稿、企划运营与 Wiki 共建平台。
+<p align="right">
+  <a href="README.ja.md">日本語</a> · <a href="README.en.md">English</a>
+</p>
 
 <p align="center">
   <img src="images/VNF.png" alt="VNFest" width="420">
 </p>
 
 <p align="center">
-  <a href="package.json"><img alt="Version" src="https://img.shields.io/badge/version-1.7.0-2ecc71?style=for-the-badge"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPLv3-355c9b?style=for-the-badge"></a>
-  <a href="https://www.php.net/"><img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=for-the-badge&logo=php&logoColor=white"></a>
-  <a href="https://d3js.org/"><img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=for-the-badge&logo=d3.js&logoColor=white"></a>
+  <b>中日高校 Galgame / 视觉小说同好会导航 · 社团运营 · 活动发布 · 刊物征稿 · 企划赛事 · Wiki 共建</b>
 </p>
 
-## 项目定位
+<p align="center">
+  <a href="https://www.map.vnfest.top"><img alt="Website" src="https://img.shields.io/badge/🌐_在线访问-map.vnfest.top-2ecc71?style=flat-square"></a>
+  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-2ecc71?style=flat-square">
+  <img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=flat-square&logo=php&logoColor=white">
+  <img alt="React" src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white">
+  <img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=flat-square&logo=d3.js&logoColor=white">
+  <img alt="License" src="https://img.shields.io/badge/license-GPLv3-355c9b?style=flat-square">
+</p>
 
-VNFest Galgame 同好会地图不是一个单纯的社团目录，而是给视觉小说同好会使用的轻量运营平台。它把地图导航、同好会资料、成员绑定、活动日历、刊物征稿、企划运营、投票赛事、Wiki 和反馈串在一起，让用户能找到组织，也让负责人能持续维护自己的同好会信息。
+---
 
-核心体验：
+## 这是什么
+
+**VNFest**（Visual Novel Festival）不是一个单纯的社团目录。它是一个为视觉小说同好会量身打造的轻量运营平台，把地图导航、社团资料维护、成员管理、活动日历、刊物征稿、企划协作、投票赛事和 Wiki 百科串联在一条完整的链路上。
+
+无论你是想找组织的同好、维护社团信息的负责人、策划活动的运营者，还是想在百科里写点什么的编辑者——VNFest 都为你准备了对应的入口。
 
 ```text
-发现同好会 -> 查看详情 -> 申请绑定/加入 -> 参与活动 -> 投稿刊物/Wiki -> 参与企划赛事
+发现同好会 → 查看详情 → 申请加入 → 参与活动 → 投稿刊物 / Wiki → 参与企划赛事
 ```
 
-## 1.7.0 更新重点
+> **在线体验：** [https://www.map.vnfest.top](https://www.map.vnfest.top)
+> 无需注册即可进入访客模式浏览地图和同好会信息。
 
-相较于 1.6.6，本版本是一次超大规模更新，新增了企划枢纽、十二器、萌战、投票活动、同好会广场等核心模块，同时移除了不再维护的桌面端/移动端打包和 Astrbot 插件。
+---
 
-| 模块 | 更新 |
-| --- | --- |
-| 企划枢纽 | 全新企划管理系统 (`project-hub.js`)，同好会可创建/管理企划项目，支持项目成员、进度追踪、文件关联；配套管理后台 (`admin/club_project_manager.html`) 和 PHP API |
-| 十二器 | 完整赛事系统 (`twelve/`)，支持提名、海选、分组多轮投票/评分制，最终沉淀 Top 12；数据源优先 Bangumi 搜索，补充 VNDB，保留手动提名 |
-| 萌战系统 | 萌战赛事 (`moe/contest.html`)，支持提名、海选、2 的幂人数 1v1 淘汰赛，最终选出萌王；赛事页面独立于旧版萌战 Hub |
-| 投票活动系统 | 统一投票企划底座 (`vote.html`)，同好会负责人/管理员可创建、发布、归档本会企划，支持多阶段多轮次投票 |
-| 同好会广场 | 集中浏览入口 (`club_square.html`)，展示公开的十二器、萌战和后续大型企划 |
-| 成长系统 | 用户成长体系 (`includes/growth.php`)，用户活跃度和贡献追踪 API |
-| 图片代理 | 图片代理服务 (`api/image_proxy.php`)，支持外部图片安全加载；VNDB 代理 (`api/vndb_proxy.php`) 用于赛事数据补充 |
-| 国际化 | 页面国际化初步支持 (`js/page-i18n.js`)，日本都道府县数据 (`includes/japan_prefectures.php`) |
-| 配置规范 | `config.php` 新增 `LEGACY_AUTH_ENABLED` 过渡期兼容开关，Bangumi Token 配置项 |
-| 移除模块 | 移除 Electron 桌面端打包、Capacitor 安卓打包、Astrbot QQ 机器人插件、旧版萌战管理页 (`admin/moe_manager.html`)、`package-lock.json` |
+## 功能详解
 
-## 功能总览
+### 🗺️ 地图与发现
 
-### 地图与列表
+VNFest 的核心体验从一张交互式地图开始。
 
-- 中国省份地图、日本都道府县地图、海外同好会入口
-- 地图模式 / 列表模式切换
-- 省份索引、搜索、类型筛选和排序
-- 多省份绑定，同一组织可显示在多个地区
-- 访客浏览与登录后管理入口
+中国地图覆盖全部省份，日本地图精确到都道府县级别，每个地区上标注了当地已注册的视觉小说同好会。点击任意区域即可查看该地区的同好会列表，也可以在地图模式和列表模式之间自由切换。
 
-### 同好会资料
+除了地图浏览，还提供省份索引、关键词搜索、类型筛选（学校社团 / 民间组织 / 线上社群）和多维排序等发现手段。同一个同好会可以绑定多个省份，方便跨地区组织被正确展示。
 
-- 同好会名称、地区、学校、类型、联系方式和简介维护
-- 头像上传、裁剪与展示
-- 负责人 / 管理员 / 超级管理员权限层级
-- 成员申请、审核、绑定和成员列表
-- 详细页直达 Wiki、活动、刊物和相关操作
+访客无需登录即可浏览全部地图数据和同好会详情；登录后则获得管理入口，可以编辑自己负责的社团信息。
 
-### 活动与刊物
+### 📋 同好会资料
 
-- 活动日历与列表视图
-- 活动投稿、审核、展示和报名数据
-- 刊物征稿发布、状态追踪和关联同好会
-- GalOnly 活动专题入口和审核页
+每个同好会都有完整的资料页面，包含名称、地区、所属学校、组织类型、联系方式和详细介绍。
 
-### 企划枢纽
+负责人可以上传并裁剪社团头像、维护社团简介和联系方式。系统支持三级权限体系：普通成员、同好会负责人和超级管理员，不同角色看到不同的操作入口。
 
-- 同好会企划项目的创建、编辑和管理
-- 项目成员管理（邀请/移除/角色分配）
-- 项目进度状态追踪（筹备中 / 进行中 / 已完成 / 搁置）
-- 项目文件关联
-- 企划列表浏览和详情查看
+成员管理方面，支持申请加入、负责人审核、绑定码快速加入等流程。同好会详情页还集成了推荐榜（其他用户可以推荐喜欢的社团）和留言板（成员和访客可以留言互动），让社团页面不只是静态信息，而是一个活的社区页面。
 
-### 投票赛事系统
+### 📅 活动与刊物
 
-- 统一投票企划底座：多阶段多轮次投票
-- 十二器：提名 → 海选 → 分组评分/投票，最终 Top 12
-- 萌战：提名 → 海选 → 1v1 淘汰赛，最终萌王
-- 数据源：Bangumi + VNDB 搜索提名，手动补充
+**活动系统** 提供日历视图和列表视图两种浏览方式。同好会负责人可以发布活动、管理投稿、审核内容和追踪报名数据。用户可以直接在活动页面报名参加。
 
-### 同好会广场
+**刊物征稿** 允许负责人发布征稿启事，追踪投稿状态（待审核 / 已录用 / 已发布），并将刊物关联到发起的同好会。
 
-- 集中浏览所有公开企划、赛事和活动
-- 快速筛选和分类查看
+**GalOnly 活动** 拥有独立的专题入口和审核面板，还配备了完整的 **Staff 招募系统**——用户可以在线提交工作人员申请，管理员通过投票和审核流程筛选，最终锁定排班名单。
 
-### 成长系统
+### 🏗️ 企划枢纽
 
-- 用户活跃度追踪
-- 贡献度统计
+企划枢纽是同好会协作的中心。
 
-### Wiki
+负责人可以创建企划项目，邀请其他成员加入并分配角色（策划 / 美术 / 文案 / 技术）。每个项目都有清晰的状态追踪——从筹备中、进行中、已完成到搁置，一目了然。项目还支持文件关联，方便团队共享素材和文档。
 
-- Wiki 首页、写作指南和静态详情页
-- 可视化编辑工具
-- 中文 / 日文内容支持
-- 图片、信息卡、时间线、外链和结构化段落
-- 生成后的 Wiki 页面可直接发布为静态 HTML
+所有企划都汇集在同好会广场中公开展示，让更多人看到正在进行的社区项目。
 
-### 登录与账号
+### 🏆 投票赛事
 
-- 默认登录页入口
-- 本地账号登录 / 注册
-- 邮箱验证码和找回密码
-- QQ / Discord OAuth 入口
-- Session 和第三方账号隐私保护
+VNFest 拥有一套统一的投票底座系统，支持多阶段、多轮次的灵活配置。在此之上构建了两个特色赛事：
 
-## 技术栈
+**十二器（Twelve）** — 面向作品的评选系统。流程为提名 → 海选 → 分组评分/投票，最终沉淀出年度 Top 12 视觉小说。数据源优先从 Bangumi 搜索，补充 VNDB 数据，同时保留手动提名入口。
+
+**萌战（Moe）** — 面向角色的对决系统。流程为提名 → 海选 → 2 的幂人数 1v1 淘汰赛，最终选出萌王。淘汰赛阶段有独立的对阵图可视化组件，支持缩放、平移、拖拽交互，并实时显示每场比赛的投票状态和票数。
+
+两个赛事都配备了独立的 Hub 页面、详情页和赛事管理后台，从提名到决赛的完整流程都可以在线完成。
+
+### 👤 用户中心
+
+v2.0 全新重写的用户中心，从原来的单体 HTML 页面迁移到了基于 React 18 的 SPA 架构。
+
+提供个人资料编辑、社团管理、消息通知、成长体系等一站式操作体验。页面加载更快、交互更流畅，并且为未来的功能扩展打下了良好的架构基础。
+
+支持本地账号注册/登录、邮箱验证码、密码找回，以及 QQ 和 Discord 第三方 OAuth 登录。
+
+### 📖 Wiki 百科
+
+VNFest Wiki 采用百科式布局——左侧导航栏 + 右侧内容区，和传统 Wiki 站点的体验一致。
+
+编辑器支持可视化操作，可以在页面中插入图片、信息卡（infobox）、时间线、外部链接和结构化段落。内容支持中文和日文双语，满足不同用户群体的编辑需求。
+
+编辑完成后，Wiki 页面可以直接生成并发布为静态 HTML，无需额外的构建步骤。Wiki 首页提供「最近更新」和「资料公开库」等快捷入口，方便浏览和维护。
+
+### 📚 资料公开库
+
+面向同好会刊物的数字存档系统。支持 PDF 和图片格式上传，管理员可以维护刊物的元数据（标题、作者、发布日期、关联同好会等）。
+
+内置 PDF 阅读器工具，支持 3D 翻页效果预览，让用户无需下载即可在线浏览刊物内容。
+
+### 🌌 同好会广场
+
+同好会广场是整个平台的信息汇聚点，集中展示所有公开的赛事、企划和活动。
+
+采用深邃宇宙主题设计，配合五色活动卡片进行分类标识，视觉上一眼就能区分不同类型的社区动态。支持中日双语切换，让不同语言的用户都能无障碍浏览。
+
+### 🌟 联合星图
+
+联合星图是一个视觉沉浸式的探索入口。
+
+页面采用 Cinematic Frontend v2 设计——径向渐变背景、雷达扫描动效和暗角效果，营造出太空探索的氛围。支持沉浸式模式，隐藏 HUD 元素，让用户完全沉浸在星图浏览中。
+
+---
+
+## 谁在使用
+
+| 角色 | 能做什么 |
+|------|---------|
+| **访客** | 浏览地图、查看同好会详情、阅读 Wiki、观看赛事 |
+| **注册用户** | 加入同好会、报名参加活动、投稿刊物、编辑 Wiki、参与投票 |
+| **同好会负责人** | 维护社团资料、发布活动和征稿、管理成员、创建企划、发起赛事 |
+| **管理员** | 审核同好会、管理 GalOnly 活动、运营萌战/十二器赛事、全站通知 |
+
+---
+
+## v2.0 更新亮点
+
+> 从 v1.7.1 到 v2.0，VNFest 经历了一次从视觉到架构的全面升级。
+
+| 亮点 | 说明 |
+|------|------|
+| **用户中心 SPA 化** | 从 2,500 行内联 HTML 迁移到 React 18 SPA，交互体验质的飞跃 |
+| **GalOnly Staff 招募** | 全新上线的工作人员申请、投票、审核和排班全流程 |
+| **资料公开库** | 刊物 PDF/图片上传、元数据管理和在线 3D 翻页预览 |
+| **淘汰赛可视化** | 萌战和十二器的独立对阵图组件，支持缩放、拖拽和实时状态 |
+| **星图视觉升级** | Cinematic Frontend v2 — 径向渐变 + 雷达扫描 + 沉浸式模式 |
+| **广场重写** | 深邃宇宙主题 + 五色卡片 + 中日双语切换 |
+| **性能优化** | 分批渲染、事件委托、搜索防抖，大量数据下依然流畅 |
+| **设计系统统一** | oklch 色彩空间 + Playfair Display / Jost / Noto Serif SC 字体组合 |
+
+---
+
+## 技术架构
+
+```text
+┌──────────────────────────────────────────────────────┐
+│                    浏览器 / 客户端                      │
+│   HTML + CSS + Vanilla JS    │    React 18 SPA       │
+│   D3.js 7 (地图可视化)        │   (用户中心)            │
+└────────────────┬─────────────┴───────────┬───────────┘
+                 │  fetch() / REST         │
+┌────────────────┴─────────────────────────┴───────────┐
+│                   PHP 8.x 后端                         │
+│   api/*.php (端点)  │  includes/*.php (公共模块)        │
+│   __DIR__ 相对路径引用，无框架依赖                        │
+└────────────────┬─────────────────────────────────────┘
+                 │
+┌────────────────┴─────────────────────────────────────┐
+│                     数据层                             │
+│   JSON 运行时文件  │  SQLite / MySQL via PDO            │
+│   data/*.json     │  data/galgame.db                  │
+└──────────────────────────────────────────────────────┘
+```
 
 | 层 | 技术 |
-| --- | --- |
-| 前端 | HTML, CSS, Vanilla JavaScript, D3.js |
-| 后端 | PHP 8.x |
-| 数据 | JSON runtime files, SQLite/MySQL via PDO |
-| 测试 | Node.js contract tests |
+|---|---|
+| 前端 | HTML · CSS · Vanilla JavaScript · React 18 · D3.js 7 |
+| 后端 | PHP 8.x（`__DIR__` 相对路径，零框架依赖） |
+| 数据 | JSON 运行时文件 · SQLite / MySQL via PDO |
+| 构建 | Vite（用户中心 SPA）|
+| 测试 | Node.js 契约测试（39+ 测试脚本） |
+| 部署 | Docker · GitHub Actions CI/CD · Watchtower 自动滚动更新 |
+| 国际化 | 中文 / 日本語 双语支持 |
+
+---
 
 ## 项目结构
 
 ```text
 .
-├─ admin/                 管理后台页面
-├─ api/                   PHP API
-├─ css/                   全站样式
-├─ data/                  本地运行数据目录，生产数据不进入 Git
-├─ Galgame_events/        GalOnly 活动相关页面
-├─ image/background/      本地壁纸投放目录，仅保留 .gitkeep
-├─ images/                站点内置图片资源
-├─ includes/              PHP 公共模块
-├─ js/                    前端脚本
-├─ moe/                   萌战系统页面
-├─ scripts/               测试、迁移和生成脚本
-├─ twelve/                十二器赛事页面
-├─ wiki/                  Wiki 静态页面、资源和内容
-├─ club_square.html       同好会广场入口
-├─ club_share.html        同好会分享页
-├─ index.html             主地图入口
-├─ login.html             登录入口
-├─ star_map.html          联合星图入口
-├─ user.html              用户中心页面
-├─ vote.html              投票活动入口
-├─ CHANGELOG.md           版本更新记录
+├─ admin/                  管理后台（审核、赛事管理、Wiki 编辑）
+├─ api/                    PHP API 端点（60+ 接口）
+├─ css/                    全站样式
+├─ data/                   运行时数据目录（不进入 Git）
+├─ Galgame_events/         GalOnly 活动页面与素材
+├─ Game/                   Galgame 同好会模拟器
+├─ image/background/       本地壁纸投放目录
+├─ images/                 站点内置图片资源
+├─ includes/               PHP 公共模块（认证、邮件、通知、OAuth…）
+├─ js/                     前端脚本（地图、投票、项目管理…）
+├─ JUYOU/                  友游活动页
+├─ moe/                    萌战系统（含淘汰赛可视化组件）
+├─ scripts/                测试、迁移、构建脚本
+├─ tools/                  公开工具页（PDF 阅读器等）
+├─ twelve/                 十二器赛事页面
+├─ user-v2-react/          用户中心 React 源码
+├─ wiki/                   Wiki 页面、编辑器与内容数据
+│
+├─ index.html              主地图入口
+├─ login.html              登录 / 注册入口
+├─ user.html               用户中心（React SPA）
+├─ star_map.html           联合星图
+├─ club_square.html        同好会广场
+├─ vote.html               投票活动入口
+├─ submit*.html            投稿入口（活动 / 刊物 / 通用）
+│
+├─ Dockerfile              容器镜像定义
+├─ docker-compose.yml      服务编排配置
+├─ PROJECT_STRUCTURE.md    目录边界与整理规则
 └─ README.md
 ```
 
-## 本地运行
+> 根目录的 HTML 文件是公开 URL 路由入口，为兼容现有链接保留在 Web 根。
+> 完整的目录边界和整理规则见 [`PROJECT_STRUCTURE.md`](PROJECT_STRUCTURE.md)。
 
-安装依赖：
+---
+
+## 快速开始
+
+### 环境要求
+
+- PHP 8.0+（含 `mbstring`、`pdo_sqlite` 扩展）
+- Node.js 18+（用于测试和构建）
+- Git
+
+### 本地运行
 
 ```bash
+# 1. 克隆仓库
+git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git
+cd china-visualnovelcircle-maps
+
+# 2. 安装依赖
 npm install
-```
 
-准备配置：
-
-```bash
+# 3. 准备配置文件
 cp config.example.php config.php
-```
+# 编辑 config.php，设置数据库路径和站点 URL
 
-启动 PHP 开发服务器：
-
-```bash
+# 4. 启动 PHP 开发服务器
 php -S 127.0.0.1:8000
 ```
 
-打开：
+打开浏览器访问：
 
-```text
-http://127.0.0.1:8000/login.html
-http://127.0.0.1:8000/index.html?guest=1
-```
+| 页面 | 地址 |
+|------|------|
+| 登录 / 注册 | `http://127.0.0.1:8000/login.html` |
+| 访客模式浏览 | `http://127.0.0.1:8000/index.html?guest=1` |
 
-## 检查命令
+### 运行测试
 
 ```bash
 npm run check
 ```
 
-该命令会检查核心前端契约、Wiki 生成、上传契约、同好会编辑、后端隐私、成长系统、用户页面资产、国际化、性能优化、投票企划契约以及项目健康状态。
+该命令会运行全部 39+ 个契约测试，覆盖前端交互、Wiki 生成、上传契约、同好会编辑、后端隐私、成长系统、用户页面、国际化、性能优化、投票流程和项目整体健康状态。
 
-## 壁纸目录
+---
 
-本地壁纸放在：
+## 部署
 
-```text
-image/background/
-```
-
-规则：
-
-- 目录内支持 `jpg`、`jpeg`、`png`、`webp`、`gif`、`avif`
-- 登录页和其他接入页面会读取 `api/backgrounds.php`
-- 该目录只提交 `.gitkeep`
-- 你本地放入的壁纸不会被上传到 GitHub
-- 没有本地壁纸时，会使用仓库内置图片作为默认壁纸
-
-## GitHub 上传清单
-
-可以上传：
-
-```text
-admin/
-api/
-css/
-Galgame_events/
-includes/
-js/
-moe/
-scripts/
-twelve/
-wiki/
-images/
-image/background/.gitkeep
-index.html
-login.html
-star_map.html
-user.html
-club_square.html
-club_share.html
-vote.html
-submit*.html
-feedback.html
-config.example.php
-.env.example
-.gitignore
-README.md
-CHANGELOG.md
-package.json
-```
-
-不要上传：
-
-```text
-config.php
-.env*
-.user.ini
-node_modules/
-dist/
-www/
-android/
-data/*.json
-data/*.db
-data/*.bak*
-data/_tmp_*
-data/cache/
-data/avatars/*
-data/club_avatars/*
-data/event_images/*
-data/publication_images/*
-data/manuscripts/*
-uploads/**
-wiki/uploads/*
-wiki_n68E2.7z
-image/background/*
-php-server*.log
-.php-server*.log
-*.7z
-参考/
-docs/
-.superpowers/
-.claude/
-```
-
-## 发布前检查
+项目支持 Docker 容器化部署，通过 GitHub Actions 自动构建镜像并推送至 GHCR，服务器端的 Watchtower 负责自动拉取和滚动更新。
 
 ```bash
+# 使用 Docker Compose 一键部署
+docker compose up -d
+
+# 或使用部署脚本（含数据备份和权限设置）
+bash scripts/deploy.sh
+```
+
+详细的部署配置、环境变量说明和运维指南见 [`DEPLOY.md`](DEPLOY.md)。
+
+---
+
+## 版本历史
+
+| 版本 | 核心主题 |
+|------|---------|
+| **v2.0.0** | 用户中心 SPA 化、Staff 招募、资料公开库、淘汰赛可视化、设计系统统一 |
+| v1.7.x | 企划枢纽、十二器、萌战引擎、投票活动、同好会广场、Docker CI/CD |
+| v1.6.x | Wiki 子系统、同好会绑定码、通知公告、多端发布（桌面 / Android） |
+| v1.5.0 | 用户面板重设计、GalOnly 高校通道、活动日历报名 |
+| v1.0 | 全国同好会地图首发、日本扩展、用户系统 |
+
+---
+
+## 参与贡献
+
+欢迎提交 Issue 报告问题，或通过 Pull Request 贡献代码。
+
+提交前请确认：
+
+```bash
+# 1. 运行契约测试
+npm run check
+
+# 2. 检查提交内容
 git status --short
 git status --ignored --short
-npm run check
 ```
 
-确认没有本地配置、运行数据、用户上传文件、构建产物或临时截图进入待提交列表后，再提交并推送。
+确保本地配置文件（`config.php`、`.env`）、运行时数据（`data/*.json`、`data/cache/`）、用户上传文件（`uploads/`）和构建产物（`node_modules/`、`dist/`）不进入提交列表。
+
+多人协作规范见 [`CONTRIBUTING.md`](CONTRIBUTING.md)。
+
+---
 
 ## License
 
-本项目基于 [GPLv3](LICENSE) 发布。
+本项目基于 [GNU General Public License v3.0](LICENSE) 发布。
+
+---
+
+<p align="center">
+  <sub>VNFest — Visual Novel Festival</sub><br>
+  <sub>Made with ❤️ for the visual novel community</sub>
+</p>

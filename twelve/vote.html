@@ -7,7 +7,7 @@
   <style>
     :root {
       --paper: #fffaf1;
-      --surface: #ffffff;
+      --surface: #f7f2e8;
       --ink: #171512;
       --muted: #6f675d;
       --line: #ddd1be;
@@ -69,7 +69,7 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.9);
+      background: rgba(247,242,232,.9);
       margin: 22px 0;
       backdrop-filter: blur(14px);
     }
@@ -88,7 +88,7 @@
       width: 100%;
       min-height: 44px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.92);
+      background: rgba(247,242,232,.92);
       color: var(--ink);
       padding: 0 12px;
       font-weight: 800;
@@ -106,7 +106,7 @@
       width: 100%;
       min-height: 50px;
       border: 2px solid var(--ink);
-      background: rgba(255,255,255,.92);
+      background: rgba(247,242,232,.92);
       color: var(--ink);
       padding: 0 16px;
       font: 800 16px/1 "Noto Sans SC", "Microsoft YaHei", sans-serif;
@@ -156,7 +156,7 @@
     .source-btn {
       min-height: 38px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.9);
+      background: rgba(247,242,232,.9);
       color: var(--ink);
       padding: 0 12px;
       font-weight: 900;
@@ -171,7 +171,7 @@
     .nomination-search input {
       min-height: 48px;
       border: 2px solid var(--ink);
-      background: rgba(255,255,255,.92);
+      background: rgba(247,242,232,.92);
       padding: 0 14px;
       font-weight: 800;
       outline: none;
@@ -184,7 +184,7 @@
       align-items: center;
       padding: 12px;
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.92);
+      background: rgba(247,242,232,.92);
     }
     .external-cover {
       width: 64px;
@@ -225,7 +225,7 @@
     }
     .selected-chip {
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.9);
+      background: rgba(247,242,232,.9);
       color: var(--ink);
       padding: 4px 7px;
       font-size: 12px;
@@ -259,6 +259,7 @@
     }
   </style>
   <link rel="stylesheet" href="../css/vote-activity.css">
+  <script src="../js/vote-common.js"></script>
   <script src="../js/vote-activity.js"></script>
 </head>
 <body>
@@ -654,24 +655,6 @@
       document.getElementById('notice').textContent = error.message;
     });
   </script>
-  <script>
-  (function() {
-    var btn = document.getElementById('themeToggle');
-    if (!btn) return;
-    var html = document.documentElement;
-    function updateIcon() {
-      var isDark = html.getAttribute('data-theme') === 'dark';
-      btn.querySelector('.icon-sun').style.display = isDark ? 'none' : '';
-      btn.querySelector('.icon-moon').style.display = isDark ? '' : 'none';
-    }
-    updateIcon();
-    btn.addEventListener('click', function() {
-      var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-      html.setAttribute('data-theme', next);
-      localStorage.setItem('themePreference', next);
-      updateIcon();
-    });
-  })();
-  </script>
+  <script>initVoteThemeToggle('themeToggle');</script>
 </body>
 </html>

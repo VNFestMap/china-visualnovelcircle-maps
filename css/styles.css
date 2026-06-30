@@ -163,6 +163,8 @@ body {
   height: 100%;
   -webkit-tap-highlight-color: transparent;
   animation: mapCanvasIn 520ms var(--ease-spring) both;
+  transform-origin: center;
+  will-change: opacity, transform, filter;
 }
 
 #mapSvg * {
@@ -179,6 +181,47 @@ body {
 
 #mapSvg.map-switch-in {
   animation: mapSwitchIn 420ms var(--ease-spring) both;
+}
+
+:root.view-transitioning #mapSvg {
+  transition: opacity 360ms ease, transform 520ms var(--ease-spring), filter 360ms ease;
+}
+
+:root.view-to-list #mapSvg,
+:root.list-mode-active:not(.view-to-map) #mapSvg {
+  opacity: 0;
+  transform: scale(0.965) translateY(10px);
+  filter: blur(3px) saturate(0.72);
+  pointer-events: none;
+}
+
+:root.view-to-map #mapSvg {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  filter: blur(0) saturate(1);
+}
+
+:root.view-transitioning #selectedCard {
+  transition: opacity 260ms ease, transform 340ms var(--ease-spring);
+}
+
+:root.view-to-list #selectedCard {
+  opacity: 0 !important;
+  transform: translateX(20px) scale(0.985);
+  pointer-events: none;
+}
+
+:root.view-to-list #userInfoCard,
+:root.view-to-list #introCard,
+:root.view-to-list #siteFooter {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+:root.view-to-map #userInfoCard,
+:root.view-to-map #introCard,
+:root.view-to-map #siteFooter {
+  opacity: 1 !important;
 }
 
 .province {
@@ -257,6 +300,21 @@ body {
     opacity: 1;
     transform: none;
     filter: none;
+    transition: none !important;
+  }
+
+  :root.view-to-list #mapSvg,
+  :root.list-mode-active:not(.view-to-map) #mapSvg,
+  :root.view-to-map #mapSvg,
+  :root.view-to-list #selectedCard,
+  :root.view-to-list #userInfoCard,
+  :root.view-to-list #introCard,
+  :root.view-to-list #siteFooter,
+  :root.view-to-map #userInfoCard,
+  :root.view-to-map #introCard,
+  :root.view-to-map #siteFooter {
+    transform: none !important;
+    filter: none !important;
     transition: none !important;
   }
 
@@ -1008,6 +1066,9 @@ body {
 .top-account-btn {
   padding: 4px 14px;
   min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   color: var(--md-on-surface);
   border: 1px solid var(--md-outline);
@@ -1015,6 +1076,7 @@ body {
   font-size: 12px;
   font-family: inherit;
   cursor: pointer;
+  text-decoration: none;
   white-space: nowrap;
 }
 
@@ -1025,9 +1087,9 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--md-primary), #c2185b);
-  color: #fff;
-  border: none;
+  background: transparent;
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline);
   border-radius: 8px;
   font-size: 12px;
   font-family: inherit;
@@ -1236,7 +1298,8 @@ body {
   }
 
   :root.mobile-list-mode-active .list-top-row .display-switch-container {
-    grid-area: switch !important;
+    grid-row: 2 !important;
+    grid-column: 3 !important;
     justify-self: end !important;
     width: 100% !important;
     margin: 0 !important;
@@ -1244,7 +1307,7 @@ body {
 
   :root.mobile-list-mode-active .list-top-row .mode-switch {
     display: grid !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     width: 100%;
   }
 
@@ -1331,6 +1394,7 @@ body {
 .list-top-row .display-switch-container {
   flex: 0 1 246px;
   max-width: 246px;
+  margin-left: 8px;
 }
 
 .list-top-row .mode-tab {
@@ -1382,6 +1446,22 @@ body {
   height: 100vh;
   z-index: 50;
   pointer-events: auto;
+  opacity: 0;
+  transform: translateY(18px) scale(0.985);
+  transform-origin: center top;
+  transition: opacity 320ms ease, transform 520ms var(--ease-spring);
+  will-change: opacity, transform;
+}
+
+:root.list-mode-active .list-mode-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+:root.view-to-map .list-mode-view {
+  opacity: 0;
+  transform: translateY(10px) scale(0.99);
+  pointer-events: none;
 }
 
 .list-mode-inner {
@@ -1394,6 +1474,12 @@ body {
     var(--md-surface);
   backdrop-filter: blur(18px);
   overflow: hidden;
+  transition: box-shadow 420ms ease, backdrop-filter 420ms ease;
+  will-change: backdrop-filter;
+}
+
+:root.view-transitioning .list-mode-inner {
+  box-shadow: 0 22px 80px rgba(0,0,0,0.12);
 }
 
 /* ===== 左侧面板（列表模式） ===== */
@@ -1414,6 +1500,7 @@ body {
   transform: translateX(-100%);
   opacity: 0;
   will-change: transform, opacity;
+  transition: transform 420ms var(--ease-spring), opacity 280ms ease;
 }
 
 /* ===== 中间列：省份索引（列表模式） ===== */
@@ -1432,6 +1519,7 @@ body {
   transform: translateX(-100%);
   opacity: 0;
   will-change: transform, opacity;
+  transition: transform 420ms var(--ease-spring) 40ms, opacity 280ms ease 40ms;
 }
 
 .list-panel-heading {
@@ -1608,12 +1696,22 @@ body {
   background: rgba(255,255,255,0.74);
   box-shadow: 0 1px 0 rgba(255,255,255,0.5) inset;
   flex-shrink: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 260ms ease, transform 360ms var(--ease-spring);
+  will-change: opacity, transform;
+}
+
+:root.list-mode-active .list-top-bar {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .list-top-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
 }
 
 .list-top-avatar {
@@ -1687,11 +1785,6 @@ body {
   border-color: rgba(231, 76, 60, 0.24);
 }
 
-.list-announcement-banner {
-  margin-top: 8px;
-  font-size: 11px;
-}
-
 /* ===== 主体行容器 ===== */
 .list-body {
   display: flex;
@@ -1758,6 +1851,40 @@ body {
   box-shadow: 0 8px 28px rgba(0,0,0,0.05);
   min-width: 0;
   overflow: hidden;
+  opacity: 0;
+  transform: translateY(14px) scale(0.992);
+  transition: opacity 320ms ease 80ms, transform 460ms var(--ease-spring) 80ms;
+  will-change: opacity, transform;
+}
+
+:root.list-mode-active .list-left,
+:root.list-mode-active .list-center,
+:root.list-mode-active .list-content {
+  opacity: 1;
+  transform: translateX(0) translateY(0) scale(1);
+}
+
+:root.view-to-map .list-top-bar {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+:root.view-to-map .list-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition-delay: 0ms;
+}
+
+:root.view-to-map .list-center {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition-delay: 20ms;
+}
+
+:root.view-to-map .list-content {
+  opacity: 0;
+  transform: translateY(10px) scale(0.992);
+  transition-delay: 30ms;
 }
 
 /* ===== 工具栏 ===== */
@@ -1770,7 +1897,20 @@ body {
   background: rgba(255,255,255,0.58);
   flex-wrap: wrap;
   opacity: 0;
+  transform: translateY(6px);
   will-change: opacity;
+  transition: opacity 260ms ease 140ms, transform 340ms var(--ease-spring) 140ms;
+}
+
+:root.list-mode-active .list-toolbar {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+:root.view-to-map .list-toolbar {
+  opacity: 0;
+  transform: translateY(6px);
+  transition-delay: 0ms;
 }
 
 .list-toolbar-left {
@@ -1863,10 +2003,15 @@ body {
   opacity: 0;
   transform: translateX(30px);
   will-change: transform, opacity;
-  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+  transition: transform 420ms var(--ease-spring) 120ms, opacity 320ms ease 120ms;
 }
 
 .club-grid.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+:root.list-mode-active .club-grid {
   opacity: 1;
   transform: translateX(0);
 }
@@ -1876,7 +2021,7 @@ body {
   border-radius: 12px;
   padding: 14px;
   background: var(--md-surface);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: opacity 260ms ease, transform 360ms var(--ease-spring), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
   cursor: pointer;
   opacity: 0;
   transform: translateY(20px);
@@ -4050,9 +4195,6 @@ body {
     .user-info-card .mode-tab-label,
     .list-top-row .mode-tab-label {
         font-size: 11px;
-    }
-    .list-announcement-banner {
-      display: none !important;
     }
     .list-body {
       flex-direction: column;
@@ -9538,6 +9680,7 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex: 1 1 auto;
     min-width: 0;
 }
 
@@ -9546,6 +9689,8 @@ body {
     align-items: center;
     justify-content: flex-end;
     gap: 6px;
+    flex: 0 0 auto;
+    margin-left: auto;
     min-width: 0;
 }
 
@@ -9585,7 +9730,7 @@ body {
     }
 
     .list-top-row .display-switch-container {
-        grid-column: 1 / -1;
+        grid-column: auto;
         width: 100%;
         max-width: 100%;
         margin-left: 0;
@@ -9682,7 +9827,7 @@ body {
     }
 
     :root.mobile-list-mode-active .list-top-row .display-switch-container {
-        grid-column: 1 / -1;
+        grid-column: auto;
         width: 100%;
         max-width: 100%;
         margin-left: 0;
@@ -9885,21 +10030,26 @@ body {
         order: 20;
         grid-column: auto;
         justify-self: stretch;
-        align-self: stretch;
+        align-self: center;
         width: 100%;
         max-width: 100%;
         margin: 0;
-        padding: 2px;
-        border-radius: 9px;
-        background: var(--md-surface-container);
-        border: 1px solid var(--md-outline-variant);
+        padding: 0;
+        border-radius: 8px;
+        background: transparent;
+        border: none;
     }
 
     :root.mobile-list-mode-active .list-top-row .mode-switch {
         width: 100%;
         border-radius: 8px;
-        background: transparent;
-        padding: 0;
+        background: var(--md-surface-container);
+        padding: 1px;
+    }
+
+    /* Hide duplicate calendar/project-hub buttons below "全部" in toolbar */
+    :root.mobile-list-mode-active #listSecondaryActions {
+        display: none !important;
     }
 
     :root.mobile-list-mode-active .list-top-row .mode-tab {
@@ -9948,14 +10098,6 @@ body {
         line-height: 1;
         overflow: hidden;
         text-overflow: ellipsis;
-    }
-
-    :root.mobile-list-mode-active .list-nav-row .user-nav-btn[data-action="calendar"],
-    :root.mobile-list-mode-active .list-nav-row .user-nav-btn[data-action="publication"] {
-        display: none;
-    }
-    :root.mobile-list-mode-active .list-nav-row .user-nav-btn[data-action="project-hub"] {
-        display: none;
     }
 }
 
@@ -11415,6 +11557,13 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .list-mode-view,
+    .list-mode-inner,
+    .list-top-bar,
+    .list-left,
+    .list-center,
+    .list-content,
+    .list-toolbar,
     .club-grid,
     .club-card,
     .context-refresh-btn,
@@ -11422,6 +11571,17 @@ body {
     .announcement-banner-body {
         transition: none !important;
         animation: none !important;
+    }
+
+    .list-mode-view,
+    .list-top-bar,
+    .list-left,
+    .list-center,
+    .list-content,
+    .list-toolbar,
+    .club-grid,
+    .club-card {
+        transform: none !important;
     }
 }
 
@@ -11455,8 +11615,8 @@ body {
     }
 
     :root.mobile-list-mode-active .list-top-row .display-switch-container {
-        grid-area: switch !important;
-        grid-column: auto !important;
+        grid-row: 2 !important;
+        grid-column: 3 !important;
         margin: 0 !important;
     }
 }

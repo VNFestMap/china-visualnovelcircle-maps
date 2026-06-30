@@ -1,0 +1,67 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(240, 143, 168, .18), transparent 40%),
+    radial-gradient(ellipse at 80% 0%, rgba(125, 200, 208, .14), transparent 36%),
+    radial-gradient(ellipse at 60% 100%, rgba(224, 173, 74, .10), transparent 34%),
+    linear-gradient(170deg, #FFFBF5 0%, #FFF5F0 35%, #F5FAFA 100%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: .34;
+  background-image:
+    linear-gradient(rgba(224, 173, 74, .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(224, 173, 74, .05) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 70%);
+}
+
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+.skip-link {
+  position: fixed;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 14px;
+  color: #fff;
+  background: var(--ink);
+  border-radius: 10px;
+  transition: top var(--fast);
+}
+
+.skip-link:focus { top: 12px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(160, 120, 135, .25); border-radius: 3px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Selection */
+::selection { background: rgba(240, 143, 168, .25); color: var(--ink); }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

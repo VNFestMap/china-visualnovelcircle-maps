@@ -438,6 +438,26 @@ button:disabled {
     });
   }
 
+  function compactResponseText(text) {
+    return String(text || '').replace(/\s+/g, ' ').trim().slice(0, 180);
+  }
+
+  async function readWikiResponse(resp) {
+    const rawText = await resp.text();
+    let data = null;
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch (error) {
+      const preview = compactResponseText(rawText);
+      throw new Error('接口返回异常（HTTP ' + resp.status + '）：' + (preview || resp.statusText || '非 JSON 响应'));
+    }
+    if (!resp.ok) {
+      data.success = false;
+      data.message = (data.message || resp.statusText || '请求失败') + '（HTTP ' + resp.status + '）';
+    }
+    return data;
+  }
+
   function rowButton(label) {
     return '<button type="button" class="danger" data-action="remove">' + label + '</button>';
   }
@@ -620,7 +640,7 @@ button:disabled {
         credentials: 'same-origin',
         body: formData,
       });
-      const data = await resp.json();
+      const data = await readWikiResponse(resp);
       if (data.success && data.image_url) {
         row.querySelector('[data-field="url"]').value = data.image_url;
         if (!row.querySelector('[data-field="alt"]').value.trim()) {
@@ -632,7 +652,7 @@ button:disabled {
         setStatus(data.message || '图片上传失败', false);
       }
     } catch (error) {
-      setStatus('网络错误，图片上传失败', false);
+      setStatus(error.message || '网络错误，图片上传失败', false);
     } finally {
       button.disabled = false;
     }
@@ -879,7 +899,7 @@ button:disabled {
       const resp = await fetch('../api/wiki.php?action=get&club_key=' + encodeURIComponent(clubKey), {
         credentials: 'same-origin',
       });
-      const data = await resp.json();
+      const data = await readWikiResponse(resp);
       if (!data.success) {
         setStatus(data.message || '加载失败', false);
         return;
@@ -889,7 +909,7 @@ button:disabled {
       updateDraftStatus();
       setStatus(data.exists ? '已加载现有维基内容' : '已生成初始草稿，保存后创建页面', true);
     } catch (error) {
-      setStatus('网络错误，加载失败', false);
+      setStatus(error.message || '网络错误，加载失败', false);
     }
   }
 
@@ -943,7 +963,7 @@ button:disabled {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(collectContent()),
         });
-        const data = await resp.json();
+        const data = await readWikiResponse(resp);
         if (data.success) {
           loadedContent = data.content;
           loadedPageUrl = data.page_url || loadedPageUrl;
@@ -959,7 +979,7 @@ button:disabled {
           setStatus(data.message || '保存失败', false);
         }
       } catch (error) {
-        setStatus('网络错误，保存失败', false);
+        setStatus(error.message || '网络错误，保存失败', false);
       } finally {
         btn.disabled = false;
       }

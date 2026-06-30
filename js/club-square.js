@@ -23,7 +23,7 @@
   }
   function typeLabel(type) { return type === 'moe' ? '萌战' : '十二器'; }
   function sourceLabel(type) {
-    return ({ bangumi_subject: 'Bangumi 作品', bangumi_character: 'Bangumi 角色', vndb_vn: 'VNDB', manual: '手动' })[type] || type || '来源';
+    return ({ bangumi_subject: 'Bangumi 作品', bangumi_character: 'Bangumi 角色', vndb_vn: 'VNDB', vndb_character: 'VNDB', manual: '手动' })[type] || type || '来源';
   }
   function statusLabel(status) {
     return ({ draft: '草稿', published: '已发布', running: '进行中', ended: '已结束', archived: '已归档', suspended: '已暂停' })[status] || status || '未知';

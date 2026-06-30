@@ -1,0 +1,59 @@
+:root {
+  /* Surfaces */
+  --bg: #FFFAF5;
+  --cream: #FFF8F0;
+  --cream2: #FFFCF9;
+  --paper: rgba(255, 255, 255, .78);
+  --paper-strong: rgba(255, 255, 255, .92);
+  --ink: #3D2A33;
+  --muted: #7A6670;
+  --sub: #A89098;
+  --line: rgba(160, 120, 135, .16);
+
+  /* Accents */
+  --pink: #F08FA8;
+  --pink2: #FFD4E0;
+  --rose: #E47895;
+  --gold: #E0AD4A;
+  --gold2: #FFF2CC;
+  --cyan: #7DC8D0;
+  --cyan2: #D8F4F4;
+
+  /* Status */
+  --green: #6AAF7A;
+  --warn: #D49540;
+  --danger: #D4606E;
+  --state-ok: #6AAF7A;
+  --state-warn: #D49540;
+  --state-bad: #D4606E;
+  --state-pending: #A89098;
+
+  /* Shadows — softer multi-layer */
+  --shadow-sm: 0 2px 8px rgba(140, 90, 100, .06);
+  --shadow: 0 8px 28px rgba(140, 90, 100, .10);
+  --shadow-lg: 0 16px 40px rgba(140, 90, 100, .14);
+  --soft-shadow: 0 4px 16px rgba(140, 90, 100, .07);
+
+  /* Radii */
+  --radius-sm: 12px;
+  --radius: 20px;
+  --radius2: 16px;
+  --radius-lg: 28px;
+
+  /* Typography */
+  --font: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, -apple-system, sans-serif;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-base: 14px;
+  --fs-md: 16px;
+  --fs-lg: 20px;
+  --fs-xl: 26px;
+  --lh-tight: 1.3;
+  --lh-base: 1.6;
+
+  /* Animation */
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --fast: 150ms;
+  --normal: 250ms;
+  --slow: 400ms;
+}

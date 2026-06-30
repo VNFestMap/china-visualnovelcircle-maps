@@ -1,5 +1,6 @@
 # System files
 .DS_Store
+.well-known/
 
 # Server deploy config (per-environment paths & credentials)
 deploy-config.sh
@@ -18,6 +19,7 @@ ehthumbs.db
 # Dependencies
 node_modules/
 vendor/
+!tools/pdf-reader/vendor/
 composer.lock
 composer.phar
 
@@ -34,6 +36,7 @@ yarn-error.log*
 tmp/
 temp/
 cache/
+_local/
 *.cache
 .phpunit.result.cache
 data/cache/
@@ -130,4 +133,10 @@ dist/
 # Internal AI/design workspace
 .claude/
 .superpowers/
+.gstack/
 docs/
+
+# Office documents (design specs, drafts)
+*.docx
+*.doc
+*.pptx

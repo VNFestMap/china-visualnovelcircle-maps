@@ -8,9 +8,10 @@ const smokePerf = process.env.SMOKE_PERF === '1';
 const args = new Set(process.argv.slice(2));
 const smokeViewport = args.has('--all-viewports') ? 'all' : (process.env.SMOKE_VIEWPORT || 'desktop');
 const smokePerfOutput = process.env.SMOKE_PERF_OUTPUT || '';
-const viewportNames = smokeViewport === 'all' ? ['desktop', 'mobile'] : [smokeViewport];
+const viewportNames = smokeViewport === 'all' ? ['desktop', 'tablet', 'mobile'] : [smokeViewport];
 const viewportSizes = {
   mobile: { width: 390, height: 844 },
+  tablet: { width: 768, height: 1024 },
   desktop: { width: 1366, height: 900 },
 };
 const defaultPages = [
@@ -24,6 +25,7 @@ const defaultPages = [
 const moePages = [
   '/moe/index.html',
   '/moe/contest.html?id=999999',
+  '/moe/bracket.html?project_id=999999',
 ];
 const pageFilter = (process.env.SMOKE_PAGES || '').split(',').map((item) => item.trim()).filter(Boolean);
 const pages = args.has('--moe') ? moePages : (pageFilter.length ? pageFilter : defaultPages);
@@ -105,6 +107,31 @@ async function inspectPage(pagePath, viewportName) {
         return url.origin === location.origin && img.complete && img.naturalWidth === 0;
       }).map((img) => img.getAttribute('src') || img.currentSrc);
       const frameStats = ${smokePerf ? 'await sampleFrames(700)' : 'null'};
+      const isV2 = document.documentElement.getAttribute('data-ui') === 'v2';
+      const mobileNavigation = (() => {
+        if (location.pathname !== '/index.html') return null;
+        if (isV2) {
+          const modes = Array.from(document.querySelectorAll('.map-v2-nav > .map-v2-mobile-mode'));
+          const shortcuts = document.querySelector('.map-v2-mobile-shortcuts');
+          return {
+            variant: 'v2',
+            visible: modes.length === 3 && modes.every((item) => getComputedStyle(item).display !== 'none'),
+            modeCount: modes.length,
+            countryCount: document.querySelectorAll('.map-v2-mobile-shortcuts [data-v2-country]').length,
+            utilityCount: document.querySelectorAll('.map-v2-mobile-utilities > *').length,
+            shortcutsVisible: Boolean(shortcuts && getComputedStyle(shortcuts).display !== 'none')
+          };
+        }
+        const nav = document.getElementById('mobileModeNav');
+        return {
+          variant: 'legacy',
+          visible: Boolean(nav && getComputedStyle(nav).display !== 'none'),
+          modeCount: nav ? nav.querySelectorAll('.mode-tab').length : 0,
+          countryCount: document.querySelectorAll('#userNavRow .mobile-country-nav > *').length,
+          utilityCount: document.querySelectorAll('#userNavRow .mobile-utility-nav > *').length,
+          shortcutsVisible: true
+        };
+      })();
       return {
         title: document.title,
         finalUrl: location.href,
@@ -117,7 +144,8 @@ async function inspectPage(pagePath, viewportName) {
           resourceBytes,
           jsHeapUsed: performance.memory ? performance.memory.usedJSHeapSize : 0,
           frameStats
-        }
+        },
+        mobileNavigation
       };
     })();
   `);
@@ -141,7 +169,15 @@ app.whenReady().then(async () => {
       const result = await inspectPage(pagePath, viewportName);
       results.push(result);
       const redirectedToLogin = result.loadFailure && result.loadFailure.includes('ERR_ABORTED') && result.finalUrl.includes('/login.html');
-      const hasFailure = (result.loadFailure && !redirectedToLogin) || result.bodyTextLength < 20 || result.localBrokenImages.length || result.consoleErrors.length;
+      const expectsMobileNavigation = result.mobileNavigation && (viewportSizes[viewportName] || viewportSizes.desktop).width <= 800;
+      const invalidMobileNavigation = expectsMobileNavigation && (
+        !result.mobileNavigation.visible ||
+        !result.mobileNavigation.shortcutsVisible ||
+        result.mobileNavigation.modeCount !== 3 ||
+        result.mobileNavigation.countryCount !== 3 ||
+        result.mobileNavigation.utilityCount !== 2
+      );
+      const hasFailure = (result.loadFailure && !redirectedToLogin) || result.bodyTextLength < 20 || result.localBrokenImages.length || result.consoleErrors.length || invalidMobileNavigation;
       if (hasFailure) failures.push(result);
       const perfLabel = smokePerf && result.perf
         ? ` load=${result.perf.loadEventMs}ms wall=${result.wallTimeMs}ms resources=${result.perf.resourceCount}`

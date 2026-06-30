@@ -51,11 +51,13 @@ function voteSourceRequest(string $method, string $url, ?array $body, string $ca
 }
 
 function voteSourceImage(array $item): string {
+    // Bangumi: images{medium,large,...}
     $images = $item['images'] ?? [];
-    if (is_array($images)) {
+    if (is_array($images) && !empty($images)) {
         $url = $images['medium'] ?? $images['grid'] ?? $images['large'] ?? $images['small'] ?? '';
-        return proxyImageUrl($url);
+        if ($url !== '') return proxyImageUrl($url);
     }
+    // VNDB: image{url}
     $image = $item['image'] ?? [];
     $url = is_array($image) ? ($image['url'] ?? '') : '';
     return proxyImageUrl($url);
@@ -90,7 +92,7 @@ function voteBangumiSubjects(string $keyword, int $limit): array {
 function voteBangumiCharacters(string $keyword, int $limit): array {
     $data = voteSourceRequest(
         'POST',
-        'https://api.bgm.tv/v0/search/characters?limit=' . $limit,
+        'https://api.bgm.tv/v0/search/characters?limit=' . max($limit * 3, 30),
         ['keyword' => $keyword],
         'bgm_character_' . md5(voteLower($keyword) . '_' . $limit),
         3600
@@ -99,6 +101,25 @@ function voteBangumiCharacters(string $keyword, int $limit): array {
     foreach (($data['data'] ?? []) as $item) {
         if (!is_array($item)) continue;
         $id = (string)($item['id'] ?? '');
+        if ($id === '') continue;
+
+        // 检查角色是否关联 type=4（游戏）条目
+        $subjects = voteSourceRequest(
+            'GET',
+            'https://api.bgm.tv/v0/characters/' . $id . '/subjects',
+            null,
+            'bgm_char_subjects_' . $id,
+            86400
+        );
+        $isGame = false;
+        foreach (($subjects ?? []) as $subj) {
+            if (is_array($subj) && ($subj['type'] ?? 0) === 4) {
+                $isGame = true;
+                break;
+            }
+        }
+        if (!$isGame) continue;
+
         $rows[] = [
             'source_type' => 'bangumi_character',
             'source_id' => $id,
@@ -109,6 +130,7 @@ function voteBangumiCharacters(string $keyword, int $limit): array {
             'summary' => function_exists('mb_substr') ? mb_substr($item['summary'] ?? '', 0, 240) : substr($item['summary'] ?? '', 0, 240),
             'external_url' => $id !== '' ? 'https://bgm.tv/character/' . $id : '',
         ];
+        if (count($rows) >= $limit) break;
     }
     return $rows;
 }
@@ -119,7 +141,7 @@ function voteVndbWorks(string $keyword, int $limit): array {
         'https://api.vndb.org/kana/vn',
         [
             'filters' => ['search', '=', $keyword],
-            'fields' => 'title, aliases, image.url, released, developers.name, description',
+            'fields' => 'title, titles{lang,title,main}, image{url}, released, developers{name}, description',
             'sort' => 'searchrank',
             'results' => $limit,
         ],
@@ -131,12 +153,53 @@ function voteVndbWorks(string $keyword, int $limit): array {
         if (!is_array($item)) continue;
         $id = (string)($item['id'] ?? '');
         $developers = $item['developers'] ?? [];
+        // 从 titles 数组中提取 zh-Hans 中文标题
+        $titleCn = '';
+        foreach (($item['titles'] ?? []) as $t) {
+            $lang = $t['lang'] ?? '';
+            if ($lang === 'zh-Hans' || $lang === 'zh-Hant' || $lang === 'zh') {
+                $titleCn = $t['title'] ?? '';
+                break;
+            }
+        }
         $rows[] = [
             'source_type' => 'vndb_vn',
             'source_id' => $id,
             'title' => $item['title'] ?? '',
-            'title_cn' => '',
+            'title_cn' => $titleCn,
             'subtitle' => implode(' / ', array_slice(array_map(fn($dev) => $dev['name'] ?? '', is_array($developers) ? $developers : []), 0, 2)),
+            'image_url' => voteSourceImage($item),
+            'summary' => function_exists('mb_substr') ? mb_substr($item['description'] ?? '', 0, 240) : substr($item['description'] ?? '', 0, 240),
+            'external_url' => $id !== '' ? 'https://vndb.org/' . $id : '',
+        ];
+    }
+    return $rows;
+}
+
+function voteVndbCharacters(string $keyword, int $limit): array {
+    $data = voteSourceRequest(
+        'POST',
+        'https://api.vndb.org/kana/character',
+        [
+            'filters' => ['search', '=', $keyword],
+            'fields' => 'name, original, aliases, description, image{url}, vns{title}',
+            'sort' => 'searchrank',
+            'results' => $limit,
+        ],
+        'vndb_character_' . md5(voteLower($keyword) . '_' . $limit),
+        3600
+    );
+    $rows = [];
+    foreach (($data['results'] ?? []) as $item) {
+        if (!is_array($item)) continue;
+        $id = (string)($item['id'] ?? '');
+        $vns = $item['vns'] ?? [];
+        $rows[] = [
+            'source_type' => 'vndb_character',
+            'source_id' => $id,
+            'title' => $item['name'] ?? '',
+            'title_cn' => $item['original'] ?? '',
+            'subtitle' => implode(' / ', array_slice(array_map(fn($v) => $v['title'] ?? '', is_array($vns) ? $vns : []), 0, 3)),
             'image_url' => voteSourceImage($item),
             'summary' => function_exists('mb_substr') ? mb_substr($item['description'] ?? '', 0, 240) : substr($item['description'] ?? '', 0, 240),
             'external_url' => $id !== '' ? 'https://vndb.org/' . $id : '',
@@ -165,12 +228,14 @@ if ($keyword === '') {
     voteRespond(['success' => false, 'message' => '请输入搜索关键词'], 400);
 }
 
-$results = $projectType === 'moe'
-    ? voteBangumiCharacters($keyword, $limit)
-    : array_merge(voteBangumiSubjects($keyword, $limit), voteVndbWorks($keyword, max(1, (int)floor($limit / 2))));
+if ($projectType === 'moe') {
+    $results = voteBangumiCharacters($keyword, $limit);
+} else {
+    $results = array_merge(voteBangumiSubjects($keyword, $limit), voteVndbWorks($keyword, max(1, (int)floor($limit / 2))));
+}
 
 voteRespond([
     'success' => true,
     'data' => array_merge($results, voteManualSource($keyword, $projectType)),
-    'source_order' => $projectType === 'moe' ? ['bangumi', 'manual'] : ['bangumi', 'vndb', 'manual'],
+    'source_order' => ['bangumi', 'vndb', 'manual'],
 ]);

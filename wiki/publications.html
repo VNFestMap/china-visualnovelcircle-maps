@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>资料公开库 - VNFest WIKI</title>
+  <link rel="stylesheet" href="./wiki.css">
+  <style>
+    .publication-library-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .publication-preview-card {
+      display: grid;
+      grid-template-columns: 116px minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--wiki-panel);
+    }
+
+    .publication-preview-card:last-child {
+      border-bottom: 0;
+    }
+
+    .publication-preview-cover {
+      width: 116px;
+      aspect-ratio: 3 / 4;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+      object-fit: cover;
+    }
+
+    .publication-preview-card h3 {
+      margin: 2px 0 6px;
+      font-size: 19px;
+      line-height: 1.35;
+    }
+
+    .publication-preview-card p {
+      margin: 0;
+      color: var(--wiki-muted);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .publication-preview-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .wiki-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 6px 12px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-link);
+      cursor: pointer;
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+    }
+
+    .wiki-button.primary {
+      border-color: var(--wiki-link);
+      background: #eaf2ff;
+      color: var(--wiki-link);
+      font-weight: 700;
+    }
+
+    .wiki-button.danger {
+      color: #b32424;
+    }
+
+    .publication-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .publication-form label {
+      display: grid;
+      gap: 6px;
+      color: var(--wiki-text);
+      font-weight: 700;
+    }
+
+    .publication-form input,
+    .publication-form select,
+    .publication-form textarea {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--wiki-border);
+      background: var(--wiki-surface);
+      color: var(--wiki-text);
+      font: inherit;
+      font-weight: 400;
+      padding: 8px 10px;
+    }
+
+    .publication-form textarea {
+      min-height: 92px;
+      resize: vertical;
+    }
+
+    .publication-progress {
+      display: none;
+      border: 1px solid var(--wiki-border-soft);
+      background: var(--wiki-bg);
+      padding: 10px 12px;
+      color: var(--wiki-muted);
+      font-size: 13px;
+    }
+
+    .publication-progress.is-visible {
+      display: block;
+    }
+
+    .publication-empty {
+      margin: 0;
+      color: var(--wiki-muted);
+    }
+
+    .publication-upload-note {
+      color: var(--wiki-muted);
+      font-size: 13px;
+      font-weight: 400;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 760px) {
+      .publication-preview-card {
+        grid-template-columns: 82px minmax(0, 1fr);
+      }
+
+      .publication-preview-cover {
+        width: 82px;
+      }
+
+      .publication-preview-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body class="wiki-index-body">
+  <header class="wiki-header wiki-site-header">
+    <a href="../index.html">Galgame 同好会地图</a>
+    <a href="./index.html">VNFest WIKI</a>
+    <span>资料公开库</span>
+  </header>
+
+  <main class="wiki-index-page wiki-encyclopedia-layout">
+    <aside class="wiki-index-sidebar" aria-label="资料公开库目录">
+      <div class="wiki-sidebar-card">
+        <p class="wiki-index-kicker">Publications</p>
+        <h1>资料公开库</h1>
+        <p>收录同好会公开刊物预览，作为 Wiki 长文资料之外的阅读补充。</p>
+      </div>
+      <nav class="wiki-nav wiki-index-toc" aria-label="页面目录">
+        <a href="#publication-list">公开预览</a>
+        <a href="./publication-upload.html">发布预览</a>
+        <a href="./publication-manage.html">刊物管理</a>
+        <a href="./index.html">返回 Wiki 首页</a>
+      </nav>
+    </aside>
+
+    <section class="wiki-index-main">
+      <section class="wiki-index-hero wiki-article-shell">
+        <div>
+          <p class="wiki-index-kicker">刊物阅读</p>
+          <h2>资料公开库</h2>
+          <p>收录同好会已经公开的刊物预览，为 Wiki 长文资料之外提供可直接阅读的 3D 翻页资料入口。</p>
+        </div>
+        <div class="wiki-index-stats" aria-label="统计">
+          <div><strong id="statPreviewCount">-</strong><span>公开预览</span></div>
+          <div><strong id="statPageCount">-</strong><span>页面总数</span></div>
+        </div>
+      </section>
+
+      <section class="wiki-index-tools wiki-article-shell" aria-label="检索">
+        <label class="wiki-search-label" for="publicationSearch">搜索刊物</label>
+        <input id="publicationSearch" type="search" placeholder="搜索标题、同好会、简介" autocomplete="off">
+        <p>这里只展示已发布的公开条目；未完成上传或已删除的预览不会出现在列表中。</p>
+        <p><a class="wiki-button primary" href="./publication-upload.html">发布新的资料预览</a></p>
+      </section>
+
+      <section class="wiki-index-country wiki-article-shell" id="publication-list">
+        <div class="wiki-index-section-heading">
+          <h2>公开预览</h2>
+          <span id="publicationListStatus">加载中</span>
+        </div>
+        <div class="publication-library-grid" id="publicationList">
+          <p class="publication-empty">正在加载...</p>
+        </div>
+      </section>
+
+    </section>
+
+    <aside class="wiki-index-aside" aria-label="说明">
+      <section class="wiki-sidebar-card">
+        <h2>发布规则</h2>
+        <p>上传完成即公开。请只发布已确认可公开展示的刊物成品或样张。</p>
+      </section>
+      <section class="wiki-sidebar-card">
+        <h2>格式建议</h2>
+        <p>推荐 PDF 或 JPG 页面图。页面宽高保持一致，文件名按阅读顺序排序。</p>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+  (function () {
+    var API = '../api/publication_previews.php';
+    var state = { previews: [] };
+    var elList = document.getElementById('publicationList');
+    var elListStatus = document.getElementById('publicationListStatus');
+    var elSearch = document.getElementById('publicationSearch');
+    var elStatPreview = document.getElementById('statPreviewCount');
+    var elStatPage = document.getElementById('statPageCount');
+
+    function esc(value) {
+      var div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    function rootUrl(path) {
+      if (!path) return '';
+      if (/^(https?:)?\/\//i.test(path) || path.indexOf('data:') === 0) return path;
+      return '../' + path.replace(/^\/+/, '');
+    }
+
+    function apiGet(url, fallback) {
+      return fetch(url, { credentials: 'same-origin' })
+        .then(function (response) { return response.ok ? response.json() : fallback; })
+        .catch(function () { return fallback; });
+    }
+
+    function renderList() {
+      var keyword = (elSearch.value || '').trim().toLowerCase();
+      var previews = state.previews.filter(function (item) {
+        var haystack = [item.title, item.description, item.created_by_name]
+          .concat((item.club_ids || []).map(function (c) { return (c.country || '') + ' ' + c.id; }))
+          .join(' ').toLowerCase();
+        return !keyword || haystack.indexOf(keyword) !== -1;
+      });
+      elStatPreview.textContent = state.previews.length;
+      elStatPage.textContent = state.previews.reduce(function (sum, item) { return sum + (parseInt(item.page_count, 10) || 0); }, 0);
+      elListStatus.textContent = previews.length + ' 个条目';
+      if (!previews.length) {
+        elList.innerHTML = '<p class="publication-empty">暂无匹配的刊物预览。</p>';
+        return;
+      }
+      elList.innerHTML = previews.map(function (item) {
+        var readUrl = '../tools/pdf-reader/?preview_id=' + encodeURIComponent(item.id);
+        var cover = item.cover_path ? rootUrl(item.cover_path) : '';
+        var clubs = (item.club_ids || []).map(function (club) { return (club.country || 'china') + ' #' + club.id; }).join('、') || '同好会资料';
+        var meta = clubs + ' · ' + (item.page_count || 0) + ' 页 · ' + (item.updated_at || item.created_at || '');
+        return '<article class="publication-preview-card" data-id="' + esc(item.id) + '">' +
+          (cover ? '<img class="publication-preview-cover" src="' + esc(cover) + '" alt="">' : '<div class="publication-preview-cover"></div>') +
+          '<div><div class="wiki-index-card-meta">' + esc(meta) + '</div><h3><a href="' + esc(readUrl) + '">' + esc(item.title) + '</a></h3><p>' +
+          esc(item.description || '暂无简介') + '</p></div><div class="publication-preview-actions">' +
+          '<a class="wiki-button primary" href="' + esc(readUrl) + '">开始阅读</a>' +
+          '</div></article>';
+      }).join('');
+    }
+
+    async function loadPreviews() {
+      var json = await apiGet(API + '?action=list&_=' + Date.now(), { success: false, previews: [] });
+      state.previews = json.previews || [];
+      renderList();
+    }
+
+    async function init() {
+      await loadPreviews();
+    }
+
+    elSearch.addEventListener('input', renderList);
+    init();
+  }());
+  </script>
+</body>
+</html>

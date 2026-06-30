@@ -47,6 +47,13 @@
       "title": "媒体资源库",
       "description": "用于统一管理 Wiki 图片、海报、标志和活动素材。",
       "status": "reserved"
+    },
+    {
+      "key": "publications",
+      "title": "资料公开库",
+      "description": "提供同好会公开资料上传、页面预览生成与 3D 翻页阅读能力。",
+      "status": "active",
+      "url": "./publications.html"
     }
   ]
 }
