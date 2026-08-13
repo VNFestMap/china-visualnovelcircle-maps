@@ -1,6 +1,7 @@
 # System files
 .DS_Store
 .well-known/
+.opensquilla/
 
 # Server deploy config (per-environment paths & credentials)
 deploy-config.sh
