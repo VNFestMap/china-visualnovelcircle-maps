@@ -92,12 +92,17 @@ function galonlyEnsureStaffApplicationColumns(PDO $db): void {
             'cn_name' => "VARCHAR(255) NOT NULL DEFAULT ''",
             'qq_number' => "VARCHAR(32) NOT NULL DEFAULT ''",
             'phone_number' => "VARCHAR(32) NOT NULL DEFAULT ''",
+            'email' => "VARCHAR(255) NOT NULL DEFAULT ''",
             'club_id' => 'INT NOT NULL DEFAULT 0',
             'club_country' => "VARCHAR(50) NOT NULL DEFAULT 'china'",
             'positions' => 'TEXT NULL',
             'confirm_schedule' => 'TINYINT(1) NOT NULL DEFAULT 0',
             'is_cosplay' => 'TINYINT(1) NOT NULL DEFAULT 0',
+            'three_day_available' => 'TINYINT(1) NOT NULL DEFAULT 0',
             'self_intro' => 'TEXT NULL',
+            'gender' => "VARCHAR(20) NOT NULL DEFAULT ''",
+            'staff_experience' => 'TINYINT(1) NOT NULL DEFAULT 0',
+            'skills' => 'TEXT NULL',
             'status' => "VARCHAR(20) NOT NULL DEFAULT 'pending'",
             'voted_by' => 'INT DEFAULT NULL',
             'vote' => 'VARCHAR(20) DEFAULT NULL',
@@ -113,12 +118,17 @@ function galonlyEnsureStaffApplicationColumns(PDO $db): void {
             'cn_name' => "TEXT NOT NULL DEFAULT ''",
             'qq_number' => "TEXT NOT NULL DEFAULT ''",
             'phone_number' => "TEXT NOT NULL DEFAULT ''",
+            'email' => "TEXT NOT NULL DEFAULT ''",
             'club_id' => 'INTEGER NOT NULL DEFAULT 0',
             'club_country' => "TEXT NOT NULL DEFAULT 'china'",
             'positions' => "TEXT NOT NULL DEFAULT '[]'",
             'confirm_schedule' => 'INTEGER NOT NULL DEFAULT 0',
             'is_cosplay' => 'INTEGER NOT NULL DEFAULT 0',
+            'three_day_available' => 'INTEGER NOT NULL DEFAULT 0',
             'self_intro' => 'TEXT',
+            'gender' => "TEXT NOT NULL DEFAULT ''",
+            'staff_experience' => 'INTEGER NOT NULL DEFAULT 0',
+            'skills' => 'TEXT',
             'status' => "TEXT NOT NULL DEFAULT 'pending'",
             'voted_by' => 'INTEGER DEFAULT NULL',
             'vote' => 'TEXT DEFAULT NULL',
@@ -144,12 +154,17 @@ function galonlyEnsureStaffSchema(PDO $db): void {
                 cn_name VARCHAR(255) NOT NULL DEFAULT '',
                 qq_number VARCHAR(32) NOT NULL DEFAULT '',
                 phone_number VARCHAR(32) NOT NULL DEFAULT '',
+                email VARCHAR(255) NOT NULL DEFAULT '',
                 club_id INT NOT NULL DEFAULT 0,
                 club_country VARCHAR(50) NOT NULL DEFAULT 'china',
                 positions TEXT NOT NULL,
                 confirm_schedule TINYINT(1) NOT NULL DEFAULT 0,
                 is_cosplay TINYINT(1) NOT NULL DEFAULT 0,
+                three_day_available TINYINT(1) NOT NULL DEFAULT 0,
                 self_intro TEXT,
+                gender VARCHAR(20) NOT NULL DEFAULT '',
+                staff_experience TINYINT(1) NOT NULL DEFAULT 0,
+                skills TEXT,
                 status VARCHAR(20) NOT NULL DEFAULT 'pending',
                 voted_by INT DEFAULT NULL,
                 vote VARCHAR(20) DEFAULT NULL,
@@ -164,6 +179,8 @@ function galonlyEnsureStaffSchema(PDO $db): void {
         galonlyEnsureColumn($db, 'galonly_events', 'staff_required_count', 'INT NOT NULL DEFAULT 0');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_registration_open', 'TINYINT(1) NOT NULL DEFAULT 1');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_roster_finalized', 'TINYINT(1) NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'staff_only', 'TINYINT(1) NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'event_code', "VARCHAR(32) NOT NULL DEFAULT ''");
     } else {
         $db->exec("
             CREATE TABLE IF NOT EXISTS galonly_staff_applications (
@@ -173,12 +190,17 @@ function galonlyEnsureStaffSchema(PDO $db): void {
                 cn_name TEXT NOT NULL DEFAULT '',
                 qq_number TEXT NOT NULL DEFAULT '',
                 phone_number TEXT NOT NULL DEFAULT '',
+                email TEXT NOT NULL DEFAULT '',
                 club_id INTEGER NOT NULL DEFAULT 0,
                 club_country TEXT NOT NULL DEFAULT 'china',
                 positions TEXT NOT NULL DEFAULT '[]',
                 confirm_schedule INTEGER NOT NULL DEFAULT 0,
                 is_cosplay INTEGER NOT NULL DEFAULT 0,
+                three_day_available INTEGER NOT NULL DEFAULT 0,
                 self_intro TEXT,
+                gender TEXT NOT NULL DEFAULT '',
+                staff_experience INTEGER NOT NULL DEFAULT 0,
+                skills TEXT,
                 status TEXT NOT NULL DEFAULT 'pending'
                     CHECK(status IN ('pending','pooled','rejected','confirmed')),
                 voted_by INTEGER DEFAULT NULL,
@@ -189,6 +211,7 @@ function galonlyEnsureStaffSchema(PDO $db): void {
                 updated_at TEXT NOT NULL DEFAULT (datetime('now'))
             )
         ");
+        galonlyEnsureColumn($db, 'galonly_events', 'event_code', "TEXT NOT NULL DEFAULT ''");
         galonlyTryExec($db, "CREATE UNIQUE INDEX IF NOT EXISTS idx_staff_app_active ON galonly_staff_applications(event_id, user_id) WHERE status IN ('pending','pooled')");
     }
 
@@ -199,24 +222,34 @@ function galonlyEnsureStaffSchema(PDO $db): void {
         galonlyEnsureColumn($db, 'galonly_events', 'staff_required_count', 'INT NOT NULL DEFAULT 0');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_registration_open', 'TINYINT(1) NOT NULL DEFAULT 1');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_roster_finalized', 'TINYINT(1) NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'staff_only', 'TINYINT(1) NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'event_code', "VARCHAR(32) NOT NULL DEFAULT ''");
     } else {
         galonlyEnsureColumn($db, 'galonly_events', 'staff_deadline', 'TEXT DEFAULT NULL');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_max_applicants', 'INTEGER DEFAULT NULL');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_required_count', 'INTEGER NOT NULL DEFAULT 0');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_registration_open', 'INTEGER NOT NULL DEFAULT 1');
         galonlyEnsureColumn($db, 'galonly_events', 'staff_roster_finalized', 'INTEGER NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'staff_only', 'INTEGER NOT NULL DEFAULT 0');
+        galonlyEnsureColumn($db, 'galonly_events', 'event_code', "TEXT NOT NULL DEFAULT ''");
     }
     galonlyTryExec($db, "CREATE INDEX idx_staff_app_event ON galonly_staff_applications(event_id)");
     galonlyTryExec($db, "CREATE INDEX idx_staff_app_user ON galonly_staff_applications(user_id)");
     galonlyTryExec($db, "CREATE INDEX idx_staff_app_status ON galonly_staff_applications(status)");
+    // MySQL 与 SQLite 的局部唯一索引对齐：同一活动同一用户只允许一条 pending/pooled
+    if (galonlyIsMysql()) {
+        galonlyEnsureColumn($db, 'galonly_staff_applications', 'active_key', "VARCHAR(64) GENERATED ALWAYS AS (CASE WHEN status IN ('pending','pooled') THEN CONCAT(event_id, ':', user_id) ELSE NULL END) STORED");
+        galonlyTryExec($db, "CREATE UNIQUE INDEX idx_staff_app_active ON galonly_staff_applications(active_key)");
+    }
 }
 
 function galonlyStaffPositions(): array {
     return [
         '检票发票 (布展日)', '检票发票 (开展日)', '场馆搭建搬货 (布展日)', '搭建协助 (开展日)',
         '物料发放 (游客)', '物料发放 (摊主)', '食品发放与看管', '巡场 (安保/应急)',
-        '巡场检查 (内容合规)', '舞台管理', '问询处', '线上社群管理', '痛车区域管理',
-        'VIP室服务', '交通指引', '场务', '签到', '摄影', '机动', '其他',
+        '巡场检查 (内容合规)', '舞台管理', '问询处', '痛车区域管理', '交通指引',
+        'VIP室服务', '活动摊位负责人员', '副屏控制', '场务', '签到', '摄影', '机动', '其他',
+        '运营组', '摊位组', '活动组', '现场组', '后勤组',
     ];
 }
 
@@ -241,6 +274,11 @@ function galonlyDecodeStaffRow(array $row): array {
     }
     $row['confirm_schedule'] = (int)($row['confirm_schedule'] ?? 0);
     $row['is_cosplay'] = (int)($row['is_cosplay'] ?? 0);
+    $row['three_day_available'] = (int)($row['three_day_available'] ?? 0);
+    $row['gender'] = (string)($row['gender'] ?? '');
+    $row['staff_experience'] = (int)($row['staff_experience'] ?? 0);
+    $row['skills'] = (string)($row['skills'] ?? '');
+    $row['email'] = (string)($row['email'] ?? '');
     $row['resubmitted'] = (int)($row['resubmitted'] ?? 0);
     $row['has_update'] = (int)($row['has_update'] ?? 0);
     return $row;
@@ -252,30 +290,74 @@ function galonlyStaffPayload(array $input): array {
     $positions = galonlyJsonArray($positions);
     $allowed = galonlyStaffPositions();
     $positions = array_values(array_unique(array_filter($positions, fn($p) => in_array($p, $allowed, true))));
+    $clubCountry = (string)($input['club_country'] ?? 'china');
+    $clubCountry = in_array($clubCountry, ['china', 'japan', 'none'], true) ? $clubCountry : 'china';
+    $clubId = (int)($input['club_id'] ?? 0);
+    if ($clubCountry === 'none') $clubId = 0;
+    $genderMap = ['男' => 'male', '女' => 'female', 'male' => 'male', 'female' => 'female', '保密' => 'secret', 'secret' => 'secret'];
+    $gender = $genderMap[trim((string)($input['gender'] ?? ''))] ?? '';
 
     return [
         'event_id' => (int)($input['event_id'] ?? 0),
         'cn_name' => trim((string)($input['cn_name'] ?? $input['nickname'] ?? '')),
         'qq_number' => trim((string)($input['qq_number'] ?? $input['qq'] ?? '')),
         'phone_number' => trim((string)($input['phone_number'] ?? $input['phone'] ?? $input['contact'] ?? '')),
-        'club_id' => (int)($input['club_id'] ?? 0),
-        'club_country' => in_array(($input['club_country'] ?? 'china'), ['china', 'japan'], true) ? $input['club_country'] : 'china',
+        'email' => trim((string)($input['email'] ?? '')),
+        'club_id' => $clubId,
+        'club_country' => $clubCountry,
         'positions' => $positions,
         'confirm_schedule' => (int)($input['confirm_schedule'] ?? 0) ? 1 : 0,
         'is_cosplay' => (int)($input['is_cosplay'] ?? 0) ? 1 : 0,
+        'three_day_available' => (int)($input['three_day_available'] ?? 0) ? 1 : 0,
+        'gender' => $gender,
+        'staff_experience' => (int)($input['staff_experience'] ?? 0) ? 1 : 0,
+        'skills' => trim((string)($input['skills'] ?? '')),
         'self_intro' => trim((string)($input['self_intro'] ?? '')),
     ];
 }
 
 function galonlyStaffValidate(array $payload): ?string {
+    if (galonlyStaffIsIndividualApplicant($payload)) $payload['club_id'] = 1;
     if ($payload['event_id'] <= 0) return '缺少活动 ID';
     if ($payload['cn_name'] === '') return '请填写 CN（昵称）';
     if (!preg_match('/^\d{5,12}$/', $payload['qq_number'])) return 'QQ号应为5-12位数字';
     if (!preg_match('/^1\d{10}$/', $payload['phone_number'])) return '手机号应为11位，且以1开头';
+    if ($payload['email'] !== '' && !filter_var($payload['email'], FILTER_VALIDATE_EMAIL)) return '请填写有效的邮箱地址';
     if ($payload['club_id'] <= 0) return '请选择所属高校社团';
     if (count($payload['positions']) === 0) return '请至少选择一个报名岗位';
     if (!$payload['confirm_schedule']) return '请确认服务时间';
     return null;
+}
+
+function galonlyStaffIsIndividualApplicant(array $payload): bool {
+    return ($payload['club_country'] ?? '') === 'none' && (int)($payload['club_id'] ?? 0) === 0;
+}
+
+function galonlyStaffUserHasClub(PDO $db, int $userId, int $clubId, string $country): bool {
+    try {
+        $stmt = $db->prepare("
+            SELECT id FROM club_memberships
+            WHERE user_id = ?
+              AND club_id = ?
+              AND COALESCE(country, 'china') = ?
+              AND status = 'active'
+              AND COALESCE(role, '') <> 'external'
+            LIMIT 1
+        ");
+        $stmt->execute([$userId, $clubId, $country]);
+        return (bool)$stmt->fetch();
+    } catch (Exception $e) {
+        $stmt = $db->prepare("
+            SELECT id FROM club_memberships
+            WHERE user_id = ?
+              AND club_id = ?
+              AND status = 'active'
+              AND COALESCE(role, '') <> 'external'
+            LIMIT 1
+        ");
+        $stmt->execute([$userId, $clubId]);
+        return (bool)$stmt->fetch();
+    }
 }
 
 function galonlyStaffFail(string $message, int $status = 200): void {
@@ -303,6 +385,57 @@ function galonlyStaffRegistrationClosedReason(PDO $db, array $event): ?string {
         if ((int)$stmt->fetchColumn() >= (int)$event['staff_max_applicants']) return 'Staff 报名人数已满';
     }
     return null;
+}
+
+function galonlyNotifyStaffApplicant(array $application, string $status, ?array $event = null): bool {
+    $userId = (int)($application['user_id'] ?? 0);
+    $applicationId = (int)($application['id'] ?? 0);
+    if ($userId <= 0 || $applicationId <= 0) return false;
+
+    $eventName = (string)($event['name'] ?? $application['event_name'] ?? 'GalOnly 活动');
+    $positions = galonlyJsonArray($application['positions'] ?? []);
+    $positionText = count($positions) ? '，岗位：' . implode('、', $positions) : '';
+    $link = 'Galgame_events/galgameonly_list.html';
+
+    $map = [
+        'pooled' => [
+            'type' => 'galonly_staff_pooled',
+            'title' => 'Staff 申请已进入候选池',
+            'message' => '你报名的「' . $eventName . '」Staff 申请已通过初审，已进入候选池。最终名单确认后会再次通知。',
+        ],
+        'rejected' => [
+            'type' => 'galonly_staff_rejected',
+            'title' => 'Staff 申请未通过',
+            'message' => '你报名的「' . $eventName . '」Staff 申请未通过本轮审核。如需修改信息，可返回活动页查看是否仍可重新提交。',
+        ],
+        'pending' => [
+            'type' => 'galonly_staff_pending',
+            'title' => 'Staff 审核状态已更新',
+            'message' => '你报名的「' . $eventName . '」Staff 申请已退回待审核状态，审核组会重新处理。',
+        ],
+        'confirmed' => [
+            'type' => 'galonly_staff_confirmed',
+            'title' => '你已被确定为活动工作人员',
+            'message' => '恭喜！你已被确认为「' . $eventName . '」的工作人员' . $positionText . '。',
+        ],
+        'unlocked' => [
+            'type' => 'galonly_staff_roster_unlocked',
+            'title' => 'Staff 名单已解锁调整',
+            'message' => '「' . $eventName . '」工作人员名单已解锁，你的申请状态已回到候选池，请等待最终确认。',
+        ],
+    ];
+    if (!isset($map[$status])) return false;
+
+    require_once __DIR__ . '/../includes/notifications.php';
+    return createNotification(
+        $userId,
+        $map[$status]['type'],
+        $map[$status]['title'],
+        $map[$status]['message'],
+        $link,
+        'galonly_staff_application',
+        $applicationId
+    );
 }
 
 switch ($action) {
@@ -566,6 +699,30 @@ switch ($action) {
         }
 
         $db = getDB();
+
+        // Keep direct booth submissions subject to the event schema guard.
+        galonlyEnsureColumn(
+            $db,
+            'galonly_events',
+            'event_code',
+            galonlyIsMysql() ? "VARCHAR(32) NOT NULL DEFAULT ''" : "TEXT NOT NULL DEFAULT ''"
+        );
+
+        $eventStmt = $db->prepare("SELECT id, registration_open, staff_only FROM galonly_events WHERE id = ? LIMIT 1");
+        $eventStmt->execute([$eventId]);
+        $event = $eventStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$event) {
+            echo json_encode(['success' => false, 'message' => '活动不存在'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        if ((int)($event['staff_only'] ?? 0) === 1) {
+            echo json_encode(['success' => false, 'message' => '该活动仅开放 Staff 申请'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
+        if ((int)($event['registration_open'] ?? 0) !== 1) {
+            echo json_encode(['success' => false, 'message' => '该活动暂未开放摊位申请'], JSON_UNESCAPED_UNICODE);
+            exit();
+        }
 
         // 检查每个同好会是否已提交申请（禁止重复）
         foreach ($clubIds as $clubId) {
@@ -953,6 +1110,9 @@ switch ($action) {
 
             // 解码图片路径为数组
             $app['image_paths'] = decodeImagePaths($app);
+            $app['display_image'] = $app['display_image'] ?? null;
+            $posterSource = $app['display_image'] ?: ($app['image_paths'][0] ?? null);
+            $app['display_thumbnail'] = galonlyPosterThumbnailPath($posterSource);
         }
         unset($app);
 
@@ -1212,6 +1372,9 @@ switch ($action) {
         $event = galonlyStaffEvent($db, $payload['event_id']);
         if (!$event) galonlyStaffFail('活动不存在');
         if ($reason = galonlyStaffRegistrationClosedReason($db, $event)) galonlyStaffFail($reason);
+        if (!galonlyStaffIsIndividualApplicant($payload) && !galonlyStaffUserHasClub($db, (int)$user['id'], $payload['club_id'], $payload['club_country'])) {
+            galonlyStaffFail('只能选择你已加入的高校社团');
+        }
 
         $stmt = $db->prepare("SELECT id FROM galonly_staff_applications WHERE event_id = ? AND user_id = ? AND status IN ('pending','pooled') LIMIT 1");
         $stmt->execute([$payload['event_id'], $user['id']]);
@@ -1220,14 +1383,16 @@ switch ($action) {
         $now = date('Y-m-d H:i:s');
         $stmt = $db->prepare("
             INSERT INTO galonly_staff_applications
-                (event_id, user_id, cn_name, qq_number, phone_number, club_id, club_country, positions, confirm_schedule, is_cosplay, self_intro, status, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
+                (event_id, user_id, cn_name, qq_number, phone_number, email, club_id, club_country, positions, confirm_schedule, is_cosplay, three_day_available, gender, staff_experience, skills, self_intro, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
         ");
         $stmt->execute([
             $payload['event_id'], $user['id'], $payload['cn_name'], $payload['qq_number'],
-            $payload['phone_number'], $payload['club_id'], $payload['club_country'],
+            $payload['phone_number'], $payload['email'], $payload['club_id'], $payload['club_country'],
             json_encode($payload['positions'], JSON_UNESCAPED_UNICODE),
-            $payload['confirm_schedule'], $payload['is_cosplay'], $payload['self_intro'], $now, $now,
+            $payload['confirm_schedule'], $payload['is_cosplay'], $payload['three_day_available'],
+            $payload['gender'], $payload['staff_experience'], $payload['skills'],
+            $payload['self_intro'], $now, $now,
         ]);
         $applicationId = (int)$db->lastInsertId();
         logAction('galonly.submit_staff', 'galonly_staff_application', $applicationId);
@@ -1279,6 +1444,9 @@ switch ($action) {
         $payload = galonlyStaffPayload($input);
         if ((int)$payload['event_id'] !== (int)$existing['event_id']) galonlyStaffFail('活动 ID 不匹配');
         if ($message = galonlyStaffValidate($payload)) galonlyStaffFail($message);
+        if (!galonlyStaffIsIndividualApplicant($payload) && !galonlyStaffUserHasClub($db, (int)$user['id'], $payload['club_id'], $payload['club_country'])) {
+            galonlyStaffFail('只能选择你已加入的高校社团');
+        }
 
         $status = $existing['status'];
         $resubmitted = (int)$existing['resubmitted'];
@@ -1297,15 +1465,17 @@ switch ($action) {
         $now = date('Y-m-d H:i:s');
         $stmt = $db->prepare("
             UPDATE galonly_staff_applications
-            SET cn_name = ?, qq_number = ?, phone_number = ?, club_id = ?, club_country = ?,
-                positions = ?, confirm_schedule = ?, is_cosplay = ?, self_intro = ?,
+            SET cn_name = ?, qq_number = ?, phone_number = ?, email = ?, club_id = ?, club_country = ?,
+                positions = ?, confirm_schedule = ?, is_cosplay = ?, three_day_available = ?, gender = ?, staff_experience = ?, skills = ?, self_intro = ?,
                 status = ?, voted_by = ?, vote = ?, resubmitted = ?, has_update = ?, updated_at = ?
             WHERE id = ?
         ");
         $stmt->execute([
-            $payload['cn_name'], $payload['qq_number'], $payload['phone_number'], $payload['club_id'],
-            $payload['club_country'], json_encode($payload['positions'], JSON_UNESCAPED_UNICODE),
-            $payload['confirm_schedule'], $payload['is_cosplay'], $payload['self_intro'],
+            $payload['cn_name'], $payload['qq_number'], $payload['phone_number'], $payload['email'],
+            $payload['club_id'], $payload['club_country'], json_encode($payload['positions'], JSON_UNESCAPED_UNICODE),
+            $payload['confirm_schedule'], $payload['is_cosplay'], $payload['three_day_available'],
+            $payload['gender'], $payload['staff_experience'], $payload['skills'],
+            $payload['self_intro'],
             $status, $votedBy, $vote, $resubmitted, $hasUpdate, $now, $applicationId,
         ]);
         logAction('galonly.update_staff', 'galonly_staff_application', $applicationId);
@@ -1376,7 +1546,12 @@ switch ($action) {
 
         $db = getDB();
         galonlyEnsureStaffSchema($db);
-        $stmt = $db->prepare("SELECT id, status, voted_by FROM galonly_staff_applications WHERE id = ?");
+        $stmt = $db->prepare("
+            SELECT a.*, e.name AS event_name
+            FROM galonly_staff_applications a
+            LEFT JOIN galonly_events e ON a.event_id = e.id
+            WHERE a.id = ?
+        ");
         $stmt->execute([$applicationId]);
         $application = $stmt->fetch();
         if (!$application) galonlyStaffFail('申请不存在');
@@ -1386,6 +1561,8 @@ switch ($action) {
         $result = $vote === 'approve' ? 'pooled' : 'rejected';
         $db->prepare("UPDATE galonly_staff_applications SET status = ?, voted_by = ?, vote = ?, updated_at = ? WHERE id = ?")
             ->execute([$result, $user['id'], $vote, date('Y-m-d H:i:s'), $applicationId]);
+        $application['status'] = $result;
+        galonlyNotifyStaffApplicant($application, $result);
         logAction('galonly.vote_staff', 'galonly_staff_application', $applicationId, ['vote' => $vote]);
         echo json_encode(['success' => true, 'result' => $result, 'vote_by' => $user['id']], JSON_UNESCAPED_UNICODE);
         exit();
@@ -1402,7 +1579,12 @@ switch ($action) {
 
         $db = getDB();
         galonlyEnsureStaffSchema($db);
-        $stmt = $db->prepare("SELECT id, voted_by, status FROM galonly_staff_applications WHERE id = ?");
+        $stmt = $db->prepare("
+            SELECT a.*, e.name AS event_name
+            FROM galonly_staff_applications a
+            LEFT JOIN galonly_events e ON a.event_id = e.id
+            WHERE a.id = ?
+        ");
         $stmt->execute([$applicationId]);
         $application = $stmt->fetch();
         if (!$application) galonlyStaffFail('申请不存在');
@@ -1411,6 +1593,7 @@ switch ($action) {
 
         $db->prepare("UPDATE galonly_staff_applications SET status = 'pending', voted_by = NULL, vote = NULL, updated_at = ? WHERE id = ?")
             ->execute([date('Y-m-d H:i:s'), $applicationId]);
+        galonlyNotifyStaffApplicant($application, 'pending');
         logAction('galonly.withdraw_staff_vote', 'galonly_staff_application', $applicationId);
         echo json_encode(['success' => true, 'result' => 'pending'], JSON_UNESCAPED_UNICODE);
         exit();
@@ -1451,18 +1634,8 @@ switch ($action) {
             galonlyStaffFail('名单确认失败：' . $e->getMessage());
         }
 
-        require_once __DIR__ . '/../includes/notifications.php';
         foreach ($pooled as $row) {
-            $positions = galonlyJsonArray($row['positions'] ?? []);
-            createNotification(
-                (int)$row['user_id'],
-                'galonly_staff_confirmed',
-                '你已被确定为活动工作人员',
-                '恭喜！你已被确认为「' . ($event['name'] ?? 'GalOnly 活动') . '」的工作人员，岗位：' . implode('、', $positions) . '。',
-                'Galgame_events/galgameonly_list.html',
-                'galonly_staff_application',
-                (int)$row['id']
-            );
+            galonlyNotifyStaffApplicant($row, 'confirmed', $event);
         }
         logAction('galonly.finalize_staff_roster', 'galonly_event', $eventId);
         echo json_encode([
@@ -1493,10 +1666,17 @@ switch ($action) {
         if (!$event) galonlyStaffFail('活动不存在');
         if ((int)($event['staff_roster_finalized'] ?? 0) === 0) galonlyStaffFail('名单尚未确认，无需解锁');
 
+        $stmt = $db->prepare("SELECT * FROM galonly_staff_applications WHERE event_id = ? AND status = 'confirmed'");
+        $stmt->execute([$eventId]);
+        $confirmed = $stmt->fetchAll();
+
         $now = date('Y-m-d H:i:s');
         $db->prepare("UPDATE galonly_events SET staff_roster_finalized = 0 WHERE id = ?")->execute([$eventId]);
         $db->prepare("UPDATE galonly_staff_applications SET status = 'pooled', updated_at = ? WHERE event_id = ? AND status = 'confirmed'")
             ->execute([$now, $eventId]);
+        foreach ($confirmed as $row) {
+            galonlyNotifyStaffApplicant($row, 'unlocked', $event);
+        }
         logAction('galonly.unlock_staff_roster', 'galonly_event', $eventId);
         echo json_encode(['success' => true, 'message' => '名单已解锁'], JSON_UNESCAPED_UNICODE);
         exit();

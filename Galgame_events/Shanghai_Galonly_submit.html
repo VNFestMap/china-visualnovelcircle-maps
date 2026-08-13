@@ -1,8 +1,13 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../js/page-i18n.js?v=20260813-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../js/theme-runtime.js?v=20260702-theme"></script>
 <title>申请摊位 - GalOnly</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -289,6 +294,68 @@ body {
     .club-selector-row .form-select { min-width: 0; }
     .btn-club-remove { width: 28px; height: 28px; min-width: 28px; font-size: 12px; }
 }
+[data-theme="light"] body {
+    background: linear-gradient(135deg, #fdf4ef 0%, #f8e7df 50%, #fdf4ef 100%);
+    color: #3a1d18;
+}
+[data-theme="light"] .back-link { color: rgba(58,29,24,0.45); }
+[data-theme="light"] .back-link:hover { color: rgba(58,29,24,0.75); }
+[data-theme="light"] .header-meta { color: rgba(58,29,24,0.45); }
+[data-theme="light"] .form-card {
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(58,29,24,0.10);
+}
+[data-theme="light"] .form-label { color: rgba(58,29,24,0.82); }
+[data-theme="light"] .form-hint { color: rgba(58,29,24,0.45); }
+[data-theme="light"] .form-input-static {
+    background: rgba(58,29,24,0.04);
+    border: 1px solid rgba(58,29,24,0.08);
+    color: rgba(58,29,24,0.72);
+}
+[data-theme="light"] .radio-label,
+[data-theme="light"] .checkbox-label { color: rgba(58,29,24,0.75); }
+[data-theme="light"] .conditional-field {
+    background: rgba(58,29,24,0.03);
+    border-color: rgba(58,29,24,0.06);
+}
+[data-theme="light"] .form-select,
+[data-theme="light"] .form-input,
+[data-theme="light"] .form-textarea {
+    background: rgba(255,255,255,0.85);
+    border-color: rgba(58,29,24,0.12);
+    color: #3a1d18;
+}
+[data-theme="light"] .form-select option { background: #fff; color: #3a1d18; }
+[data-theme="light"] .form-input::placeholder,
+[data-theme="light"] .form-textarea::placeholder { color: rgba(58,29,24,0.35); }
+[data-theme="light"] .file-upload-area {
+    background: rgba(58,29,24,0.03);
+    border-color: rgba(58,29,24,0.18);
+}
+[data-theme="light"] .file-upload-area:hover {
+    border-color: rgba(58,29,24,0.32);
+    background: rgba(58,29,24,0.05);
+}
+[data-theme="light"] .file-upload-text { color: rgba(58,29,24,0.55); }
+[data-theme="light"] .file-upload-text strong { color: rgba(58,29,24,0.75); }
+[data-theme="light"] .btn-club-add {
+    background: rgba(58,29,24,0.06);
+    border-color: rgba(58,29,24,0.15);
+    color: rgba(58,29,24,0.65);
+}
+[data-theme="light"] .btn-club-add:hover {
+    background: rgba(58,29,24,0.10);
+    color: #3a1d18;
+}
+[data-theme="light"] .image-preview-item { border-color: rgba(58,29,24,0.12); }
+[data-theme="light"] .separator { background: rgba(58,29,24,0.08); }
+[data-theme="light"] .loading-text { color: rgba(58,29,24,0.45); }
+[data-theme="light"] .no-club-msg {
+    background: rgba(255,193,7,0.15);
+    border-color: rgba(255,193,7,0.35);
+    color: #8a6d00;
+}
+[data-theme="light"] .no-club-msg a { color: #8a6d00; }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
 </head>
@@ -1073,7 +1140,7 @@ body {
         // Parse event_id from URL
         var params = new URLSearchParams(window.location.search);
         eventId = parseInt(params.get('event_id'), 10);
-        applicationId = parseInt(params.get('application_id'), 10) || 0;
+        applicationId = parseInt(params.get('application_id') || params.get('app_id'), 10) || 0;
         isEditMode = applicationId > 0;
         if (!eventId) {
             $('loading-msg').textContent = '缺少活动参数';
@@ -1227,7 +1294,7 @@ body {
 
 <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 
-<script src="../js/page-background.js" data-picker="compact"></script>
+<script src="../js/page-background.js?v=20260812-centralized-preferences"></script>
 </body>
 </html>
 

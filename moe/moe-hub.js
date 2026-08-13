@@ -41,22 +41,23 @@
     var list = $('mhCardList');
     if (!list) return;
     if (!append) list.innerHTML = '<div class="mh-loading">加载中...</div>';
-
-    var params = '?action=list&project_type=moe&status=' + STATE.filter + '&page=' + STATE.page;
-    api('../api/moe_contests.php' + params).then(function (data) {
-      var projects = (data && data.data) || [];
-      if (!projects.length) {
-        if (!append) list.innerHTML = '<div class="mh-empty">暂无活动</div>';
-        return;
-      }
-      STATE.total = data.total || projects.length;
-      STATE.projects = append ? STATE.projects.concat(projects) : projects;
-      renderCards(projects, append);
-      var loadMore = $('mhLoadMore');
-      if (loadMore) loadMore.style.display = (projects.length >= 20) ? '' : 'none';
-      updateStats();
-    }).catch(function () {
-      list.innerHTML = '<div class="mh-empty">加载失败，请刷新重试</div>';
+    ensureClubNamesLoaded().then(function () {
+      var params = '?action=list&project_type=moe&status=' + STATE.filter + '&page=' + STATE.page;
+      api('../api/moe_contests.php' + params).then(function (data) {
+        var projects = (data && data.data) || [];
+        if (!projects.length) {
+          if (!append) list.innerHTML = '<div class="mh-empty">暂无活动</div>';
+          return;
+        }
+        STATE.total = data.total || projects.length;
+        STATE.projects = append ? STATE.projects.concat(projects) : projects;
+        renderCards(projects, append);
+        var loadMore = $('mhLoadMore');
+        if (loadMore) loadMore.style.display = (projects.length >= 20) ? '' : 'none';
+        updateStats();
+      }).catch(function () {
+        list.innerHTML = '<div class="mh-empty">加载失败，请刷新重试</div>';
+      });
     });
   }
 
@@ -80,7 +81,7 @@
         '<div class="mh-card-body">' +
           '<div class="mh-card-row">' +
             '<span class="mh-card-tag">萌战</span>' +
-            '<span class="mh-card-club">同好会 #' + esc(p.club_id) + '</span>' +
+            '<span class="mh-card-club">' + esc(resolveClubName(p.club_id, p.country)) + '</span>' +
             '<span class="mh-card-stage ' + meta.color + '"' + (isEnded ? ' ended' : '') + '>' + (isEnded ? '已结束' : meta.label) + '</span>' +
           '</div>' +
           '<div class="mh-card-title">' + esc(p.title) + '</div>' +

@@ -50,7 +50,7 @@
     list.innerHTML = rows.map(function (item) {
       return '<button class="project-card ' + (state.selected && Number(state.selected.id) === Number(item.id) ? 'active' : '') + '" data-project-id="' + Number(item.id) + '">' +
         token(item.project_type) +
-        '<span class="project-title"><strong>' + esc(item.title) + '</strong><span class="muted">' + esc(item.year_label || '') + ' · 同好会 #' + Number(item.club_id) + '</span></span>' +
+        '<span class="project-title"><strong>' + esc(item.title) + '</strong><span class="muted">' + esc(item.year_label || '') + ' · ' + esc(resolveClubName(item.club_id, item.country)) + '</span></span>' +
         '<span class="pills"><span class="pill">' + typeLabel(item.project_type) + '</span><span class="pill">' + statusLabel(item.status) + '</span></span>' +
       '</button>';
     }).join('');
@@ -111,7 +111,7 @@
     var votingStage = openStage();
     host.className = '';
     host.innerHTML =
-      '<div class="detail-head"><div><h2>' + esc(item.title) + '</h2><div class="muted">' + typeLabel(item.project_type) + ' · ' + statusLabel(item.status) + ' · 同好会 #' + Number(item.club_id) + '</div></div>' +
+      '<div class="detail-head"><div><h2>' + esc(item.title) + '</h2><div class="muted">' + typeLabel(item.project_type) + ' · ' + statusLabel(item.status) + ' · ' + esc(resolveClubName(item.club_id, item.country)) + '</div></div>' +
       '<span class="pills"><span class="pill">' + esc(item.eligibility_mode || 'club_member') + '</span><span class="pill">' + esc(item.visibility || 'public') + '</span></span></div>' +
       '<p class="muted">' + esc(item.description || '暂无说明。') + '</p>' +
       '<h2>阶段</h2><div class="stage-list">' + renderStageRows() + '</div>' +
@@ -160,6 +160,7 @@
   }
 
   async function loadProjects() {
+    await ensureClubNamesLoaded();
     var params = new URLSearchParams();
     params.set('action', 'list');
     params.set('country', $('countryFilter').value || 'all');

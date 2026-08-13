@@ -53,20 +53,22 @@
 
   function loadHubProjects(append) {
     if (!append) document.getElementById('moCardList').innerHTML = '<div class="mo-loading">加载中...</div>';
-    var params = '?action=list&project_type=moe&status=' + HUB_STATE.filter + '&page=' + HUB_STATE.page;
-    api('../api/moe_contests.php' + params).then(function (data) {
-      var projects = (data && data.data) || [];
-      if (!projects.length) {
-        if (!append) document.getElementById('moCardList').innerHTML = '<div class="mo-empty">暂无活动</div>';
-        return;
-      }
-      HUB_STATE.total = data.total || projects.length;
-      HUB_STATE.projects = append ? HUB_STATE.projects.concat(projects) : projects;
-      renderHubCards(projects, append);
-      document.getElementById('moLoadMore').style.display = (projects.length >= 20) ? '' : 'none';
-      updateHubStats();
-    }).catch(function () {
-      document.getElementById('moCardList').innerHTML = '<div class="mo-empty">加载失败，请刷新重试</div>';
+    ensureClubNamesLoaded().then(function () {
+      var params = '?action=list&project_type=moe&status=' + HUB_STATE.filter + '&page=' + HUB_STATE.page;
+      api('../api/moe_contests.php' + params).then(function (data) {
+        var projects = (data && data.data) || [];
+        if (!projects.length) {
+          if (!append) document.getElementById('moCardList').innerHTML = '<div class="mo-empty">暂无活动</div>';
+          return;
+        }
+        HUB_STATE.total = data.total || projects.length;
+        HUB_STATE.projects = append ? HUB_STATE.projects.concat(projects) : projects;
+        renderHubCards(projects, append);
+        document.getElementById('moLoadMore').style.display = (projects.length >= 20) ? '' : 'none';
+        updateHubStats();
+      }).catch(function () {
+        document.getElementById('moCardList').innerHTML = '<div class="mo-empty">加载失败，请刷新重试</div>';
+      });
     });
   }
 
@@ -93,7 +95,7 @@
         '<div class="mo-card-body">' +
           '<div class="mo-card-row">' +
             '<span class="mo-card-tag">萌战</span>' +
-            '<span class="mo-card-club">同好会 #' + esc(p.club_id) + '</span>' +
+            '<span class="mo-card-club">' + esc(resolveClubName(p.club_id, p.country)) + '</span>' +
             '<span class="mo-card-stage ' + stageCls + '">' + meta.label + '</span>' +
           '</div>' +
           '<div class="mo-card-title">' + esc(p.title) + '</div>' +

@@ -57,6 +57,7 @@
   }
 
   function init() {
+    ensureClubNamesLoaded();
     var id = new URLSearchParams(window.location.search).get('id');
     if (!id) { renderEmpty('缺少活动ID'); return; }
     loadProject(id);
@@ -72,7 +73,7 @@
       if (!data || !data.data) { renderEmpty('活动不存在'); return; }
       STATE.project = data.data;
       $('mdContestTitle').textContent = data.data.title;
-      $('mdInfoClub').textContent = '同好会 #' + esc(data.data.club_id);
+      $('mdInfoClub').textContent = resolveClubName(data.data.club_id, data.data.country);
       var bracketLink = $('mdBracketLink');
       if (bracketLink) {
         bracketLink.href = 'bracket.html?project_id=' + encodeURIComponent(projectId);

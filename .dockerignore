@@ -22,6 +22,7 @@ deploy-config.example.sh
 
 # 运行时数据（通过 volume 挂载）
 data/*.json
+data/wiki-guide/
 data/*.db
 data/*.sqlite
 data/avatars/

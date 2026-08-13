@@ -316,7 +316,7 @@
     </div>
     
     <script>
-        const SUBMISSIONS_FILE = '../data/submissions.json';
+        const SUBMISSIONS_FILE = '../api/submit.php?action=read';
         const CHINA_API = '../api/clubs.php';
         const JAPAN_API = '../api/clubs_japan.php';
         const SUBMIT_API = '../api/submit.php';
@@ -349,7 +349,7 @@
         // 加载提交记录
         async function loadSubmissions() {
             try {
-                const response = await fetch(SUBMISSIONS_FILE + '?t=' + Date.now());
+                const response = await fetch(SUBMISSIONS_FILE + '&t=' + Date.now());
                 if (response.ok) {
                     submissions = await response.json();
                     if (!Array.isArray(submissions)) submissions = [];
@@ -568,6 +568,6 @@
             }
         })();
     </script>
-<script src="../js/page-background.js" data-picker="compact"></script>
+<script src="../js/page-background.js?v=20260812-centralized-preferences"></script>
 </body>
 </html>

@@ -24,6 +24,12 @@ define('DB_PASS', '');
 define('SESSION_LIFETIME', 7200);
 define('SESSION_SECRET', 'change-to-a-random-64-char-string');
 
+// ===== Makoquiz 答题游戏连携 =====
+// bind_token 的 HMAC 签名密钥（与 makoquiz 服务端的 VNFEST_LINK_SECRET 一致）
+define('QUIZ_LINK_SECRET', 'change-to-a-random-64-char-string');
+// makoquiz 服务端回传战绩时的 Bearer 密钥（与 makoquiz 的 VNFEST_API_KEY 一致）
+define('QUIZ_API_KEY', 'change-to-another-random-64-char-string');
+
 // 邮件发送配置
 // 方式一: 使用 PHP mail()（需服务器支持 sendmail/postfix）
 define('MAIL_DRIVER', 'mail');       // 'mail' 或 'smtp'

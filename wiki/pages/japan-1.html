@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-language"></script>
   <title>東京大学ビジュアルノベル同好会 - 同好会维基</title>
   <link rel="stylesheet" href="../wiki.css">
 </head>
@@ -13,10 +16,6 @@
     <span>同好会维基</span>
   </header>
   <main class="wiki-page">
-    <nav class="wiki-language-switch" id="wikiLanguageSwitch" aria-label="Language">
-      <a href="?lang=zh" data-wiki-switch-lang="zh">中文</a>
-      <a href="?lang=ja" data-wiki-switch-lang="ja">日本語</a>
-    </nav>
     <article class="wiki-article" data-wiki-lang="zh">
       <h1>東京大学ビジュアルノベル同好会</h1>
       <aside class="wiki-infobox">
@@ -24,7 +23,6 @@
     <table><tr><th>学校</th><td>東京大学</td></tr>
 <tr><th>地区</th><td>東京都</td></tr>
 <tr><th>类型</th><td>大学同好会</td></tr>
-<tr><th>成立时间</th><td>2013</td></tr>
 <tr><th>状态</th><td>已认证</td></tr></table>
   </aside>
       <p class="wiki-summary">東京大学ビジュアルノベル同好会は、Galgame 同好会地图日本区数据中登记的高校同好会之一。</p>
@@ -48,25 +46,27 @@
       <aside class="wiki-infobox">
     <div class="wiki-infobox-title">東京大学ビジュアルノベル同好会</div>
     <table><tr><th>学校</th><td>東京大学</td></tr>
-<tr><th>地区</th><td>東京都</td></tr>
-<tr><th>类型</th><td>大学同好会</td></tr>
-<tr><th>成立时间</th><td>2013</td></tr>
-<tr><th>状态</th><td>已认证</td></tr></table>
+<tr><th>地区</th><td>东京都</td></tr>
+<tr><th>类型</th><td>高校同好会</td></tr>
+<tr><th>状态</th><td>已认证</td></tr>
+<tr><th>地域</th><td>東京都</td></tr>
+<tr><th>種別</th><td>大学同好会</td></tr>
+<tr><th>状態</th><td>認証済み</td></tr></table>
   </aside>
-      <p class="wiki-summary">東京大学ビジュアルノベル同好会は、Galgame 同好会地图日本区数据中登记的高校同好会之一。</p>
+      <p class="wiki-summary">東京大学ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。</p>
       <section class="wiki-image-gallery" aria-label="图片"><figure class="wiki-image-card wiki-image-align-center wiki-image-fit-cover" style="--wiki-image-width:100%">
-      <img src="../../favicon.ico" alt="示例图片" loading="lazy">
-      <figcaption>示例图片：可替换为同好会标志、活动照片或相关海报。</figcaption>
+      <img src="../../favicon.ico" alt="参考画像" loading="lazy">
+      <figcaption>参考画像：同好会のロゴ、活動写真、関連ポスターに差し替えられます。</figcaption>
     </figure></section>
       <nav class="wiki-toc" aria-label="目录"><div class="wiki-toc-title">目录</div><ol><li><a href="#section-1">概要</a></li></ol></nav>
       
     <section class="wiki-section" id="section-1">
       <h2>概要</h2>
-      <p>本页面用于整理该同好会的公开资料、发展历史和活动记录。</p>
-<p>日文资料可按需要逐步补充。</p>
+      <p>本ページでは、同好会の公開情報、沿革、活動記録を整理します。</p>
+<p>日本語資料は、公開情報の確認に合わせて順次補充します。</p>
     </section>
   
-      <section class="wiki-section wiki-references"><h2>参考资料</h2><ol><li><a href="../../index.html" target="_blank" rel="noopener noreferrer">Galgame 同好会地图登记资料</a></li></ol></section>
+      <section class="wiki-section wiki-references"><h2>参考资料</h2><ol><li><a href="../../index.html" target="_blank" rel="noopener noreferrer">Galgame同好会マップ登録情報</a></li></ol></section>
       <footer class="wiki-footer">最后更新：2026-05-14</footer>
     </article>
     <article class="wiki-article" hidden>
@@ -76,7 +76,6 @@
     <table><tr><th>学校</th><td>東京大学</td></tr>
 <tr><th>地区</th><td>東京都</td></tr>
 <tr><th>类型</th><td>大学同好会</td></tr>
-<tr><th>成立时间</th><td>2013</td></tr>
 <tr><th>状态</th><td>已认证</td></tr></table>
   </aside>
       <p class="wiki-summary">東京大学ビジュアルノベル同好会は、Galgame 同好会地图日本区数据中登记的高校同好会之一。</p>
@@ -98,16 +97,18 @@
   </main>
   <script>
   (function () {
-    var params = new URLSearchParams(window.location.search);
-    var lang = params.get('lang') || localStorage.getItem('language') || 'zh';
-    lang = lang === 'ja' ? 'ja' : 'zh';
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
-    document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
-      node.hidden = node.getAttribute('data-wiki-lang') !== lang;
-    });
-    document.querySelectorAll('[data-wiki-switch-lang]').forEach(function (node) {
-      node.classList.toggle('active', node.getAttribute('data-wiki-switch-lang') === lang);
-    });
+    function applyLanguage() {
+      var lang = window.VNFLanguage && window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
+      document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
+      document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
+        node.hidden = node.getAttribute('data-wiki-lang') !== lang;
+      });
+    }
+    applyLanguage();
+    if (window.VNFLanguage) {
+      window.VNFLanguage.subscribe(applyLanguage);
+      window.VNFLanguage.ready.then(applyLanguage);
+    }
   })();
   </script>
 </body>

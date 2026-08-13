@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://www.map.vnfest.top"><img alt="Website" src="https://img.shields.io/badge/🌐_在线访问-map.vnfest.top-2ecc71?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-2ecc71?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.1.0-2ecc71?style=flat-square">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=flat-square&logo=php&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white">
   <img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=flat-square&logo=d3.js&logoColor=white">
@@ -90,6 +90,8 @@ v2.0 全新重写的用户中心，从原来的单体 HTML 页面迁移到了基
 
 支持本地账号注册/登录、邮箱验证码、密码找回，以及 QQ 和 Discord 第三方 OAuth 登录。
 
+账号可以从自己的正式活跃会籍中选择一个“代表同好会”公开展示，或保持“不展示”。选择结果会出现在账号总览与论坛作者身份中，并随当前会籍角色动态更新；退出、被踢、重新申请或会籍失效后会自动清除，不会公开账号的其他会籍。
+
 ### 📖 Wiki 百科
 
 VNFest Wiki 采用百科式布局——左侧导航栏 + 右侧内容区，和传统 Wiki 站点的体验一致。
@@ -129,20 +131,20 @@ VNFest Wiki 采用百科式布局——左侧导航栏 + 右侧内容区，和�
 
 ---
 
-## v2.0 更新亮点
+## v2.1 更新亮点
 
-> 从 v1.7.1 到 v2.0，VNFest 经历了一次从视觉到架构的全面升级。
+> 从 v2.0 到 v2.1，VNFest 完成了社区互动与运营治理的全链路升级。
 
 | 亮点 | 说明 |
 |------|------|
-| **用户中心 SPA 化** | 从 2,500 行内联 HTML 迁移到 React 18 SPA，交互体验质的飞跃 |
-| **GalOnly Staff 招募** | 全新上线的工作人员申请、投票、审核和排班全流程 |
-| **资料公开库** | 刊物 PDF/图片上传、元数据管理和在线 3D 翻页预览 |
-| **淘汰赛可视化** | 萌战和十二器的独立对阵图组件，支持缩放、拖拽和实时状态 |
-| **星图视觉升级** | Cinematic Frontend v2 — 径向渐变 + 雷达扫描 + 沉浸式模式 |
-| **广场重写** | 深邃宇宙主题 + 五色卡片 + 中日双语切换 |
-| **性能优化** | 分批渲染、事件委托、搜索防抖，大量数据下依然流畅 |
-| **设计系统统一** | oklch 色彩空间 + Playfair Display / Jost / Noto Serif SC 字体组合 |
+| **独立论坛** | 全新论坛广场：发帖、回复、点赞、收藏、Markdown 与图片附件 |
+| **超级管理控制台** | 审核趋势、同好会地区分布 Top 12、操作日志等运营仪表盘 |
+| **北京 GalOnly 第二届** | 高校摊位申请与 Staff 招募双流程，独立审核与活动 Logo |
+| **MakoQuiz 答题连携** | 答题战绩回传 + HMAC 绑定令牌，跨站安全共享账号 |
+| **偏好集中化** | 语言、主题、地图操作统一收口，账号语言跨设备同步 |
+| **Wiki 使用文档** | 中日双语、分组导航、站内检索的完整使用文档 |
+| **江苏子地图** | 13 地级市自包含离线 SVG，不依赖外部地图请求 |
+| **AstrBot beta0.5** | 机器人查询与同步插件发布，含插件下载入口 |
 
 ---
 
@@ -233,7 +235,7 @@ VNFest Wiki 采用百科式布局——左侧导航栏 + 右侧内容区，和�
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git
+git clone https://github.com/VNFestMap/china-visualnovelcircle-maps.git
 cd china-visualnovelcircle-maps
 
 # 2. 安装依赖
@@ -260,7 +262,7 @@ php -S 127.0.0.1:8000
 npm run check
 ```
 
-该命令会运行全部 39+ 个契约测试，覆盖前端交互、Wiki 生成、上传契约、同好会编辑、后端隐私、成长系统、用户页面、国际化、性能优化、投票流程和项目整体健康状态。
+该命令会运行全部 40+ 个契约测试，覆盖前端交互、Wiki 生成、上传契约、同好会编辑、后端隐私、成长系统、用户页面、国际化、性能优化、投票流程、机器人同步和项目整体健康状态。
 
 ---
 
@@ -284,6 +286,7 @@ bash scripts/deploy.sh
 
 | 版本 | 核心主题 |
 |------|---------|
+| **v2.1.0** | 独立论坛、超级管理控制台、北京 GalOnly、MakoQuiz 连携、偏好集中化、Wiki 使用文档 |
 | **v2.0.0** | 用户中心 SPA 化、Staff 招募、资料公开库、淘汰赛可视化、设计系统统一 |
 | v1.7.x | 企划枢纽、十二器、萌战引擎、投票活动、同好会广场、Docker CI/CD |
 | v1.6.x | Wiki 子系统、同好会绑定码、通知公告、多端发布（桌面 / Android） |

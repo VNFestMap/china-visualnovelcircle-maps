@@ -2,8 +2,8 @@
 var CONFIG = window.CONFIG || {
   BASE_WIDTH: 960,
   BASE_HEIGHT: 700,
-  API_URL: './data/clubs.json',
-  FALLBACK_URLS: ['./data/clubs.json'],
+  API_URL: './api/clubs.php',
+  FALLBACK_URLS: ['./api/clubs.php'],
   POLYMERIZATION_URL: '',
   PUBLIC_BASE_URL: 'https://www.map.vnfest.top'
 };

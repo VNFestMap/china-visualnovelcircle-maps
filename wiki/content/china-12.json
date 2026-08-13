@@ -1,39 +1,78 @@
 {
-    "club_key": "china-12",
-    "title": "北京科技大学_🐚视觉小说交流群",
-    "summary": "北京科技大学_🐚视觉小说交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
-    "infobox": {
+  "club_key": "china-12",
+  "title": "北京科技大学_🐚视觉小说交流群",
+  "summary": "北京科技大学_🐚视觉小说交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
+  "infobox": {
+    "学校": "北京科技大学",
+    "地区": "北京市/雄安新区",
+    "类型": "高校同好会",
+    "成立时间": "2023",
+    "状态": "已认证"
+  },
+  "sections": [
+    {
+      "heading": "概要",
+      "level": 2,
+      "body": [
+        "本页面用于整理该同好会的公开资料、发展历史、活动记录和对外链接。"
+      ]
+    }
+  ],
+  "images": [
+    {
+      "url": "../uploads/china-12/20260515141234_778999cf.jpg?t=1778825554",
+      "caption": "",
+      "alt": "微信图片_20260511180230_80_3",
+      "width_percent": 100,
+      "aspect_ratio": "16/10",
+      "align": "center",
+      "fit": "cover"
+    }
+  ],
+  "references": [
+    {
+      "label": "Galgame 同好会地图登记资料",
+      "url": "../../index.html"
+    }
+  ],
+  "updated_at": "2026-05-15",
+  "i18n": {
+    "ja": {
+      "title": "北京科技大学 🐚ビジュアルノベル交流会",
+      "summary": "北京科技大学 🐚ビジュアルノベル交流会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+      "infobox": {
         "学校": "北京科技大学",
-        "地区": "北京市\/雄安新区",
-        "类型": "高校同好会",
-        "成立时间": "2023",
-        "状态": "已认证"
-    },
-    "sections": [
+        "地域": "中国・北京市／雄安新区",
+        "種別": "大学同好会",
+        "状態": "認証済み",
+        "設立年": "2023"
+      },
+      "sections": [
         {
-            "heading": "概要",
-            "level": 2,
-            "body": [
-                "本页面用于整理该同好会的公开资料、发展历史、活动记录和对外链接。"
-            ]
+          "heading": "概要",
+          "level": 2,
+          "body": [
+            "本ページでは、同好会の公開情報、沿革、活動記録、外部リンクを整理します。"
+          ]
         }
-    ],
-    "images": [
+      ],
+      "images": [
         {
-            "url": "..\/uploads\/china-12\/20260515141234_778999cf.jpg?t=1778825554",
-            "caption": "",
-            "alt": "微信图片_20260511180230_80_3",
-            "width_percent": 100,
-            "aspect_ratio": "16\/10",
-            "align": "center",
-            "fit": "cover"
+          "url": "../uploads/china-12/20260515141234_778999cf.jpg?t=1778825554",
+          "caption": "",
+          "alt": "同好会公開画像",
+          "width_percent": 100,
+          "aspect_ratio": "16/10",
+          "align": "center",
+          "fit": "cover"
         }
-    ],
-    "references": [
+      ],
+      "references": [
         {
-            "label": "Galgame 同好会地图登记资料",
-            "url": "..\/..\/index.html"
+          "label": "Galgame同好会マップ登録情報",
+          "url": "../../index.html"
         }
-    ],
-    "updated_at": "2026-05-15"
+      ]
+    }
+  }
 }

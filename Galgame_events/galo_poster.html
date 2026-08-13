@@ -1,8 +1,13 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../js/page-i18n.js?v=20260813-language"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="../js/theme-runtime.js?v=20260702-theme"></script>
 <title>参展阵容 · 上海GalGameOnly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -908,27 +913,19 @@ body {
   'use strict';
 
   /* ============================================================
-     主题切换
+     主题切换（与主站 themePreference 同步）
      ============================================================ */
-  var THEME_KEY = 'galo-poster:theme';
   var themeToggle = document.getElementById('themeToggle');
   var themeFlash = document.getElementById('themeFlash');
-  var html = document.documentElement;
 
-  function getPreferredTheme() {
-    var stored = localStorage.getItem(THEME_KEY);
-    if (stored === 'light' || stored === 'dark') return stored;
-    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
-
-  function applyTheme(t, animate) {
+  function syncPosterTheme(t, animate) {
     if (animate && themeFlash) {
       var targetBg = t === 'dark' ? '#12121a' : '#fafaf5';
       themeFlash.style.background = targetBg;
       themeFlash.classList.add('active');
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
-          html.setAttribute('data-theme', t);
+          document.documentElement.setAttribute('data-theme', t);
           themeFlash.style.opacity = '0';
           setTimeout(function () {
             themeFlash.classList.remove('active');
@@ -937,28 +934,26 @@ body {
         });
       });
     } else {
-      html.setAttribute('data-theme', t);
+      document.documentElement.setAttribute('data-theme', t);
     }
     if (themeToggle) themeToggle.setAttribute('aria-label', t === 'dark' ? '切换到明亮主题' : '切换到暗色主题');
   }
 
-  var currentTheme = getPreferredTheme();
-  applyTheme(currentTheme, false);
-
   if (themeToggle) {
     themeToggle.addEventListener('click', function () {
-      currentTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      applyTheme(currentTheme, true);
-      try { localStorage.setItem(THEME_KEY, currentTheme); } catch (_) {}
+      var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      syncPosterTheme(next, true);
+      if (window.VNFTheme && typeof window.VNFTheme.toggle === 'function') {
+        window.VNFTheme.toggle();
+      }
     });
   }
 
-  /* 跟随系统主题变化 */
-  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', function (e) {
-    if (!localStorage.getItem(THEME_KEY)) {
-      applyTheme(e.matches ? 'light' : 'dark');
-    }
-  });
+  if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+    window.VNFTheme.subscribe(function (detail) {
+      syncPosterTheme(detail.theme, false);
+    });
+  }
 
   /* ============================================================
      API & 摊位渲染

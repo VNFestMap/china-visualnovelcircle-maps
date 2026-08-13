@@ -54,19 +54,83 @@ function parseConfigVote(s) {
   try { return JSON.parse(s); } catch (_) { return {}; }
 }
 
+// === Club name resolver (lazy, shared across vote pages) ===
+var _clubNameMap = null;
+var _clubNamePromise = null;
+
+function _voteApiBase() {
+  var scripts = document.getElementsByTagName('script');
+  for (var i = 0; i < scripts.length; i++) {
+    var src = scripts[i].src || '';
+    if (/vote-common\.js(?:$|\?)/.test(src)) {
+      // Script loaded as e.g. "../js/vote-common.js" or "./js/vote-common.js"
+      // API lives one level up from js/ directory
+      var idx = src.lastIndexOf('/js/vote-common.js');
+      if (idx >= 0) return src.substring(0, idx) + '/api';
+    }
+  }
+  return './api';
+}
+
+function ensureClubNamesLoaded() {
+  if (_clubNamePromise) return _clubNamePromise;
+  _clubNameMap = {};
+  var base = _voteApiBase();
+  _clubNamePromise = Promise.all([
+    fetch(base + '/clubs.php', { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { data: [] }; }),
+    fetch(base + '/clubs_japan.php', { credentials: 'same-origin', cache: 'no-store' }).then(function (r) { return r.json(); }).catch(function () { return { data: [] }; })
+  ]).then(function (results) {
+    var countries = ['china', 'japan'];
+    results.forEach(function (res, idx) {
+      var country = countries[idx];
+      var list = (res && res.data) || [];
+      for (var i = 0; i < list.length; i++) {
+        var c = list[i];
+        if (c && c.id != null) {
+          _clubNameMap[Number(c.id) + '_' + country] = c.display_name || c.name || null;
+        }
+      }
+    });
+  });
+  return _clubNamePromise;
+}
+
+function resolveClubName(clubId, country) {
+  if (!clubId && clubId !== 0) return '';
+  var id = Number(clubId);
+  var c = (country === 'japan') ? 'japan' : 'china';
+  var name = _clubNameMap && (_clubNameMap[id + '_' + c]);
+  if (name) return name;
+  // Fallback: try the other country
+  var other = c === 'china' ? 'japan' : 'china';
+  var otherName = _clubNameMap && (_clubNameMap[id + '_' + other]);
+  if (otherName) return otherName;
+  return '同好会 #' + id;
+}
+
 // === Theme ===
 (function () {
   var html = document.documentElement;
-  var MQ = window.matchMedia('(prefers-color-scheme: dark)');
+  var themeApi = window.VNFTheme;
+  var MQ = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
   function resolveTheme() {
+    if (themeApi && typeof themeApi.getEffectiveTheme === 'function') {
+      return themeApi.getEffectiveTheme();
+    }
     var saved = localStorage.getItem('themePreference');
     if (saved === 'light' || saved === 'dark') return saved;
-    return MQ.matches ? 'dark' : 'light';
+    return MQ && MQ.matches ? 'dark' : 'light';
   }
 
   function applyTheme(t) {
+    if (themeApi && typeof themeApi.apply === 'function') {
+      themeApi.apply(t);
+      return;
+    }
     html.setAttribute('data-theme', t);
+    html.setAttribute('data-theme-preference', t);
+    html.style.colorScheme = t;
   }
 
   function handleChange() {
@@ -74,10 +138,16 @@ function parseConfigVote(s) {
     if (!saved || saved === 'system') applyTheme(resolveTheme());
   }
 
-  applyTheme(resolveTheme());
-  if (typeof MQ.addEventListener === 'function') {
+  if (themeApi && typeof themeApi.subscribe === 'function') {
+    themeApi.subscribe(function () {
+      window.dispatchEvent(new CustomEvent('vote-theme-updated'));
+    });
+  } else {
+    applyTheme(resolveTheme());
+  }
+  if (MQ && typeof MQ.addEventListener === 'function') {
     MQ.addEventListener('change', handleChange);
-  } else if (typeof MQ.addListener === 'function') {
+  } else if (MQ && typeof MQ.addListener === 'function') {
     MQ.addListener(handleChange);
   }
 })();
@@ -94,10 +164,19 @@ function initVoteThemeToggle(buttonId) {
     if (moon) moon.style.display = isDark ? '' : 'none';
   }
   updateIcon();
+  if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+    window.VNFTheme.subscribe(updateIcon);
+  }
   btn.addEventListener('click', function () {
     var next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-    html.setAttribute('data-theme', next);
-    try { localStorage.setItem('themePreference', next); } catch (e) {}
+    if (window.VNFTheme && typeof window.VNFTheme.setPreference === 'function') {
+      window.VNFTheme.setPreference(next);
+    } else {
+      html.setAttribute('data-theme', next);
+      html.setAttribute('data-theme-preference', next);
+      html.style.colorScheme = next;
+      try { localStorage.setItem('themePreference', next); } catch (e) {}
+    }
     updateIcon();
   });
 }

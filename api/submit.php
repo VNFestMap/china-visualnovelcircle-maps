@@ -2,7 +2,7 @@
 // submit_api.php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, PUT, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -11,6 +11,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 $submissions_file = __DIR__ . '/../data/submissions.json';
+
+// GET + action=read — 管理员读取提交数据
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'read') {
+    require_once __DIR__ . '/../includes/auth.php';
+    requireAdmin();
+
+    $submissions = [];
+    if (file_exists($submissions_file)) {
+        $content = file_get_contents($submissions_file);
+        $submissions = json_decode($content, true);
+        if (!is_array($submissions)) $submissions = [];
+    }
+    echo json_encode($submissions, JSON_UNESCAPED_UNICODE);
+    exit();
+}
 
 // PUT + action=save — 管理员保存提交数据
 if ($_SERVER['REQUEST_METHOD'] === 'PUT' && isset($_GET['action']) && $_GET['action'] === 'save') {

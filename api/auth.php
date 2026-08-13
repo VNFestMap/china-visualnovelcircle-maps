@@ -17,6 +17,7 @@ require_once __DIR__ . '/../includes/rate_limit.php';
 require_once __DIR__ . '/../includes/audit.php';
 require_once __DIR__ . '/../includes/mailer.php';
 require_once __DIR__ . '/../includes/notifications.php';
+require_once __DIR__ . '/../includes/display_club.php';
 
 $action = $_GET['action'] ?? '';
 
@@ -73,6 +74,12 @@ function maskEmail(string $email): string {
 }
 
 function publicAuthUser(array $user): array {
+    $displayMembershipId = isset($user['display_membership_id']) && (int)$user['display_membership_id'] > 0
+        ? (int)$user['display_membership_id'] : null;
+    $displayClub = null;
+    if ((int)($user['id'] ?? 0) > 0) {
+        $displayClub = displayClubForUser(getDB(), (int)$user['id']);
+    }
     return [
         'id' => (int)($user['id'] ?? 0),
         'username' => $user['username'] ?? '',
@@ -85,7 +92,71 @@ function publicAuthUser(array $user): array {
         'discord_bound' => !empty($user['discord_id']),
         'profile_bio' => $user['profile_bio'] ?? '',
         'is_audit' => (int)($user['is_audit'] ?? 0),
+        'membership_application_email_enabled' => (int)($user['membership_application_email_enabled'] ?? 1) === 1,
+        'display_membership_id' => $displayMembershipId,
+        'display_club' => $displayClub,
+        'language_preference' => in_array(($user['language_preference'] ?? null), ['zh', 'ja'], true)
+            ? $user['language_preference'] : null,
     ];
+}
+
+function authRequireSameOrigin(): void {
+    $requestHost = strtolower(trim((string)($_SERVER['HTTP_HOST'] ?? '')));
+    if ($requestHost === '') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => '请求来源无效']);
+        exit();
+    }
+    $requestScheme = !empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off' ? 'https' : 'http';
+    $forwardedScheme = strtolower(trim(explode(',', (string)($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0] ?? ''));
+    if (in_array($forwardedScheme, ['http', 'https'], true)) $requestScheme = $forwardedScheme;
+    foreach (['HTTP_ORIGIN', 'HTTP_REFERER'] as $header) {
+        $value = trim((string)($_SERVER[$header] ?? ''));
+        if ($value === '') continue;
+        $authority = strtolower((string)(parse_url($value, PHP_URL_HOST) ?? ''));
+        $port = parse_url($value, PHP_URL_PORT);
+        if ($port !== null) $authority .= ':' . (int)$port;
+        $scheme = strtolower((string)(parse_url($value, PHP_URL_SCHEME) ?? ''));
+        if ($authority !== $requestHost || !in_array($scheme, ['http', 'https'], true) || $scheme !== $requestScheme) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => '请求来源无效']);
+            exit();
+        }
+        return;
+    }
+    http_response_code(403);
+    echo json_encode(['success' => false, 'message' => '请求来源无效']);
+    exit();
+}
+
+function authEnsureMembershipApplicationEmailPreferenceColumn(PDO $db): void {
+    try {
+        $db->query('SELECT membership_application_email_enabled FROM users LIMIT 1');
+        return;
+    } catch (Throwable $e) {
+        // 旧部署按默认开启补齐；MySQL 与 SQLite 均接受该列定义。
+    }
+
+    try {
+        $db->exec('ALTER TABLE users ADD COLUMN membership_application_email_enabled TINYINT(1) NOT NULL DEFAULT 1');
+    } catch (Throwable $e) {
+        error_log('Unable to add membership application email preference column: ' . $e->getMessage());
+    }
+}
+
+function authEnsureLanguagePreferenceColumn(PDO $db): void {
+    try {
+        $db->query('SELECT language_preference FROM users LIMIT 1');
+        return;
+    } catch (Throwable $e) {
+        // Older deployments receive the additive nullable preference column on first write.
+    }
+
+    try {
+        $db->exec('ALTER TABLE users ADD COLUMN language_preference VARCHAR(5) NULL DEFAULT NULL');
+    } catch (Throwable $e) {
+        error_log('Unable to add language preference column: ' . $e->getMessage());
+    }
 }
 
 switch ($action) {
@@ -430,14 +501,14 @@ switch ($action) {
             $memberships = [];
             try {
                 $stmt = $db->prepare(
-                    "SELECT club_id, country, role, status FROM club_memberships WHERE user_id = ? AND status = 'active'"
+                    "SELECT id, club_id, country, role, status FROM club_memberships WHERE user_id = ? AND status = 'active'"
                 );
                 $stmt->execute([$user['id']]);
                 $memberships = $stmt->fetchAll();
             } catch (Exception $e) {
                 // country 列不存在时回退
                 $stmt = $db->prepare(
-                    "SELECT club_id, role, status FROM club_memberships WHERE user_id = ? AND status = 'active'"
+                    "SELECT id, club_id, role, status FROM club_memberships WHERE user_id = ? AND status = 'active'"
                 );
                 $stmt->execute([$user['id']]);
                 $memberships = $stmt->fetchAll();
@@ -662,6 +733,156 @@ switch ($action) {
         echo json_encode(['success' => true, 'message' => '已更新']);
         exit();
 
+    case 'update_display_club':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        authRequireSameOrigin();
+        $user = requireLogin();
+        $input = json_decode(file_get_contents('php://input'), true);
+        if (!is_array($input) || !array_key_exists('membership_id', $input)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => '请选择有效的代表同好会']);
+            exit();
+        }
+        $rawMembershipId = $input['membership_id'];
+        if ($rawMembershipId !== null && (!is_int($rawMembershipId) || $rawMembershipId <= 0)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => '代表同好会设置无效']);
+            exit();
+        }
+        $membershipId = $rawMembershipId === null ? null : (int)$rawMembershipId;
+        $db = getDB();
+        $membership = null;
+        $displayClub = null;
+        try {
+            $db->beginTransaction();
+            if ($membershipId !== null) {
+                $membership = displayClubSelectableMembership($db, (int)$user['id'], $membershipId, true);
+                if (!$membership) {
+                    $db->rollBack();
+                    http_response_code(422);
+                    echo json_encode(['success' => false, 'message' => '只能选择自己的正式活跃会籍']);
+                    exit();
+                }
+                $displayClub = displayClubPublicFromMembership($membership);
+                if (!$displayClub) {
+                    $db->rollBack();
+                    http_response_code(503);
+                    echo json_encode(['success' => false, 'message' => '同好会资料暂不可用，请稍后重试']);
+                    exit();
+                }
+            }
+            $userLock = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+            $stmt = $db->prepare('SELECT display_membership_id FROM users WHERE id = ? LIMIT 1' . $userLock);
+            $stmt->execute([(int)$user['id']]);
+            $oldValue = $stmt->fetchColumn();
+            $oldMembershipId = $oldValue === false || $oldValue === null ? null : (int)$oldValue;
+            if ($oldMembershipId !== $membershipId) {
+                $oldMembership = null;
+                if ($oldMembershipId !== null) {
+                    $oldStmt = $db->prepare(
+                        "SELECT club_id, COALESCE(country, 'china') AS country FROM club_memberships WHERE id = ? AND user_id = ? LIMIT 1"
+                    );
+                    $oldStmt->execute([$oldMembershipId, (int)$user['id']]);
+                    $oldMembership = $oldStmt->fetch(PDO::FETCH_ASSOC) ?: null;
+                }
+                $db->prepare('UPDATE users SET display_membership_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+                    ->execute([$membershipId, (int)$user['id']]);
+                logAction('user.update_display_club', 'user', (int)$user['id'], [
+                    'old' => displayClubMembershipKey($oldMembership),
+                    'new' => displayClubMembershipKey($membership),
+                ]);
+            }
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            error_log('Unable to update display club: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => '代表同好会保存失败']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $membershipId === null ? '已取消展示代表同好会' : '代表同好会已更新',
+            'display_club' => $displayClub,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        exit();
+
+    case 'update_membership_application_email_preference':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        $user = requireLogin();
+        $input = json_decode(file_get_contents('php://input'), true);
+        $enabled = filter_var($input['enabled'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($enabled === null) {
+            echo json_encode(['success' => false, 'message' => '邮件提醒设置无效']);
+            exit();
+        }
+
+        $db = getDB();
+        authEnsureMembershipApplicationEmailPreferenceColumn($db);
+        try {
+            $db->prepare('UPDATE users SET membership_application_email_enabled = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+                ->execute([$enabled ? 1 : 0, $user['id']]);
+            logAction('user.update_membership_application_email_preference', 'user', $user['id'], [
+                'enabled' => $enabled,
+            ]);
+        } catch (Throwable $e) {
+            error_log('Unable to update membership application email preference: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => '邮件提醒设置保存失败']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $enabled ? '已开启同好会申请邮件提醒' : '已关闭同好会申请邮件提醒',
+            'enabled' => $enabled,
+        ]);
+        exit();
+
+    case 'update_language_preference':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        authRequireSameOrigin();
+        $user = requireLogin();
+        $input = json_decode(file_get_contents('php://input'), true);
+        $language = is_array($input) ? ($input['language'] ?? null) : null;
+        if (!is_string($language) || !in_array($language, ['zh', 'ja'], true)) {
+            http_response_code(422);
+            echo json_encode(['success' => false, 'message' => '语言设置无效']);
+            exit();
+        }
+
+        $db = getDB();
+        authEnsureLanguagePreferenceColumn($db);
+        try {
+            $db->prepare('UPDATE users SET language_preference = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?')
+                ->execute([$language, $user['id']]);
+            logAction('user.update_language_preference', 'user', $user['id'], [
+                'language' => $language,
+            ]);
+        } catch (Throwable $e) {
+            error_log('Unable to update language preference: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => '语言设置保存失败']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'language_preference' => $language,
+        ]);
+        exit();
+
     case 'qq_auth':
         // 跳转到 QQ OAuth 授权页面
         initSession();
@@ -781,6 +1002,7 @@ switch ($action) {
         echo json_encode(['success' => false, 'message' => '未知动作', 'available_actions' => [
             'login_local', 'register_local', 'logout', 'me', 'change_password',
             'send_register_code', 'send_code', 'bind_email', 'unbind_email', 'update_profile',
+            'update_membership_application_email_preference', 'update_language_preference', 'update_display_club',
             'bind_qq', 'unbind_qq', 'bind_discord', 'unbind_discord',
             'qq_auth', 'discord_auth', 'oauth_config'
         ]]);

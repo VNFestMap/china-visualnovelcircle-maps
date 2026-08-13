@@ -1,37 +1,74 @@
 {
-    "club_key": "china-94",
-    "title": "江苏大学·玄唐Galgame交流会",
-    "summary": "欢迎来到玄唐 Galgame 交流会",
-    "infobox": {
-        "学校": "江苏大学",
-        "地区": "江苏省",
-        "类型": "高校同好会",
-        "成立时间": "2017-11-08 00:00:00",
-        "状态": "已认证"
-    },
-    "sections": [
+  "club_key": "china-94",
+  "title": "江苏大学·玄唐Galgame交流会",
+  "summary": "欢迎来到玄唐 Galgame 交流会",
+  "infobox": {
+    "学校": "江苏大学",
+    "地区": "江苏省",
+    "类型": "高校同好会",
+    "成立时间": "2017-11-08 00:00:00",
+    "状态": "已认证"
+  },
+  "sections": [
+    {
+      "heading": "概要",
+      "body": [
+        "交流旮旯心得，帮助旮旯小白。",
+        "Bilibili：https://b23.tv/wUM6Rzb",
+        "微信公众号：玄唐观鸟部落",
+        "Bangumi：https://chii.in/group/ujsgal"
+      ]
+    }
+  ],
+  "images": [
+    {
+      "url": "../uploads/china-94/20260515012446_4bb1e888.png?t=1778779486",
+      "caption": "群Logo",
+      "alt": "image (2)"
+    }
+  ],
+  "references": [
+    {
+      "label": "Galgame 同好会地图登记资料",
+      "url": "../../index.html"
+    }
+  ],
+  "updated_at": "2026-05-15",
+  "i18n": {
+    "ja": {
+      "title": "江蘇大学・玄唐Galgame交流会",
+      "summary": "玄唐Galgame交流会へようこそ。",
+      "infobox": {
+        "学校": "江蘇大学",
+        "地域": "中国・江蘇省",
+        "種別": "大学同好会",
+        "設立日": "2017-11-08",
+        "状態": "認証済み"
+      },
+      "sections": [
         {
-            "heading": "概要",
-            "body": [
-                "交流旮旯心得，帮助旮旯小白。",
-                "Bilibili：https:\/\/b23.tv\/wUM6Rzb",
-                "微信公众号：玄唐观鸟部落",
-                "Bangumi：https:\/\/chii.in\/group\/ujsgal"
-            ]
+          "heading": "概要",
+          "body": [
+            "Galgameの感想を共有し、初心者を支援します。",
+            "Bilibili：https://b23.tv/wUM6Rzb",
+            "WeChat公式アカウント：玄唐観鳥部落",
+            "Bangumi：https://chii.in/group/ujsgal"
+          ]
         }
-    ],
-    "images": [
+      ],
+      "images": [
         {
-            "url": "..\/uploads\/china-94\/20260515012446_4bb1e888.png?t=1778779486",
-            "caption": "群Logo",
-            "alt": "image (2)"
+          "url": "../uploads/china-94/20260515012446_4bb1e888.png?t=1778779486",
+          "caption": "グループロゴ",
+          "alt": "玄唐Galgame交流会ロゴ"
         }
-    ],
-    "references": [
+      ],
+      "references": [
         {
-            "label": "Galgame 同好会地图登记资料",
-            "url": "..\/..\/index.html"
+          "label": "Galgame同好会マップ登録情報",
+          "url": "../../index.html"
         }
-    ],
-    "updated_at": "2026-05-15"
+      ]
+    }
+  }
 }

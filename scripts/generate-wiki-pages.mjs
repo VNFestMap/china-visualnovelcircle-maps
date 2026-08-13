@@ -225,6 +225,9 @@ function renderPage(content, club) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-language"></script>
   <title>${escapeHtml(content.title)} - 同好会维基</title>
   <link rel="stylesheet" href="../wiki.css">
 </head>
@@ -235,10 +238,6 @@ function renderPage(content, club) {
     <span>同好会维基</span>
   </header>
   <main class="wiki-page">
-    <nav class="wiki-language-switch" id="wikiLanguageSwitch" aria-label="Language">
-      <a href="?lang=zh" data-wiki-switch-lang="zh">中文</a>
-      <a href="?lang=ja" data-wiki-switch-lang="ja">日本語</a>
-    </nav>
     ${renderWikiArticle(zhContent, club, 'zh')}
     ${renderWikiArticle(jaContent, club, 'ja')}
     <article class="wiki-article" hidden>
@@ -254,16 +253,18 @@ function renderPage(content, club) {
   </main>
   <script>
   (function () {
-    var params = new URLSearchParams(window.location.search);
-    var lang = params.get('lang') || localStorage.getItem('language') || 'zh';
-    lang = lang === 'ja' ? 'ja' : 'zh';
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
-    document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
-      node.hidden = node.getAttribute('data-wiki-lang') !== lang;
-    });
-    document.querySelectorAll('[data-wiki-switch-lang]').forEach(function (node) {
-      node.classList.toggle('active', node.getAttribute('data-wiki-switch-lang') === lang);
-    });
+    function applyLanguage() {
+      var lang = window.VNFLanguage && window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
+      document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
+      document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
+        node.hidden = node.getAttribute('data-wiki-lang') !== lang;
+      });
+    }
+    applyLanguage();
+    if (window.VNFLanguage) {
+      window.VNFLanguage.subscribe(applyLanguage);
+      window.VNFLanguage.ready.then(applyLanguage);
+    }
   })();
   </script>
 </body>
@@ -495,6 +496,9 @@ function renderWikiHome(manifest, libraryDocs, featureSlots) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-language"></script>
   <title>VNFest WIKI</title>
   <link rel="stylesheet" href="./wiki.css">
 </head>
@@ -502,10 +506,6 @@ function renderWikiHome(manifest, libraryDocs, featureSlots) {
   <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
-    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
-      <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
-      <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
-    </nav>
   </header>
   <main class="wiki-index-page wiki-encyclopedia-layout">
     <aside class="wiki-index-sidebar" aria-label="站点目录">

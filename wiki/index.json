@@ -1,185 +1,354 @@
 {
-    "china-114": {
-        "title": "盐工橘柚视觉小说同好会",
-        "url": ".\/pages\/china-114.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "盐城工学院",
-        "club_name": "橘柚视觉小说同好会",
-        "region": "江苏",
-        "summary": "盐城工学院_盐工橘柚视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-15"
-    },
-    "china-117": {
-        "title": "淮安大学_HAU丨巡樱阁视觉小说同好会",
-        "url": ".\/pages\/china-117.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "淮安大学",
-        "club_name": "淮安大学_HAU丨巡樱阁视觉小说同好会",
-        "region": "江苏",
-        "summary": "淮安大学_HAU丨巡樱阁视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-15"
-    },
-    "china-118": {
-        "title": "淮阴师范学院_HYTC｜枕月视觉小说同好会",
-        "url": ".\/pages\/china-118.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "淮阴师范学院",
-        "club_name": "淮阴师范学院_HYTC｜枕月视觉小说同好会",
-        "region": "江苏",
-        "summary": "淮阴师范学院_HYTC｜枕月视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-23"
-    },
-    "china-119": {
-        "title": "江苏科技大学 | 星奏视觉小说同好会",
-        "url": ".\/pages\/china-119.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "江苏科技大学",
-        "club_name": "江苏科技大学_星奏视觉小说同好会",
-        "region": "江苏",
-        "summary": "江苏科技大学星奏视觉小说同好会是登记在 Galgame 同好会地图中的高校同好会之一。\n星奏视觉小说同好会（Seisou Visual Novel Circle）是由本校学生为核心以 Galgame \/ 视觉小说为兴趣的同好团体。旨在为校内校外视觉小说爱好者提供一个轻松的交流平台。",
-        "updated_at": "2026-06-16",
-        "i18n": {
-            "ja": {
-                "title": "江蘇科技大学 | 星奏ビジュアルノベル同好会",
-                "summary": "江蘇科技大学星奏ビジュアルノベル同好会は、全国ギャルゲー・ビジュアルノベル同好会マップに登録されている大学同好会の一つです。\n星奏ビジュアルノベル同好会（Seisou Visual Novel Circle）は、江蘇科技大学初の Galgame \/ ビジュアルノベルを趣味の中心とするサークルです。学内外のビジュアルノベル爱好者に、気軽に交流できる場を提供することを目的としています。",
-                "region": "中国·江蘇·鎮江"
-            }
-        }
-    },
-    "china-12": {
-        "title": "北京科技大学_🐚视觉小说交流群",
-        "url": ".\/pages\/china-12.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "北京科技大学",
-        "club_name": "北京科技大学_🐚视觉小说交流群",
-        "region": "北京",
-        "summary": "北京科技大学_🐚视觉小说交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-15"
-    },
-    "china-2": {
-        "title": "安徽理工大学安理二次元同好交流圈",
-        "url": ".\/pages\/china-2.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "安徽理工大学",
-        "club_name": "安徽理工大学_安徽理工大学_安理二次元同好交流群",
-        "region": "安徽",
-        "summary": "安徽理工大学安理二次元同好交流圈是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-14"
-    },
-    "china-210": {
-        "title": "浙江师范大学樱缘星华视觉小说同好会",
-        "url": ".\/pages\/china-210.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "浙江师范大学",
-        "club_name": "浙江师范大学樱缘星华视觉小说同好会",
-        "region": "浙江",
-        "summary": "浙江师范大学樱缘星华视觉小说同好会是登记在 Galgame 同好会地图中的高校同好会之一。同好会成立于2023年6月25日。截至2026年5月15日，同好会群聊中有338位成员，其中约70%的同好会成员是浙江师范大学本校的Galgame爱好者。",
-        "updated_at": "2026-05-15"
-    },
-    "china-225": {
-        "title": "华北电力大学_花店物语社北京分社",
-        "url": ".\/pages\/china-225.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "华北电力大学-北京",
-        "club_name": "华北电力大学_花店物语社北京分社",
-        "region": "北京",
-        "summary": "华北电力大学_花店物语社北京分社 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-15"
-    },
-    "china-233": {
-        "title": "VNF视觉小说学园祭",
-        "url": ".\/pages\/china-233.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "VNFest视觉小说学园祭·CN",
-        "club_name": "VNF视觉小说学园祭",
-        "region": "上海",
-        "summary": "VNF视觉小说学园祭 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-06-14"
-    },
-    "china-241": {
-        "title": "浙江药科薮春结社",
-        "url": ".\/pages\/china-241.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "浙江药科职业大学",
-        "club_name": "浙江药科视觉小说同好会",
-        "region": "浙江",
-        "summary": "浙江药科视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-06-11"
-    },
-    "china-26": {
-        "title": "西北民族大学_民大Galgame同好会",
-        "url": ".\/pages\/china-26.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "西北民族大学",
-        "club_name": "西北民族大学 | 民大Galgame同好会 | 英国UHI联合同好会",
-        "region": "甘肃",
-        "summary": "University of the Highlands and Islands, Perth College\n由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用\n\n官方网站：xbmu.mygalgame.top\n总会邮件:yyddtj@yyddtj.top\n英国高地与群岛大学分会电话：+1 4028821169",
-        "updated_at": "2026-05-15"
-    },
-    "china-268": {
-        "title": "周口师范学院ACGN超自研gal社",
-        "url": ".\/pages\/china-268.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "周口师范学院ACGN超自研gal社",
-        "club_name": "周口师范学院ACGN超自研gal社",
-        "region": "河南",
-        "summary": "周口师范学院ACGN超自研gal社 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-28"
-    },
-    "china-6": {
-        "title": "中国科学技术大学_中科大galgame交流群",
-        "url": ".\/pages\/china-6.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "中国科学技术大学",
-        "club_name": "中国科学技术大学_中科大galgame交流群",
-        "region": "安徽",
-        "summary": "中国科学技术大学_中科大galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-30"
-    },
-    "china-79": {
-        "title": "华中科技大学_风蓝galgame交流群",
-        "url": ".\/pages\/china-79.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "华中科技大学",
-        "club_name": "华中科技大学_风蓝galgame交流群",
-        "region": "湖北",
-        "summary": "华中科技大学_风蓝galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
-        "updated_at": "2026-05-15"
-    },
-    "china-94": {
-        "title": "江苏大学·玄唐Galgame交流会",
-        "url": ".\/pages\/china-94.html",
-        "country": "china",
-        "country_label": "中国",
-        "school": "江苏大学",
-        "club_name": "江苏大学_玄唐Galgame交流会",
-        "region": "江苏",
-        "summary": "欢迎来到玄唐 Galgame 交流会",
-        "updated_at": "2026-05-15"
-    },
-    "japan-1": {
-        "title": "東京大学ビジュアルノベル同好会",
-        "url": ".\/pages\/japan-1.html",
-        "country": "japan",
-        "country_label": "日本",
-        "school": "東京大学",
-        "club_name": "東京大学ビジュアルノベル同好会",
-        "region": "东京都",
-        "summary": "東京大学ビジュアルノベル同好会は、Galgame 同好会地图日本区数据中登记的高校同好会之一。",
-        "updated_at": "2026-05-14"
+  "china-114": {
+    "title": "盐工橘柚视觉小说同好会",
+    "url": "./pages/china-114.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "盐城工学院",
+    "club_name": "橘柚视觉小说同好会",
+    "region": "江苏",
+    "summary": "盐城工学院_盐工橘柚视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 100,
+    "missing_fields": [],
+    "i18n": {
+      "ja": {
+        "title": "塩城工学院・橘柚ビジュアルノベル同好会",
+        "summary": "塩城工学院・橘柚ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・江蘇省"
+      }
     }
+  },
+  "china-117": {
+    "title": "淮安大学_HAU丨巡樱阁视觉小说同好会",
+    "url": "./pages/china-117.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "淮安大学",
+    "club_name": "淮安大学_HAU丨巡樱阁视觉小说同好会",
+    "region": "江苏",
+    "summary": "淮安大学_HAU丨巡樱阁视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "淮安大学 HAU｜巡桜閣ビジュアルノベル同好会",
+        "summary": "淮安大学 HAU｜巡桜閣ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・江蘇省"
+      }
+    }
+  },
+  "china-118": {
+    "title": "淮阴师范学院_HYTC｜枕月视觉小说同好会",
+    "url": "./pages/china-118.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "淮阴师范学院",
+    "club_name": "淮阴师范学院_HYTC｜枕月视觉小说同好会",
+    "region": "江苏",
+    "summary": "淮阴师范学院_HYTC｜枕月视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-23",
+    "completeness_score": 85,
+    "missing_fields": [
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "淮陰師範学院 HYTC｜枕月ビジュアルノベル同好会",
+        "summary": "淮陰師範学院 HYTC｜枕月ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・江蘇省"
+      }
+    }
+  },
+  "china-119": {
+    "title": "江苏科技大学 | 星奏视觉小说同好会",
+    "url": "./pages/china-119.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "江苏科技大学",
+    "club_name": "江苏科技大学_星奏视觉小说同好会",
+    "region": "江苏",
+    "summary": "江苏科技大学星奏视觉小说同好会是登记在 Galgame 同好会地图中的高校同好会之一。\n星奏视觉小说同好会（Seisou Visual Novel Circle）是由本校学生为核心以 Galgame / 视觉小说为兴趣的同好团体。旨在为校内校外视觉小说爱好者提供一个轻松的交流平台。",
+    "updated_at": "2026-06-16",
+    "completeness_score": 100,
+    "missing_fields": [],
+    "i18n": {
+      "ja": {
+        "title": "江蘇科技大学｜星奏ビジュアルノベル同好会",
+        "summary": "江蘇科技大学星奏ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。\n星奏ビジュアルノベル同好会（Seisou Visual Novel Circle）は、江蘇科技大学の学生を中心に、Galgameとビジュアルノベルを主な関心分野とする団体です。学内外の愛好者が気軽に交流できる場を目指しています。",
+        "region": "中国・江蘇省鎮江市"
+      }
+    }
+  },
+  "china-12": {
+    "title": "北京科技大学_🐚视觉小说交流群",
+    "url": "./pages/china-12.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "北京科技大学",
+    "club_name": "北京科技大学_🐚视觉小说交流群",
+    "region": "北京",
+    "summary": "北京科技大学_🐚视觉小说交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 83,
+    "missing_fields": [
+      "增加章节"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "北京科技大学 🐚ビジュアルノベル交流会",
+        "summary": "北京科技大学 🐚ビジュアルノベル交流会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・北京市／雄安新区"
+      }
+    }
+  },
+  "china-2": {
+    "title": "安徽理工大学安理二次元同好交流圈",
+    "url": "./pages/china-2.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "安徽理工大学",
+    "club_name": "安徽理工大学_安徽理工大学_安理二次元同好交流群",
+    "region": "安徽",
+    "summary": "安徽理工大学安理二次元同好交流圈是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-14",
+    "completeness_score": 93,
+    "missing_fields": [],
+    "i18n": {
+      "ja": {
+        "title": "安徽理工大学 安理二次元交流サークル",
+        "summary": "安徽理工大学 安理二次元交流サークルは、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・安徽省"
+      }
+    }
+  },
+  "china-210": {
+    "title": "浙江师范大学樱缘星华视觉小说同好会",
+    "url": "./pages/china-210.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "浙江师范大学",
+    "club_name": "浙江师范大学樱缘星华视觉小说同好会",
+    "region": "浙江",
+    "summary": "浙江师范大学樱缘星华视觉小说同好会是登记在 Galgame 同好会地图中的高校同好会之一。同好会成立于2023年6月25日。截至2026年5月15日，同好会群聊中有338位成员，其中约70%的同好会成员是浙江师范大学本校的Galgame爱好者。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 100,
+    "missing_fields": [],
+    "i18n": {
+      "ja": {
+        "title": "浙江師範大学・桜縁星華ビジュアルノベル同好会",
+        "summary": "浙江師範大学・桜縁星華ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。2023年6月25日に設立され、2026年5月15日時点のグループ参加者は338名で、約70％が浙江師範大学のGalgame愛好者です。",
+        "region": "中国・浙江省金華市／杭州市"
+      }
+    }
+  },
+  "china-225": {
+    "title": "华北电力大学_花店物语社北京分社",
+    "url": "./pages/china-225.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "华北电力大学-北京",
+    "club_name": "华北电力大学_花店物语社北京分社",
+    "region": "北京",
+    "summary": "华北电力大学_花店物语社北京分社 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "華北電力大学 花店物語社北京支部",
+        "summary": "華北電力大学 花店物語社北京支部は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・北京市"
+      }
+    }
+  },
+  "china-233": {
+    "title": "VNF视觉小说学园祭",
+    "url": "./pages/china-233.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "VNFest视觉小说学园祭·CN",
+    "club_name": "VNF视觉小说学园祭",
+    "region": "上海",
+    "summary": "VNF视觉小说学园祭 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-06-14",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "VNFビジュアルノベル学園祭",
+        "summary": "VNFビジュアルノベル学園祭は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・上海市"
+      }
+    }
+  },
+  "china-241": {
+    "title": "浙江药科薮春结社",
+    "url": "./pages/china-241.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "浙江药科职业大学",
+    "club_name": "浙江药科视觉小说同好会",
+    "region": "浙江",
+    "summary": "浙江药科视觉小说同好会 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-06-11",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "浙江薬科職業大学 薮春結社",
+        "summary": "浙江薬科職業大学 薮春結社は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・浙江省"
+      }
+    }
+  },
+  "china-26": {
+    "title": "西北民族大学_民大Galgame同好会",
+    "url": "./pages/china-26.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "西北民族大学",
+    "club_name": "西北民族大学 | 民大Galgame同好会 | 英国UHI联合同好会",
+    "region": "甘肃",
+    "summary": "University of the Highlands and Islands, Perth College\n由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用\n\n官方网站：xbmu.mygalgame.top\n总会邮件:yyddtj@yyddtj.top\n英国高地与群岛大学分会电话：+1 4028821169",
+    "updated_at": "2026-05-15",
+    "completeness_score": 83,
+    "missing_fields": [
+      "增加章节"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "西北民族大学 Galgame同好会",
+        "summary": "英国ハイランド・アンド・アイランズ大学との連携により設立された、西北民族大学のGalgame愛好者団体です。本学の在学生および卒業生の日常的な交流を目的としています。",
+        "region": "中国・甘粛省"
+      }
+    }
+  },
+  "china-268": {
+    "title": "周口师范学院ACGN超自研gal社",
+    "url": "./pages/china-268.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "周口师范学院ACGN超自研gal社",
+    "club_name": "周口师范学院ACGN超自研gal社",
+    "region": "河南",
+    "summary": "周口师范学院ACGN超自研gal社 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-28",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "周口師範学院 ACGN超自研gal社",
+        "summary": "周口師範学院 ACGN超自研gal社は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・河南省"
+      }
+    }
+  },
+  "china-6": {
+    "title": "中国科学技术大学_中科大galgame交流群",
+    "url": "./pages/china-6.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "中国科学技术大学",
+    "club_name": "中国科学技术大学_中科大galgame交流群",
+    "region": "安徽",
+    "summary": "中国科学技术大学_中科大galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-30",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "中国科学技術大学 Galgame交流会",
+        "summary": "中国科学技術大学 Galgame交流会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・安徽省"
+      }
+    }
+  },
+  "china-79": {
+    "title": "华中科技大学_风蓝galgame交流群",
+    "url": "./pages/china-79.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "华中科技大学",
+    "club_name": "华中科技大学_风蓝galgame交流群",
+    "region": "湖北",
+    "summary": "华中科技大学_风蓝galgame交流群 是登记在 Galgame 同好会地图中的高校同好会之一。",
+    "updated_at": "2026-05-15",
+    "completeness_score": 68,
+    "missing_fields": [
+      "增加章节",
+      "添加图片"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "華中科技大学 風藍Galgame交流会",
+        "summary": "華中科技大学 風藍Galgame交流会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "中国・湖北省"
+      }
+    }
+  },
+  "china-94": {
+    "title": "江苏大学·玄唐Galgame交流会",
+    "url": "./pages/china-94.html",
+    "country": "china",
+    "country_label": "中国",
+    "school": "江苏大学",
+    "club_name": "江苏大学_玄唐Galgame交流会",
+    "region": "江苏",
+    "summary": "欢迎来到玄唐 Galgame 交流会",
+    "updated_at": "2026-05-15",
+    "completeness_score": 63,
+    "missing_fields": [
+      "补充摘要",
+      "增加章节"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "江蘇大学・玄唐Galgame交流会",
+        "summary": "玄唐Galgame交流会へようこそ。",
+        "region": "中国・江蘇省"
+      }
+    }
+  },
+  "japan-1": {
+    "title": "東京大学ビジュアルノベル同好会",
+    "url": "./pages/japan-1.html",
+    "country": "japan",
+    "country_label": "日本",
+    "school": "東京大学",
+    "club_name": "東京大学ビジュアルノベル同好会",
+    "region": "东京都",
+    "summary": "東京大学ビジュアルノベル同好会は、Galgame 同好会地图日本区数据中登记的高校同好会之一。",
+    "updated_at": "2026-05-14",
+    "completeness_score": 83,
+    "missing_fields": [
+      "增加章节"
+    ],
+    "i18n": {
+      "ja": {
+        "title": "東京大学ビジュアルノベル同好会",
+        "summary": "東京大学ビジュアルノベル同好会は、Galgame同好会マップに登録されている大学同好会の一つです。",
+        "region": "東京都"
+      }
+    }
+  }
 }

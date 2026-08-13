@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VNFest WIKI</title>
@@ -10,10 +13,9 @@
   <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
-    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language">
-      <a href="?lang=zh" data-wiki-index-lang="zh">中文</a>
-      <a href="?lang=ja" data-wiki-index-lang="ja">日本語</a>
-    </nav>
+    <a class="wiki-guide-entry" href="./guide/#/platform/getting-started" data-wiki-guide-link>
+      <span data-wiki-guide-label>使用文档</span>
+    </a>
   </header>
 
   <main class="wiki-index-page wiki-encyclopedia-layout">
@@ -41,9 +43,15 @@
           <h2>VNFest WIKI 首页</h2>
           <p>按地区、学校、文档和维护状态浏览同好会 Wiki。新增页面后，首页会从 JSON 索引自动同步。</p>
         </div>
-        <div class="wiki-index-stats" aria-label="统计">
-          <div><strong id="statWiki">-</strong><span>高校 Wiki</span></div>
-          <div><strong id="statLib">-</strong><span>文档条目</span></div>
+        <div class="wiki-index-hero-actions">
+          <div class="wiki-index-stats" aria-label="统计">
+            <div><strong id="statWiki">-</strong><span>高校 Wiki</span></div>
+            <div><strong id="statLib">-</strong><span>文档条目</span></div>
+          </div>
+          <a class="wiki-index-guide-cta" href="./guide/#/zh-CN/platform/getting-started" data-wiki-guide-link>
+            <span class="wiki-index-guide-cta-label" data-wiki-guide-label>使用文档</span>
+            <span data-wiki-guide-description>查看主站、社团管理、MakoQuiz 与 AstrBot 的操作指南</span>
+          </a>
         </div>
       </section>
 
@@ -186,8 +194,11 @@
     var elRecent = document.getElementById('recentUpdates');
     var elAllPages = document.getElementById('allPagesList');
     var elAllPagesCount = document.getElementById('allPagesCount');
-    var currentWikiLang = (new URLSearchParams(window.location.search).get('lang') || localStorage.getItem('language') || 'zh') === 'ja' ? 'ja' : 'zh';
+    var currentWikiLang = window.VNFLanguage && window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
     var COUNTRIES = { china: '中国', japan: '日本' };
+    var GUIDE_COPY = currentWikiLang === 'ja'
+      ? { label: '利用ガイド', description: 'メインサイト、サークル管理、MakoQuiz、AstrBot の操作ガイドを確認' }
+      : { label: '使用文档', description: '查看主站、社团管理、MakoQuiz 与 AstrBot 的操作指南' };
     document.documentElement.lang = currentWikiLang === 'ja' ? 'ja' : 'zh-CN';
 
     function esc(s) {
@@ -243,7 +254,19 @@
         '</p><a href="' + esc(slot.url || '#') + '">' + (enabled ? '进入模块' : '等待后续开发') + '</a></article>';
     }
 
+    function localizedLibraryDoc(doc) {
+      if (currentWikiLang !== 'ja' || !doc || !doc.i18n || !doc.i18n.ja) return doc;
+      var copy = {};
+      Object.keys(doc).forEach(function (key) { copy[key] = doc[key]; });
+      var ja = doc.i18n.ja;
+      copy.title = ja.title || doc.title;
+      copy.category = ja.category || doc.category;
+      copy.description = ja.description || doc.description;
+      return copy;
+    }
+
     function renderLibDoc(doc) {
+      doc = localizedLibraryDoc(doc);
       return '<article class="wiki-library-card wiki-entry" data-search="' +
         searchable([doc.title, doc.category, doc.description]) +
         '"><div class="wiki-index-card-meta">' + esc(doc.category || '文档') + ' · ' +
@@ -354,8 +377,14 @@
 
     function initInteractions() {
       if (elSearch) elSearch.addEventListener('input', onSearch);
-      document.querySelectorAll('[data-wiki-index-lang]').forEach(function (link) {
-        link.classList.toggle('active', link.getAttribute('data-wiki-index-lang') === currentWikiLang);
+      document.querySelectorAll('[data-wiki-guide-link]').forEach(function (link) {
+        link.href = './guide/#/platform/getting-started';
+      });
+      document.querySelectorAll('[data-wiki-guide-label]').forEach(function (label) {
+        label.textContent = GUIDE_COPY.label;
+      });
+      document.querySelectorAll('[data-wiki-guide-description]').forEach(function (description) {
+        description.textContent = GUIDE_COPY.description;
       });
       document.querySelectorAll('.wiki-nav a').forEach(function (link) {
         link.addEventListener('click', function (event) {
@@ -389,6 +418,17 @@
         updateDynamicSections();
         initInteractions();
       });
+
+    if (window.VNFLanguage) {
+      window.VNFLanguage.subscribe(function (detail) {
+        var next = detail && detail.language === 'ja' ? 'ja' : 'zh';
+        if (next !== currentWikiLang) window.location.reload();
+      });
+      window.VNFLanguage.ready.then(function () {
+        var next = window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
+        if (next !== currentWikiLang) window.location.reload();
+      });
+    }
   })();
   </script>
 </body>

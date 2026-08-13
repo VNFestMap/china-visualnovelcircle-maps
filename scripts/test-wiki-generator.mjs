@@ -163,8 +163,11 @@ if (!html.includes('wiki-image-align-right') || !html.includes('wiki-image-fit-c
 if (!html.includes('data-wiki-lang="zh"') || !html.includes('data-wiki-lang="ja"') || !html.includes('Anri VN Circle JP')) {
   throw new Error('Generated page should render Chinese and Japanese wiki bodies');
 }
-if (!html.includes('wikiLanguageSwitch') || !html.includes('?lang=ja')) {
-  throw new Error('Generated page should expose a language switcher');
+if (!html.includes('language-runtime.js') || !html.includes('VNFLanguage')) {
+  throw new Error('Generated page should consume the shared language runtime');
+}
+if (html.includes('wikiLanguageSwitch') || html.includes('data-wiki-switch-lang')) {
+  throw new Error('Generated page must not expose a page-local language switcher');
 }
 
 const manifest = JSON.parse(readFileSync(join(fixture, 'wiki/index.json'), 'utf8'));
@@ -198,8 +201,11 @@ if (!home.includes('wiki-encyclopedia-layout') || !home.includes('wiki-index-sid
 if (!home.includes('id="recent-updates"') || !home.includes('最近更新')) {
   throw new Error('Wiki index should render the recent updates section');
 }
-if (!home.includes('wikiIndexLangSwitch') || !home.includes('lang=ja')) {
-  throw new Error('Wiki index should expose a Chinese/Japanese language switch');
+if (!home.includes('js/language-runtime.js') || !home.includes('js/language-catalog.js')) {
+  throw new Error('Wiki index should load the shared account language runtime');
+}
+if (/wikiIndexLangSwitch|data-wiki-index-lang/.test(home)) {
+  throw new Error('Wiki index should not expose a page-local language switch');
 }
 if (!home.includes('id="all-pages"') || !home.includes('全部页面索引')) {
   throw new Error('Wiki index should render the all-pages index');

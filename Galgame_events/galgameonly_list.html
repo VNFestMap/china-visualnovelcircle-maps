@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../js/page-i18n.js?v=20260813-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../js/theme-runtime.js?v=20260702-theme"></script>
 <title>高校专属通道</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -885,7 +890,7 @@ html,
   <a href="../admin/Galonly_audit.html" id="auditFooterLink" style="display:none" aria-label="审核活动">审核活动</a>
 </footer>
 
-<script src="../js/page-background.js" data-picker="compact"></script>
+<script src="../js/page-background.js?v=20260812-centralized-preferences"></script>
 <script>
 (function() {
   'use strict';
@@ -912,9 +917,9 @@ html,
     return fetch('../api/auth.php?action=me', { credentials: 'same-origin' })
       .then(function(r) { return r.json(); })
       .then(function(data) {
-        if (data.logged_in && data.user) {
-          currentUser = data.user;
-          isAuditor = !!(data.user.is_audit || data.user.is_auditor || data.user.audit_permission || data.user.role === 'super_admin');
+        if ((data.success || data.logged_in) && (data.user || data.id)) {
+          currentUser = data.user || data;
+          isAuditor = !!(currentUser.is_audit || currentUser.is_auditor || currentUser.audit_permission || currentUser.can_audit || currentUser.role === 'super_admin' || currentUser.role === 'admin');
         }
       })
       .catch(function() {
@@ -962,10 +967,13 @@ html,
 
   function buildEventCard(ev) {
     var loggedIn = !!currentUser;
+    var staffOnly = ev.staff_only === 1 || ev.staff_only === '1' || ev.staff_only === true;
 
     /* meta */
+    var isPlaceholderDate = staffOnly && String(ev.date || '').slice(0, 10) === '2026-09-19';
     var metaParts = [];
-    if (ev.date) metaParts.push('<span>' + escapeHtml(ev.date) + '</span>');
+    if (ev.date && !isPlaceholderDate) metaParts.push('<span>' + escapeHtml(ev.date) + '</span>');
+    else if (staffOnly) metaParts.push('<span>日期待公布</span>');
     if (ev.location) metaParts.push('<span>' + escapeHtml(ev.location) + '</span>');
     if (ev.booth_count !== undefined) metaParts.push('<span>' + ev.booth_count + ' 个摊位</span>');
 
@@ -983,18 +991,18 @@ html,
       + (ev.description ? '<p class="event-desc">' + escapeHtml(ev.description) + '</p>' : '')
       + '<div class="event-footer">'
         + '<div class="apply-section">'
-          /* booth row */
-          + '<div class="apply-row booth-row">'
-            + '<div class="apply-row-left">'
-              + '<span class="apply-type-label">摊位</span>'
-              + boothBadge
-            + '</div>'
-            + '<div class="apply-row-right">'
-              + boothButtons
-            + '</div>'
-          + '</div>'
-          /* divider */
-          + '<div class="apply-divider" role="separator"></div>'
+          /* booth row (hidden for staff-only events) */
+          + (staffOnly ? '' :
+              '<div class="apply-row booth-row">'
+                + '<div class="apply-row-left">'
+                  + '<span class="apply-type-label">摊位</span>'
+                  + boothBadge
+                + '</div>'
+                + '<div class="apply-row-right">'
+                  + boothButtons
+                + '</div>'
+              + '</div>'
+              + '<div class="apply-divider" role="separator"></div>')
           /* staff row */
           + '<div class="apply-row staff-row">'
             + '<div class="apply-row-left">'
@@ -1031,6 +1039,13 @@ html,
     var deadline = ev.deadline;
     var maxApp = ev.max_applicants;
     var fullBadge = ev.is_full;
+    var boothSubmitPage = String(ev.event_code || '').toLowerCase() === 'beijing'
+      ? 'Beijing_Galonly_submit.html'
+      : 'Shanghai_Galonly_submit.html';
+
+    if (!status && (regOpen === 0 || regOpen === '0')) {
+      return '<span class="btn btn-disabled">申请已关闭</span>';
+    }
 
     if (!loggedIn) {
       return '<span class="btn btn-login">请先登录</span>';
@@ -1048,20 +1063,17 @@ html,
 
     if (!status) {
       /* not applied */
-      if (regOpen === 0) {
-        return '<span class="btn btn-disabled">申请已关闭</span>';
-      }
-      return '<a class="btn btn-apply" href="Shanghai_Galonly_submit.html?event_id=' + eventId + '" aria-label="申请摊位">申请摊位</a>';
+      return '<a class="btn btn-apply" href="' + boothSubmitPage + '?event_id=' + eventId + '" aria-label="申请摊位">申请摊位</a>';
     }
 
     if (status === 'pending' || status === 'rejected') {
-      var editHref = 'Shanghai_Galonly_submit.html?event_id=' + eventId + '&app_id=' + appId;
+      var editHref = boothSubmitPage + '?event_id=' + eventId + '&application_id=' + appId;
       return '<a class="btn btn-edit" href="' + editHref + '" aria-label="编辑摊位申请">编辑</a>'
         + '<button class="btn btn-delete" onclick="deleteBoothApplication(' + appId + ',this)" aria-label="删除摊位申请">删除</button>';
     }
 
     if (status === 'approved') {
-      var editHref2 = 'Shanghai_Galonly_submit.html?event_id=' + eventId + '&app_id=' + appId;
+      var editHref2 = boothSubmitPage + '?event_id=' + eventId + '&application_id=' + appId;
       return '<a class="btn btn-edit" href="' + editHref2 + '" aria-label="查看摊位申请">编辑</a>';
     }
 
@@ -1087,25 +1099,28 @@ html,
     var appId = ev.user_staff_application_id;
     var regOpen = ev.staff_registration_open;
     var deadline = ev.staff_deadline;
-    var maxApp = ev.staff_max_applicants;
+    var maxApp = Number(ev.staff_max_applicants || 0);
+    var isBeijingEvent = String(ev.event_code || '').toLowerCase() === 'beijing';
+    var guidelinesPage = isBeijingEvent ? 'Beijing_Galonly_staff_guidelines.html' : 'galonly_staff_guidelines.html';
+    var submitPage = isBeijingEvent ? 'Beijing_Galonly_staff_submit.html' : 'galonly_staff_submit.html';
 
     if (!loggedIn) {
       return '<span class="btn btn-login">请先登录</span>';
     }
 
     if (status === 'pending' || status === 'pooled' || status === 'rejected') {
-      var editHref = 'galonly_staff_submit.html?event_id=' + eventId + '&app_id=' + appId;
+      var editHref = submitPage + '?event_id=' + eventId + '&application_id=' + appId;
       return '<a class="btn btn-edit" href="' + editHref + '" aria-label="编辑Staff申请">编辑</a>'
         + '<button class="btn btn-delete" onclick="deleteStaffApplication(' + appId + ',this)" aria-label="删除Staff申请">删除</button>';
     }
 
     if (status === 'confirmed') {
-      var editHref2 = 'galonly_staff_submit.html?event_id=' + eventId + '&app_id=' + appId;
+      var editHref2 = submitPage + '?event_id=' + eventId + '&application_id=' + appId;
       return '<a class="btn btn-edit" href="' + editHref2 + '" aria-label="查看Staff申请">编辑</a>';
     }
 
     /* manual override */
-    if (regOpen === 0) {
+    if (regOpen === 0 || regOpen === '0') {
       return '<span class="btn btn-disabled">Staff申请已关闭</span>';
     }
 
@@ -1115,13 +1130,13 @@ html,
     }
 
     /* max reached (circuit breaker) */
-    if (maxApp && ev.staff_current_applicants !== undefined && ev.staff_current_applicants >= maxApp) {
+    if (maxApp > 0 && ev.staff_current_applicants !== undefined && Number(ev.staff_current_applicants || 0) >= maxApp) {
       return '<span class="staff-full">Staff申请已满</span>';
     }
 
     if (!status) {
       /* not applied */
-      return '<a class="btn btn-apply" href="galonly_staff_guidelines.html?event_id=' + eventId + '" aria-label="申请Staff">申请Staff</a>';
+      return '<a class="btn btn-apply" href="' + guidelinesPage + '?event_id=' + eventId + '" aria-label="申请Staff">申请Staff</a>';
     }
 
     return '';
@@ -1194,31 +1209,22 @@ html,
 })();
 </script>
 <script>
-/* ========== THEME TOGGLE ========== */
+/* ========== THEME TOGGLE（与主站 themePreference 同步） ========== */
 function toggleTheme() {
-  var html = document.documentElement;
-  var current = html.getAttribute('data-theme') || 'dark';
-  var next = current === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', next);
-  try { localStorage.setItem('galonly-theme', next); } catch(e) {}
-  updateThemeIcon(next);
+  if (window.VNFTheme && typeof window.VNFTheme.toggle === 'function') {
+    window.VNFTheme.toggle();
+  }
 }
 function updateThemeIcon(theme) {
   var btn = document.getElementById('themeToggle');
   if (!btn) return;
   btn.textContent = theme === 'dark' ? '\u263E' : '\u2600';
 }
-(function() {
-  try {
-    var saved = localStorage.getItem('galonly-theme');
-    if (saved === 'light' || saved === 'dark') {
-      document.documentElement.setAttribute('data-theme', saved);
-    }
-  } catch(e) {}
-  document.addEventListener('DOMContentLoaded', function() {
-    updateThemeIcon(document.documentElement.getAttribute('data-theme') || 'dark');
+if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+  window.VNFTheme.subscribe(function(detail) {
+    updateThemeIcon(detail.theme);
   });
-})();
+}
 </script>
 </body>
 </html>

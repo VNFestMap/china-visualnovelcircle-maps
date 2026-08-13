@@ -395,6 +395,9 @@ function wikiRenderPage(array $content, array $club): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-language"></script>
   <title>' . $title . ' - 同好会维基</title>
   <link rel="stylesheet" href="../wiki.css">
 </head>
@@ -405,11 +408,10 @@ function wikiRenderPage(array $content, array $club): string {
     <span>同好会维基</span>
   </header>
   <main class="wiki-page">
-    <nav class="wiki-language-switch" id="wikiLanguageSwitch" aria-label="Language"><a href="?lang=zh" data-wiki-switch-lang="zh">中文</a><a href="?lang=ja" data-wiki-switch-lang="ja">日本語</a></nav>
     ' . $zhArticle . '
     ' . $jaArticle . '
   </main>
-  <script>(function(){var p=new URLSearchParams(window.location.search);var lang=p.get("lang")||localStorage.getItem("language")||"zh";lang=lang==="ja"?"ja":"zh";document.documentElement.lang=lang==="ja"?"ja":"zh-CN";document.querySelectorAll("[data-wiki-lang]").forEach(function(n){n.hidden=n.getAttribute("data-wiki-lang")!==lang;});document.querySelectorAll("[data-wiki-switch-lang]").forEach(function(n){n.classList.toggle("active",n.getAttribute("data-wiki-switch-lang")===lang);});})();</script>
+  <script>(function(){function applyLanguage(){var lang=window.VNFLanguage&&window.VNFLanguage.getLanguage()==="ja"?"ja":"zh";document.documentElement.lang=lang==="ja"?"ja":"zh-CN";document.querySelectorAll("[data-wiki-lang]").forEach(function(n){n.hidden=n.getAttribute("data-wiki-lang")!==lang;});}applyLanguage();if(window.VNFLanguage){window.VNFLanguage.subscribe(applyLanguage);window.VNFLanguage.ready.then(applyLanguage);}})();</script>
 </body>
 </html>
 ';
@@ -538,6 +540,9 @@ function wikiRenderIndexHome(array $manifest, array $libraryDocs, array $feature
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-language"></script>
   <title>VNFest WIKI</title>
   <link rel="stylesheet" href="./wiki.css">
 </head>
@@ -545,7 +550,6 @@ function wikiRenderIndexHome(array $manifest, array $libraryDocs, array $feature
   <header class="wiki-header wiki-site-header">
     <a href="../index.html">Galgame 同好会地图</a>
     <span>VNFest WIKI</span>
-    <nav class="wiki-language-switch" id="wikiIndexLangSwitch" aria-label="Language"><a href="?lang=zh" data-wiki-index-lang="zh" class="active">中文</a><a href="?lang=ja" data-wiki-index-lang="ja">日本語</a></nav>
   </header>
   <main class="wiki-index-page wiki-encyclopedia-layout">
     <aside class="wiki-index-sidebar" aria-label="站点目录">
@@ -685,8 +689,222 @@ function wikiUploadImage(string $clubKey, string $uploadsDir): void {
     ]);
 }
 
+/*
+ * 使用文档站：与同好会 Wiki 的内容模型分开保存。种子文件随代码发布，
+ * data/wiki-guide 为 Docker 持久化目录，运营人员的草稿和已发布版本不会被镜像覆盖。
+ */
+function wikiGuideLanguage(string $lang): string {
+    return $lang === 'ja-JP' ? 'ja-JP' : 'zh-CN';
+}
+
+function wikiGuideTruncate(string $value, int $length): string {
+    // 开发机可能未启用 mbstring。此时宁可不截断 UTF-8 内容，也不能按字节截断并写出无效 JSON。
+    return function_exists('mb_substr') ? mb_substr($value, 0, $length) : $value;
+}
+
+function wikiGuideId(string $id): string {
+    $id = trim($id);
+    return preg_match('/^[a-z0-9][a-z0-9\/-]{1,100}$/', $id) ? $id : '';
+}
+
+function wikiGuideSeedFile(string $rootDir, string $lang): string {
+    return $rootDir . '/wiki/guide/seed/' . wikiGuideLanguage($lang) . '/documents.json';
+}
+
+function wikiGuideDataFile(string $rootDir, string $lang): string {
+    return $rootDir . '/data/wiki-guide/' . wikiGuideLanguage($lang) . '/documents.json';
+}
+
+function wikiGuideRevision(array $catalog): string {
+    return hash('sha256', json_encode($catalog, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+}
+
+function wikiGuideReadSeed(string $rootDir, string $lang): array {
+    $seed = wikiReadJson(wikiGuideSeedFile($rootDir, $lang), []);
+    if (!is_array($seed) || !isset($seed['articles']) || !is_array($seed['articles'])) {
+        throw new RuntimeException('guide seed is missing or invalid');
+    }
+    $seed['groups'] = is_array($seed['groups'] ?? null) ? $seed['groups'] : [];
+    return $seed;
+}
+
+function wikiGuideNormalizeArticle(array $article, string $id, string $lang): array {
+    $article['id'] = $id;
+    $article['product'] = wikiGuideTruncate(trim((string)($article['product'] ?? 'VNFest')), 80);
+    $article['audience'] = wikiGuideTruncate(trim((string)($article['audience'] ?? '')), 80);
+    $article['title'] = wikiGuideTruncate(trim((string)($article['title'] ?? '')), 160);
+    $article['summary'] = wikiGuideTruncate(trim((string)($article['summary'] ?? '')), 1500);
+    $article['updatedAt'] = trim((string)($article['updatedAt'] ?? date('Y-m-d')));
+    $article['previousId'] = wikiGuideId((string)($article['previousId'] ?? ''));
+    $article['nextId'] = wikiGuideId((string)($article['nextId'] ?? ''));
+    $article['search'] = array_values(array_filter(array_map(function ($value) {
+        return wikiGuideTruncate(trim((string)$value), 80);
+    }, is_array($article['search'] ?? null) ? $article['search'] : [])));
+    $sections = [];
+    foreach (is_array($article['sections'] ?? null) ? $article['sections'] : [] as $section) {
+        if (!is_array($section)) continue;
+        $title = wikiGuideTruncate(trim((string)($section['title'] ?? '')), 160);
+        if ($title === '') continue;
+        $blocks = [];
+        foreach (is_array($section['blocks'] ?? null) ? $section['blocks'] : [] as $block) {
+            if (!is_array($block)) continue;
+            $type = (string)($block['type'] ?? 'paragraph');
+            if (!in_array($type, ['paragraph', 'heading', 'tip', 'warning', 'steps', 'list', 'code', 'table', 'image'], true)) continue;
+            $clean = ['type' => $type];
+            if (in_array($type, ['paragraph', 'heading', 'tip', 'warning', 'code'], true)) {
+                $clean['text'] = wikiGuideTruncate((string)($block['text'] ?? ''), $type === 'code' ? 8000 : 3000);
+                if (isset($block['label'])) $clean['label'] = wikiGuideTruncate((string)$block['label'], 80);
+            } elseif (in_array($type, ['steps', 'list'], true)) {
+                $clean['items'] = array_values(array_filter(array_map(function ($value) {
+                    return wikiGuideTruncate(trim((string)$value), 1000);
+                }, is_array($block['items'] ?? null) ? $block['items'] : [])));
+            } elseif ($type === 'table') {
+                $clean['headers'] = array_values(array_map(function ($value) { return wikiGuideTruncate((string)$value, 300); }, is_array($block['headers'] ?? null) ? $block['headers'] : []));
+                $clean['rows'] = [];
+                foreach (is_array($block['rows'] ?? null) ? $block['rows'] : [] as $row) {
+                    if (!is_array($row)) continue;
+                    $clean['rows'][] = array_values(array_map(function ($value) { return wikiGuideTruncate((string)$value, 1200); }, $row));
+                }
+            } else {
+                $src = trim((string)($block['src'] ?? ''));
+                if ($src === '' || (!str_starts_with($src, '../uploads/guide/') && !str_starts_with($src, './assets/'))) continue;
+                $clean['src'] = $src;
+                $clean['alt'] = wikiGuideTruncate((string)($block['alt'] ?? ''), 300);
+                $clean['caption'] = wikiGuideTruncate((string)($block['caption'] ?? ''), 500);
+            }
+            $blocks[] = $clean;
+        }
+        $sections[] = ['title' => $title, 'blocks' => $blocks];
+    }
+    $article['sections'] = $sections;
+    if ($article['title'] === '' || $article['summary'] === '') throw new RuntimeException('guide article title and summary are required');
+    return $article;
+}
+
+function wikiGuideRuntimeFromSeed(array $seed): array {
+    $seedRevision = wikiGuideRevision($seed);
+    $articles = [];
+    foreach ($seed['articles'] as $raw) {
+        if (!is_array($raw)) continue;
+        $id = wikiGuideId((string)($raw['id'] ?? ''));
+        if ($id === '') continue;
+        $article = wikiGuideNormalizeArticle($raw, $id, 'zh-CN');
+        $articles[$id] = ['id' => $id, 'seedRevision' => $seedRevision, 'status' => 'published', 'draft' => null, 'published' => $article, 'updatedAt' => date('c'), 'updatedBy' => 0];
+    }
+    return ['version' => 1, 'seedRevision' => $seedRevision, 'groups' => $seed['groups'], 'articles' => $articles];
+}
+
+function wikiGuideReadRuntime(string $rootDir, string $lang): array {
+    $lang = wikiGuideLanguage($lang);
+    $file = wikiGuideDataFile($rootDir, $lang);
+    if (file_exists($file)) {
+        $runtime = wikiReadJson($file, []);
+        if (is_array($runtime) && is_array($runtime['articles'] ?? null)) return $runtime;
+    }
+    $runtime = wikiGuideRuntimeFromSeed(wikiGuideReadSeed($rootDir, $lang));
+    if (!wikiWriteJson($file, $runtime)) throw new RuntimeException('guide data initialization failed');
+    return $runtime;
+}
+
+function wikiGuideWriteRuntime(string $rootDir, string $lang, array $runtime): void {
+    if (!wikiWriteJson(wikiGuideDataFile($rootDir, $lang), $runtime)) throw new RuntimeException('guide data write failed');
+}
+
+function wikiGuidePublicCatalog(array $runtime, string $lang): array {
+    $articles = [];
+    foreach ($runtime['articles'] as $record) {
+        if (!is_array($record) || ($record['status'] ?? '') !== 'published' || !is_array($record['published'] ?? null)) continue;
+        $articles[] = $record['published'];
+    }
+    return ['version' => 1, 'language' => wikiGuideLanguage($lang), 'groups' => is_array($runtime['groups'] ?? null) ? $runtime['groups'] : [], 'articles' => $articles];
+}
+
+function wikiGuideRequireAdmin(): array {
+    $user = requireRole('super_admin');
+    if (($user['role'] ?? '') !== 'super_admin') {
+        wikiJsonResponse(['success' => false, 'message' => '仅超级管理员可维护使用文档'], 403);
+    }
+    return $user;
+}
+
+function wikiGuideInput(): array {
+    $input = json_decode(file_get_contents('php://input'), true);
+    return is_array($input) ? $input : [];
+}
+
+function wikiHandleGuideAction(string $action, string $rootDir, string $uploadsDir): void {
+    $lang = wikiGuideLanguage((string)($_GET['lang'] ?? 'zh-CN'));
+    if (in_array($action, ['guide_catalog', 'guide_article'], true) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $catalog = wikiGuidePublicCatalog(wikiGuideReadRuntime($rootDir, $lang), $lang);
+        if ($action === 'guide_catalog') wikiJsonResponse(['success' => true, 'catalog' => $catalog]);
+        $id = wikiGuideId((string)($_GET['id'] ?? ''));
+        foreach ($catalog['articles'] as $article) if (($article['id'] ?? '') === $id) wikiJsonResponse(['success' => true, 'article' => $article]);
+        wikiJsonResponse(['success' => false, 'message' => '文档不存在'], 404);
+    }
+
+    $user = wikiGuideRequireAdmin();
+    $input = wikiGuideInput();
+    if (isset($input['lang'])) $lang = wikiGuideLanguage((string)$input['lang']);
+    $runtime = wikiGuideReadRuntime($rootDir, $lang);
+    $seed = wikiGuideReadSeed($rootDir, $lang);
+    $seedRevision = wikiGuideRevision($seed);
+
+    if ($action === 'guide_admin_catalog' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        wikiJsonResponse(['success' => true, 'runtime' => $runtime, 'seedRevision' => $seedRevision]);
+    }
+    if ($action === 'guide_diff' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+        $runtimeIds = array_keys($runtime['articles'] ?? []);
+        $seedIds = array_values(array_filter(array_map(function ($article) { return wikiGuideId((string)($article['id'] ?? '')); }, $seed['articles'] ?? [])));
+        wikiJsonResponse(['success' => true, 'seedRevision' => $seedRevision, 'runtimeRevision' => (string)($runtime['seedRevision'] ?? ''), 'changed' => $seedRevision !== ($runtime['seedRevision'] ?? ''), 'addedArticleIds' => array_values(array_diff($seedIds, $runtimeIds)), 'retiredArticleIds' => array_values(array_diff($runtimeIds, $seedIds))]);
+    }
+    if ($action === 'guide_upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        wikiUploadImage('guide', $uploadsDir);
+    }
+
+    $id = wikiGuideId((string)($input['id'] ?? $_GET['id'] ?? ''));
+    if ($id === '') wikiJsonResponse(['success' => false, 'message' => '无效文档 ID'], 422);
+    if (!isset($runtime['articles'][$id])) {
+        $seedArticle = null;
+        foreach ($seed['articles'] as $raw) if (is_array($raw) && ($raw['id'] ?? '') === $id) $seedArticle = $raw;
+        if (!$seedArticle) wikiJsonResponse(['success' => false, 'message' => '文档不存在'], 404);
+        $runtime['articles'][$id] = ['id' => $id, 'seedRevision' => $seedRevision, 'status' => 'published', 'draft' => null, 'published' => wikiGuideNormalizeArticle($seedArticle, $id, $lang), 'updatedAt' => date('c'), 'updatedBy' => (int)$user['id']];
+    }
+    $record =& $runtime['articles'][$id];
+    if ($action === 'guide_save_draft' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $record['draft'] = wikiGuideNormalizeArticle(is_array($input['article'] ?? null) ? $input['article'] : [], $id, $lang);
+        $record['updatedAt'] = date('c'); $record['updatedBy'] = (int)$user['id'];
+        wikiGuideWriteRuntime($rootDir, $lang, $runtime);
+        wikiJsonResponse(['success' => true, 'record' => $record]);
+    }
+    if ($action === 'guide_publish' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $article = is_array($record['draft'] ?? null) ? $record['draft'] : ($record['published'] ?? null);
+        if (!is_array($article)) wikiJsonResponse(['success' => false, 'message' => '没有可发布的内容'], 422);
+        $record['published'] = $article; $record['draft'] = null; $record['status'] = 'published'; $record['seedRevision'] = $seedRevision; $record['updatedAt'] = date('c'); $record['updatedBy'] = (int)$user['id'];
+        $runtime['seedRevision'] = $seedRevision;
+        wikiGuideWriteRuntime($rootDir, $lang, $runtime);
+        wikiJsonResponse(['success' => true, 'record' => $record]);
+    }
+    if ($action === 'guide_unpublish' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $record['status'] = 'draft'; $record['updatedAt'] = date('c'); $record['updatedBy'] = (int)$user['id'];
+        wikiGuideWriteRuntime($rootDir, $lang, $runtime);
+        wikiJsonResponse(['success' => true, 'record' => $record]);
+    }
+    if ($action === 'guide_reset_seed' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+        $seedArticle = null;
+        foreach ($seed['articles'] as $raw) if (is_array($raw) && ($raw['id'] ?? '') === $id) $seedArticle = $raw;
+        if (!$seedArticle) wikiJsonResponse(['success' => false, 'message' => '种子文档不存在'], 404);
+        $record['draft'] = wikiGuideNormalizeArticle($seedArticle, $id, $lang); $record['seedRevision'] = $seedRevision; $record['updatedAt'] = date('c'); $record['updatedBy'] = (int)$user['id'];
+        wikiGuideWriteRuntime($rootDir, $lang, $runtime);
+        wikiJsonResponse(['success' => true, 'record' => $record]);
+    }
+    wikiJsonResponse(['success' => false, 'message' => '不支持的使用文档操作'], 405);
+}
+
 try {
     $action = $_GET['action'] ?? '';
+    if (str_starts_with($action, 'guide_')) {
+        wikiHandleGuideAction($action, $rootDir, $uploadsDir);
+    }
     $clubKey = trim((string)($_GET['club_key'] ?? ''));
     if ($clubKey === '') {
         $inputForKey = json_decode(file_get_contents('php://input'), true);

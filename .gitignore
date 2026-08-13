@@ -81,6 +81,7 @@ data/*.db
 data/*.sqlite
 data/_tmp_*
 data/*.json
+data/wiki-guide/
 !data/**/.gitkeep
 !data/**/.htaccess
 
@@ -106,6 +107,8 @@ wiki/uploads/*
 *.tar.gz
 *.zip
 !*.example.zip
+# AstrBot 插件发布包（Bot 接入页下载入口，需要随仓库分发）
+!downloads/astrbot_plugin_galgamemap_beta0.5.zip
 
 # Local reference materials
 参考/
@@ -114,6 +117,7 @@ wiki/uploads/*
 # Put local wallpapers here; only the folder placeholder is versioned.
 image/background/*
 !image/background/.gitkeep
+!image/background/Defaultwallpaper.jpg
 
 # Raw spreadsheet/source data
 *.csv
@@ -129,12 +133,18 @@ android/
 capacitor.config.json
 *.apk
 dist/
+dist2/
+
+# 无关硬件产物（误放的单片机 hex 文件）
+build/
 
 # Internal AI/design workspace
 .claude/
 .superpowers/
 .gstack/
+.workbuddy/
 docs/
+overview.md
 
 # Office documents (design specs, drafts)
 *.docx

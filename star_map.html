@@ -1,6 +1,9 @@
 ﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="./js/language-runtime.js?v=20260813-language"></script>
+  <script src="./js/language-catalog.js?v=20260813-language"></script>
+  <script src="./js/language-static-ja.js?v=20260813-account-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#090909" media="(prefers-color-scheme: dark)">
@@ -651,15 +654,6 @@ body::after {
 .cd-copy-btn.copied { border-color: var(--success); color: var(--success); }
 .cd-footer { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 11px; color: var(--soft); }
 
-/* ── Page Language Switch ── */
-.page-lang-switch { display: flex; gap: 2px; }
-.page-lang-switch button {
-  padding: 4px 8px; border: 1px solid var(--border); border-radius: 6px;
-  background: transparent; color: var(--muted); font-size: 11px; font-family: inherit; cursor: pointer;
-  transition: border-color 0.15s var(--ease), color 0.15s var(--ease);
-}
-.page-lang-switch button:hover { border-color: var(--accent-cool); color: var(--text); }
-
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .starmap-topbar { top: 8px; left: 8px; right: 8px; padding: 5px; gap: 5px; flex-wrap: wrap; min-height: 44px; }
@@ -793,10 +787,6 @@ body::after {
     <div class="star-search-results" id="starSearchResults" role="listbox"></div>
   </div>
   <div class="topbar-spacer"></div>
-  <div class="page-lang-switch" aria-label="语言">
-    <button type="button" data-i18n-lang="zh">中文</button>
-    <button type="button" data-i18n-lang="ja">日本語</button>
-  </div>
   <button class="topbar-create-btn" id="createUnionBtn" style="display:none;" title="创建联合">+ 创建联合</button>
   <button class="topbar-theme-btn" id="themeBtn" title="切换主题">夜</button>
 </div>

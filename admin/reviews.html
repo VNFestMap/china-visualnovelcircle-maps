@@ -3,506 +3,1224 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>审核中心 - 管理后台</title>
+<meta name="canvas:aspect-ratio" content="16:9">
+<title>超级管理控制台 - VNFest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+/* ================================================================
+   DESIGN TOKENS — GalOnly oklch dark-purple palette
+   ================================================================ */
+:root {
+  --seed-bg: oklch(18% 0.035 275);
+  --seed-fg: oklch(93% 0.003 80);
+  --seed-primary: oklch(72% 0.07 290);
+  --seed-accent: oklch(58% 0.08 290);
+  --seed-surface: oklch(24% 0.04 272);
+  --seed-radius: 12px;
 
+  --color-bg: var(--seed-bg);
+  --color-surface: var(--seed-surface);
+  --color-surface-alt: oklch(22% 0.038 273);
+  --color-text: var(--seed-fg);
+  --color-text-secondary: oklch(84% 0.015 275);
+  --color-text-muted: oklch(75% 0.03 270);
+  --color-primary: var(--seed-primary);
+  --color-primary-hover: oklch(78% 0.08 290);
+  --color-primary-light: oklch(72% 0.05 290 / 0.15);
+  --color-border: oklch(30% 0.045 270 / 0.35);
+  --color-border-strong: oklch(38% 0.05 268 / 0.35);
+  --color-success: oklch(72% 0.12 155);
+  --color-success-light: oklch(72% 0.08 155 / 0.12);
+  --color-warning: oklch(80% 0.12 85);
+  --color-warning-light: oklch(80% 0.08 85 / 0.12);
+  --color-danger: oklch(70% 0.14 25);
+  --color-danger-light: oklch(70% 0.10 25 / 0.12);
+  --color-focus: var(--color-primary);
+
+  /* Status text colors */
+  --color-text-warning-dark: oklch(80% 0.12 85);
+  --color-text-success-dark: oklch(72% 0.12 155);
+  --color-text-danger-dark: oklch(70% 0.14 25);
+  --color-text-primary-dark: oklch(72% 0.07 290);
+  --color-text-warning-mid: oklch(80% 0.12 85);
+
+  /* Chart palette */
+  --chart-blue: oklch(72% 0.07 290);
+  --chart-red: oklch(70% 0.14 25);
+  --chart-gray: oklch(65% 0.04 268);
+  --chart-area-fill: oklch(72% 0.05 290 / 0.12);
+
+  /* Badge type colors */
+  --badge-info-bg: oklch(72% 0.05 290 / 0.12);
+  --badge-info-text: oklch(72% 0.07 290);
+  --badge-warning-bg: oklch(80% 0.08 85 / 0.12);
+  --badge-warning-text: oklch(80% 0.12 85);
+  --badge-important-bg: oklch(70% 0.10 25 / 0.12);
+  --badge-important-text: oklch(70% 0.14 25);
+  --badge-update-bg: oklch(72% 0.08 155 / 0.12);
+  --badge-update-text: oklch(72% 0.12 155);
+
+  /* Button hover states */
+  --color-success-hover: oklch(62% 0.10 155);
+  --color-danger-hover: oklch(60% 0.12 25);
+  --color-warning-action: oklch(75% 0.10 65);
+  --color-warning-action-hover: oklch(65% 0.10 65);
+
+  /* Component specific */
+  --color-review-hover: oklch(72% 0.04 290 / 0.08);
+  --color-grid-line: oklch(30% 0.045 270 / 0.35);
+  --color-chart-label: oklch(65% 0.04 268);
+
+  /* Inverse and component colors */
+  --color-inverse: oklch(93% 0.003 80);
+  --color-toggle-track: oklch(30% 0.045 270 / 0.5);
+  --color-toggle-knob: oklch(93% 0.003 80);
+  --color-brand-gradient-end: oklch(58% 0.08 290);
+
+  --sidebar-bg: oklch(15% 0.03 275);
+  --sidebar-surface: oklch(22% 0.04 272);
+  --sidebar-text: oklch(75% 0.03 270);
+  --sidebar-text-active: oklch(93% 0.003 80);
+  --sidebar-accent: oklch(72% 0.07 290);
+  --sidebar-width: 248px;
+
+  --space-xs: 4px; --space-sm: 8px; --space-md: 16px;
+  --space-lg: 24px; --space-xl: 32px; --space-2xl: 48px;
+  --radius-sm: 8px;
+  --radius-md: var(--seed-radius);
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 100px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+  --shadow-md: 0 10px 36px rgba(0,0,0,0.18), 0 2px 4px oklch(72% 0.04 290 / 0.08);
+  --shadow-lg: 0 10px 36px rgba(0,0,0,0.25), 0 2px 4px oklch(72% 0.04 290 / 0.1);
+  --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+  --font-family: 'Jost', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Noto Sans SC', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --topbar-h: 56px;
+  --transition-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ================================================================
+   RESET & BASE
+   ================================================================ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 14px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; scroll-behavior: smooth; }
 body {
-  font-family: "Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f0f2f5;
+  font-family: var(--font-family);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
   min-height: 100vh;
-  padding: 20px;
+  overflow-x: hidden;
+}
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; font-size: 13px; }
+
+/* Keyframe animations — GalOnly spring physics */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes badgePopIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.container { max-width: 1200px; margin: 0 auto; }
-
-/* 顶部导航 */
-.top-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  border-radius: 16px;
-  color: white;
-  flex-wrap: wrap;
-  gap: 12px;
+/* ================================================================
+   APP LAYOUT
+   ================================================================ */
+.app-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  min-height: 100vh;
 }
 
-.top-bar h1 {
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+/* ================================================================
+   SIDEBAR
+   ================================================================ */
+.sidebar {
+  background: var(--sidebar-bg);
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-width);
+  display: flex; flex-direction: column;
+  z-index: 100; overflow-y: auto;
+  transition: transform 0.25s ease;
+}
+.sidebar-brand {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.sidebar-brand h2 {
+  color: var(--color-inverse); font-size: 17px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display); letter-spacing: 0.5px;
+}
+.sidebar-brand .brand-badge {
+  font-size: 9px; font-weight: 700;
+  background: linear-gradient(135deg, var(--sidebar-accent), var(--color-brand-gradient-end));
+  color: var(--color-inverse); padding: 2px 7px;
+  border-radius: 3px; letter-spacing: 0.6px; text-transform: uppercase;
+}
+.sidebar-brand p { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 4px; }
+
+.sidebar-nav { flex: 1; padding: 10px 0; }
+.nav-section-label {
+  padding: 14px 20px 6px; font-size: 10px; font-weight: 700;
+  color: rgba(255,255,255,0.28); text-transform: uppercase; letter-spacing: 0.8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 20px; color: var(--sidebar-text);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; border: none; background: none;
+  width: 100%; text-align: left; position: relative;
+  letter-spacing: 0.02em;
+}
+.nav-item:hover { background: rgba(236,234,233,0.06); color: var(--sidebar-text-active); }
+.nav-item.active {
+  background: oklch(72% 0.05 290 / 0.12); color: var(--sidebar-text-active);
+}
+.nav-item.active::before {
+  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px;
+  width: 3px; background: var(--sidebar-accent); border-radius: 0 2px 2px 0;
+}
+.nav-item .nav-icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.nav-item .nav-badge {
+  margin-left: auto; background: var(--color-danger); color: var(--color-inverse);
+  font-size: 10px; font-weight: 700; padding: 1px 6px;
+  border-radius: 10px; min-width: 18px; text-align: center;
 }
 
-.top-bar .header-links {
-  display: flex;
-  gap: 12px;
-  align-items: center;
+.sidebar-footer {
+  padding: 14px 20px; border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; gap: 10px;
 }
-
-.top-bar .header-links a {
-  color: rgba(255,255,255,0.8);
-  text-decoration: none;
-  font-size: 13px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: rgba(255,255,255,0.1);
-  transition: background 0.2s;
+.sidebar-footer .user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--sidebar-accent); color: var(--color-inverse);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0;
 }
-
-.top-bar .header-links button {
-  color: rgba(255,255,255,0.92);
-  border: 1px solid rgba(255,255,255,0.18);
-  background: rgba(255,255,255,0.12);
-  font: inherit;
-  font-size: 13px;
-  padding: 6px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+.sidebar-footer .user-info { flex: 1; min-width: 0; }
+.sidebar-footer .user-name {
+  color: var(--color-inverse); font-size: 12px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-
-.top-bar .header-links a:hover {
-  background: rgba(255,255,255,0.2);
-  color: white;
+.sidebar-footer .user-role { color: rgba(255,255,255,0.4); font-size: 10px; }
+.sidebar-footer .logout-btn {
+  background: none; border: none; color: rgba(255,255,255,0.35);
+  font-size: 15px; padding: 4px; border-radius: 4px; transition: all 0.15s;
 }
+.sidebar-footer .logout-btn:hover { color: var(--color-inverse); background: rgba(255,255,255,0.08); }
 
-.top-bar .header-links button:hover {
-  background: rgba(255,255,255,0.22);
-  color: white;
+/* ================================================================
+   MAIN CONTENT
+   ================================================================ */
+.main-content {
+  grid-column: 2; margin-left: 0;
+  min-height: 100vh; display: flex; flex-direction: column;
 }
-
-/* 统计 */
-.stats-row {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
+.topbar {
+  height: var(--topbar-h);
+  background: oklch(18% 0.035 275 / 0.85);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 var(--space-lg); position: sticky; top: 0; z-index: 50;
+  animation: slideDown 0.5s var(--transition-smooth) both;
 }
-
-.stat-card {
-  flex: 1;
-  min-width: 120px;
-  background: white;
-  border-radius: 12px;
-  padding: 14px 20px;
-  text-align: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-left .breadcrumb { font-size: 13px; color: var(--color-text-secondary); }
+.topbar-left .page-title { font-size: 15px; font-weight: 700; color: var(--color-text); }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+.mobile-menu-btn {
+  display: none; background: none; border: none;
+  color: var(--color-text); font-size: 20px; padding: 4px;
 }
+.content-area { flex: 1; padding: var(--space-lg); }
 
-.stat-card .num {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1a1a2e;
+/* ================================================================
+   SHARED COMPONENTS
+   ================================================================ */
+.module-panel { display: none; }
+.module-panel.active { display: block; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-md); margin-bottom: var(--space-lg);
 }
-
-.stat-card .label {
-  font-size: 12px;
-  color: #475569;
-  margin-top: 4px;
+.kpi-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 14px 16px;
+  transition: transform 0.4s var(--transition-bounce), border-color 0.3s, background 0.3s ease, box-shadow 0.4s;
+  position: relative; overflow: hidden;
+  animation: fadeSlideUp 0.6s var(--transition-smooth) both;
 }
-
-/* Tab 导航 */
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 20px;
-  background: white;
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-  overflow-x: auto;
+.kpi-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--color-primary);
+  opacity: 0; transform: scaleX(0.6);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-
-.tab-btn {
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: #666;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: all 0.2s;
+.kpi-card:hover { transform: translateY(-4px); border-color: var(--color-border-strong); background: oklch(30% 0.045 270); box-shadow: var(--shadow-md); }
+.kpi-card:hover::before { opacity: 1; transform: scaleX(1); }
+.kpi-label {
+  font-size: 10px; font-weight: 600; color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
 }
+.kpi-value { font-size: 24px; font-weight: 700; color: var(--color-text); line-height: 1.1; font-family: var(--font-display); }
+.kpi-delta { font-size: 11px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+.kpi-delta.up { color: var(--color-success); }
+.kpi-delta.down { color: var(--color-danger); }
 
-.tab-btn:hover { background: #f5f5f5; }
-.tab-btn.active {
-  background: #1a1a2e;
-  color: white;
+.panel-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-md);
+  transition: border-color 0.3s, box-shadow 0.4s;
+  animation: fadeSlideUp 0.6s var(--transition-smooth) both;
 }
-
-/* 列表 */
-.list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.panel-card:hover { border-color: var(--color-border-strong); box-shadow: 0 10px 36px rgba(0,0,0,0.12); }
+.panel-header {
+  padding: 14px 20px; border-bottom: 1px solid var(--color-border);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
 }
+.panel-title { font-size: 14px; font-weight: 700; color: var(--color-text); letter-spacing: -0.01em; }
+.panel-body { padding: 20px; }
 
-.card {
-  background: white;
-  border-radius: 14px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-  border-left: 4px solid #f59e0b;
-  transition: all 0.2s;
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th {
+  text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600;
+  color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em;
+  background: oklch(22% 0.038 273); border-bottom: 1px solid var(--color-border);
 }
-
-.card.approved {
-  border-left-color: #10b981;
-  background: #f0fdf4;
+.data-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--color-border);
+  color: var(--color-text); vertical-align: middle;
 }
+.data-table tbody tr { transition: background 0.15s; }
+.data-table tbody tr:hover { background: var(--color-review-hover); }
+.data-table tbody tr:last-child td { border-bottom: none; }
 
-.card.rejected {
-  border-left-color: #ef4444;
-  background: #fef2f2;
+.btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 18px; border: none; border-radius: var(--radius-pill);
+  font-size: 12px; font-weight: 500; transition: background 0.2s, opacity 0.2s, transform 0.1s var(--transition-bounce), border-color 0.2s, color 0.2s;
+  white-space: nowrap; letter-spacing: 0.01em;
 }
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-  gap: 8px;
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: scale(0.95); }
+.btn:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+.btn-primary { background: var(--seed-accent); color: oklch(15% 0.03 275); }
+.btn-primary:hover { background: var(--color-primary); color: oklch(15% 0.03 275); }
+.btn-success { background: var(--color-success-light); color: var(--color-success); border: 1px solid oklch(72% 0.08 155 / 0.2); }
+.btn-success:hover { background: oklch(72% 0.08 155 / 0.2); }
+.btn-danger { background: var(--color-danger-light); color: var(--color-danger); border: 1px solid oklch(70% 0.10 25 / 0.2); }
+.btn-danger:hover { background: oklch(70% 0.10 25 / 0.2); }
+.btn-warning { background: var(--color-warning-light); color: var(--color-warning); border: 1px solid oklch(80% 0.08 85 / 0.2); }
+.btn-warning:hover { background: oklch(80% 0.08 85 / 0.2); }
+.btn-ghost {
+  background: transparent; color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
 }
+.btn-ghost:hover { background: rgba(236,234,233,0.06); color: var(--color-text-secondary); }
+.btn-sm { padding: 5px 14px; font-size: 11px; }
+.btn-icon {
+  width: 30px; height: 30px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border); background: transparent;
+  border-radius: var(--radius-pill); font-size: 13px;
+}
+.btn-icon:hover { background: rgba(236,234,233,0.06); }
 
-.card-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a1a2e;
+.chip-group { display: flex; gap: 4px; flex-wrap: wrap; }
+.chip {
+  padding: 6px 16px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); font-size: 12px; font-weight: 500;
+  color: var(--color-text-muted); background: transparent;
+  cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+}
+.chip:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.chip.active {
+  background: oklch(72% 0.05 290 / 0.15); color: var(--color-primary); border-color: oklch(72% 0.07 290 / 0.3);
+}
+.chip .chip-count {
+  font-size: 10px; font-weight: 700; margin-left: 3px; opacity: 0.8;
 }
 
 .badge {
-  padding: 3px 12px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
+  display: inline-flex; align-items: center; padding: 3px 10px;
+  border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; white-space: nowrap;
+  animation: badgePopIn 0.35s var(--transition-bounce) both;
+}
+.badge-pending { background: var(--color-warning-light); color: var(--color-warning); border: 1px solid oklch(80% 0.08 85 / 0.2); }
+.badge-approved { background: var(--color-success-light); color: var(--color-success); border: 1px solid oklch(72% 0.08 155 / 0.2); }
+.badge-rejected { background: var(--color-danger-light); color: var(--color-danger); border: 1px solid oklch(70% 0.10 25 / 0.2); }
+
+.search-input {
+  padding: 7px 12px 7px 32px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); font-size: 13px; outline: none;
+  transition: border-color 0.15s; background: var(--color-surface-alt); min-width: 200px;
+  color: var(--color-text);
+}
+.search-input:focus { border-color: var(--color-primary); background: var(--color-surface); }
+.search-input::placeholder { color: var(--color-text-muted); }
+
+.empty-state {
+  text-align: center; padding: var(--space-2xl) var(--space-lg); color: var(--color-text-muted);
+}
+.empty-state .empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty-state .empty-text { font-size: 13px; }
+
+/* Review cards — GalOnly event card treatment */
+.review-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 16px 20px;
+  margin-bottom: 10px; position: relative; overflow: hidden;
+  transition: transform 0.4s var(--transition-bounce), border-color 0.3s, background 0.3s ease, box-shadow 0.4s;
+  animation: fadeSlideUp 0.6s var(--transition-smooth) both;
+}
+.review-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--color-warning);
+  opacity: 0; transform: scaleX(0.6);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.review-card:hover { transform: translateY(-4px); border-color: var(--color-border-strong); background: oklch(30% 0.045 270); box-shadow: var(--shadow-md); }
+.review-card:hover::before { opacity: 1; transform: scaleX(1); }
+.review-card.approved { border-left: 3px solid var(--color-success); }
+.review-card.approved::before { background: var(--color-success); }
+.review-card.rejected { border-left: 3px solid var(--color-danger); }
+.review-card.rejected::before { background: var(--color-danger); }
+
+/* 审批原地反馈闪烁 */
+@keyframes flashSuccess {
+  0% { background: oklch(72% 0.08 155 / 0.25); }
+  100% { background: var(--color-surface); }
+}
+@keyframes flashDanger {
+  0% { background: oklch(70% 0.10 25 / 0.25); }
+  100% { background: var(--color-surface); }
+}
+.review-card.flash-success { animation: flashSuccess 1s ease; }
+.review-card.flash-danger { animation: flashDanger 1s ease; }
+.review-card-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
+}
+.review-card-title { font-size: 15px; font-weight: 700; color: var(--color-text); }
+.review-card-body { font-size: 13px; color: var(--color-text-secondary); line-height: 1.7; }
+.review-card-body .row { display: flex; gap: 6px; flex-wrap: wrap; }
+.review-card-body .label {
+  color: var(--color-text-secondary); font-weight: 600;
+  min-width: 70px; flex-shrink: 0;
+}
+.review-card-actions {
+  display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
 }
 
-.badge-pending { background: #f59e0b; color: white; }
-.badge-approved { background: #10b981; color: white; }
-.badge-rejected { background: #ef4444; color: white; }
-
-.card-body {
-  font-size: 13px;
-  color: #374151;
-  line-height: 1.7;
-}
-
-.card-body .row {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.card-body .label {
-  color: #4b5563;
-  font-weight: 600;
-  min-width: 70px;
-  flex-shrink: 0;
-}
-
-.card-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 7px 18px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 500;
-  transition: all 0.15s;
-}
-
-.btn:hover { transform: translateY(-1px); }
-.btn:active { transform: translateY(0); }
-
-.btn-approve { background: #10b981; color: white; }
-.btn-approve:hover { background: #059669; }
-.btn-reject { background: #ef4444; color: white; }
-.btn-reject:hover { background: #dc2626; }
-.btn-delete { background: #9ca3af; color: white; }
-.btn-delete:hover { background: #6b7280; }
-.btn-refresh { background: #3b82f6; color: white; }
-.btn-refresh:hover { background: #2563eb; }
-
-.empty {
-  text-align: center;
-  padding: 60px 20px;
-  color: #64748b;
-  background: white;
-  border-radius: 14px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
-}
-
-/* Toast 消息 */
+/* Toast — 底部居中，GalOnly glassmorphism */
 .toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  padding: 12px 24px;
-  border-radius: 10px;
-  color: white;
-  font-size: 14px;
-  z-index: 9999;
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: all 0.3s;
-  pointer-events: none;
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(8px);
+  padding: 11px 24px;
+  border-radius: var(--radius-pill); color: var(--color-text); font-size: 13px;
+  font-weight: 500; z-index: 9999; opacity: 0;
+  transition: all 0.25s; pointer-events: none;
+  background: oklch(24% 0.04 272 / 0.9); backdrop-filter: blur(14px);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 40px); text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: oklch(72% 0.08 155 / 0.3); }
+.toast.error { border-color: oklch(70% 0.10 25 / 0.3); }
+
+/* Info Modal — 全屏遮罩二级弹窗（照 Galonly_audit imageModal 模式） */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  z-index: 1000; display: flex; align-items: center; justify-content: center;
+  padding: 20px; animation: fadeIn 0.2s ease;
+}
+.modal {
+  background: var(--color-surface); border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  width: 100%; max-width: 520px; max-height: 85vh;
+  display: flex; flex-direction: column;
+  animation: fadeSlideUp 0.25s var(--transition-smooth);
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--color-border); flex-shrink: 0;
+}
+.modal-title { font-size: 15px; font-weight: 600; color: var(--color-text); }
+.modal-close {
+  background: none; border: none; color: var(--color-text-muted);
+  font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; transition: color 0.2s;
+}
+.modal-close:hover { color: var(--color-text); }
+.modal-body {
+  padding: 18px 20px; overflow-y: auto; flex: 1; min-height: 0;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.info-row { display: flex; gap: 8px; flex-wrap: wrap; font-size: 13px; line-height: 1.6; }
+.info-row .label {
+  color: var(--color-text-secondary); font-weight: 600;
+  min-width: 84px; flex-shrink: 0;
+}
+.info-row .value {
+  color: var(--color-text); flex: 1; min-width: 0;
+  word-break: break-all; white-space: pre-wrap; user-select: text;
+}
+.modal-footer {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 14px 20px; border-top: 1px solid var(--color-border); flex-shrink: 0;
 }
 
-.toast.show { opacity: 1; transform: translateY(0); }
-.toast.success { background: #10b981; }
-.toast.error { background: #ef4444; }
-
-@media (max-width: 640px) {
-  body { padding: 12px; }
-  .top-bar { padding: 14px 16px; }
-  .top-bar h1 { font-size: 18px; }
-  .stat-card { min-width: 80px; padding: 10px 12px; }
-  .stat-card .num { font-size: 22px; }
-  .card { padding: 14px 16px; }
-  .tabs { padding: 3px; }
-  .tab-btn { padding: 8px 12px; font-size: 12px; }
-  .announce-form .form-row { flex-direction: column; }
-}
-
-/* ===== 全站公告模块 ===== */
-.announce-section { display: none; margin-bottom: 20px; }
-.announce-section.visible { display: block; }
-
+/* Announce */
 .announce-composer {
-  background: white; border-radius: 14px; padding: 24px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-bottom: 20px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 20px; margin-bottom: var(--space-md);
+  animation: fadeSlideUp 0.6s var(--transition-smooth) both;
 }
 .announce-composer-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px;
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
 }
-.announce-composer-header h2 {
-  font-size: 18px; font-weight: 700; color: #1a1a2e; display: flex; align-items: center; gap: 8px;
+.announce-composer-header h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.form-group label {
+  font-size: 11px; font-weight: 600; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.3px;
 }
-.announce-composer-header .close-btn {
-  width: 30px; height: 30px; border: none; background: transparent; color: #999;
-  font-size: 18px; cursor: pointer; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+.form-group input, .form-group select, .form-group textarea {
+  padding: 8px 12px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm); font-size: 13px; outline: none;
+  background: var(--color-surface-alt); transition: border-color 0.15s;
+  color: var(--color-text);
 }
-.announce-composer-header .close-btn:hover { background: #f5f5f5; color: #666; }
-
-.announce-form { display: flex; flex-direction: column; gap: 14px; }
-.announce-form .form-row { display: flex; gap: 14px; align-items: flex-start; }
-.announce-form .form-row .form-group { flex: 1; }
-.form-group { display: flex; flex-direction: column; gap: 5px; }
-.form-group label { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.3px; }
-.announce-form input, .announce-form select, .announce-form textarea {
-  padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px;
-  font-size: 13px; font-family: inherit; transition: border-color 0.15s; background: #fafafa; outline: none;
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--color-primary); background: var(--color-surface);
 }
-.announce-form input:focus, .announce-form select:focus, .announce-form textarea:focus { border-color: #3b82f6; background: white; }
-.announce-form textarea { min-height: 120px; resize: vertical; line-height: 1.6; }
-.announce-form .form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 4px; }
+.form-group input::placeholder, .form-group textarea::placeholder { color: var(--color-text-muted); }
+.form-group textarea { min-height: 100px; resize: vertical; line-height: 1.6; }
+.form-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
 
 .toggle-row {
-  display: flex; align-items: center; gap: 12px; padding: 4px 0;
+  display: flex; align-items: center; gap: 10px; padding: 4px 0;
 }
-.toggle-row label { font-size: 12px; font-weight: 600; color: #666; cursor: pointer; text-transform: none; letter-spacing: 0; }
 .toggle-switch {
-  position: relative; width: 40px; height: 22px; background: #ddd;
-  border-radius: 11px; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
+  position: relative; width: 38px; height: 20px; background: var(--color-toggle-track);
+  border-radius: 10px; cursor: pointer; transition: background 0.2s; flex-shrink: 0;
 }
-.toggle-switch.on { background: #10b981; }
+.toggle-switch.on { background: var(--color-success); }
 .toggle-switch::after {
   content: ''; position: absolute; top: 2px; left: 2px;
-  width: 18px; height: 18px; background: white; border-radius: 50%;
+  width: 16px; height: 16px; background: var(--color-toggle-knob); border-radius: 50%;
   transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .toggle-switch.on::after { transform: translateX(18px); }
-.toggle-hint { font-size: 11px; color: #94a3b8; line-height: 1.4; }
-.toggle-hint strong { color: #64748b; }
+.toggle-hint { font-size: 11px; color: var(--color-text-muted); }
 
 .announce-preview {
-  margin-top: 8px; padding: 16px 20px; background: #f8f9fb;
-  border-radius: 10px; border-left: 4px solid #3b82f6;
+  margin-top: 8px; padding: 14px 18px; background: oklch(22% 0.038 273);
+  border-radius: var(--radius-md); border-left: 4px solid var(--color-primary);
 }
-.announce-preview-label { font-size: 11px; font-weight: 600; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-.announce-preview .preview-title { font-size: 16px; font-weight: 700; color: #1a1a2e; margin-bottom: 6px; }
-.announce-preview .preview-content { font-size: 13px; color: #374151; line-height: 1.7; }
-
-.announce-list-header { font-size: 15px; font-weight: 700; color: #1a1a2e; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
-.announce-list-header .count { font-size: 12px; font-weight: 400; color: #999; }
-.announce-list { display: flex; flex-direction: column; gap: 10px; }
+.announce-preview-label {
+  font-size: 10px; font-weight: 600; color: var(--color-text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+}
 
 .announce-card {
-  background: white; border-radius: 14px; padding: 16px 20px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06); border-left: 4px solid #3b82f6;
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 14px 18px;
+  margin-bottom: 8px; border-left: 3px solid var(--color-primary);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  transition: transform 0.3s var(--transition-bounce), border-color 0.3s, box-shadow 0.4s;
 }
-.announce-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.announce-card.type-info { border-left-color: #3b82f6; }
-.announce-card.type-warning { border-left-color: #f59e0b; }
-.announce-card.type-important { border-left-color: #ef4444; }
-.announce-card.type-update { border-left-color: #10b981; }
+.announce-card:hover { transform: translateY(-2px); border-color: var(--color-border-strong); box-shadow: var(--shadow-sm); }
+.announce-card.type-info { border-left-color: var(--color-primary); }
+.announce-card.type-warning { border-left-color: var(--color-warning); }
+.announce-card.type-important { border-left-color: var(--color-danger); }
+.announce-card.type-update { border-left-color: var(--color-success); }
 .announce-card .card-left { flex: 1; min-width: 0; }
-.announce-card .card-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
-.announce-card .card-title { font-size: 15px; font-weight: 600; color: #1a1a2e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; display: inline-block; vertical-align: middle; }
-.announce-card .card-time { font-size: 11px; color: #bbb; }
-.announce-card .card-content-preview { font-size: 13px; color: #475569; line-height: 1.5; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.announce-card .card-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.announce-card .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+.announce-card .card-title { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+.announce-card .card-time { font-size: 11px; color: var(--color-text-muted); }
+.announce-card .card-content-preview {
+  font-size: 12px; color: var(--color-text-secondary); line-height: 1.5;
+  overflow: hidden; text-overflow: ellipsis; display: -webkit-box;
+  -webkit-line-clamp: 4; -webkit-box-orient: vertical;
+}
+.type-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 10px; font-weight: 500; }
+.type-badge-info { background: var(--badge-info-bg); color: var(--badge-info-text); border: 1px solid oklch(72% 0.05 290 / 0.2); }
+.type-badge-warning { background: var(--badge-warning-bg); color: var(--badge-warning-text); border: 1px solid oklch(80% 0.08 85 / 0.2); }
+.type-badge-important { background: var(--badge-important-bg); color: var(--badge-important-text); border: 1px solid oklch(70% 0.10 25 / 0.2); }
+.type-badge-update { background: var(--badge-update-bg); color: var(--badge-update-text); border: 1px solid oklch(72% 0.08 155 / 0.2); }
+.status-badge { display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 10px; font-weight: 500; }
+.status-badge-draft { background: oklch(72% 0.04 290 / 0.08); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.status-badge-published { background: var(--color-success-light); color: var(--color-success); border: 1px solid oklch(72% 0.08 155 / 0.2); }
+.persistent-tag { font-size: 10px; color: var(--color-primary); background: oklch(72% 0.05 290 / 0.1); padding: 1px 8px; border-radius: var(--radius-pill); font-weight: 600; border: 1px solid oklch(72% 0.05 290 / 0.15); }
 
-.type-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.type-badge-info { background: #dbeafe; color: #1d4ed8; }
-.type-badge-warning { background: #fef3c7; color: #b45309; }
-.type-badge-important { background: #fee2e2; color: #b91c1c; }
-.type-badge-update { background: #d1fae5; color: #047857; }
+/* Dropdown menu — GalOnly style */
+.dropdown {
+  position: relative; display: inline-block;
+}
+.dropdown-trigger {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 12px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); background: transparent;
+  font-size: 11px; font-weight: 500; color: var(--color-text-muted);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.dropdown-trigger:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.dropdown-trigger svg { width: 10px; height: 10px; transition: transform 0.2s; }
+.dropdown.open .dropdown-trigger { border-color: var(--color-primary); color: var(--color-primary); }
+.dropdown.open .dropdown-trigger svg { transform: rotate(180deg); }
+.dropdown-menu {
+  display: none; position: absolute; right: 0; top: calc(100% + 4px);
+  min-width: 140px; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md); z-index: 80; overflow: hidden;
+  animation: fadeSlideUp 0.2s var(--transition-smooth) both;
+}
+.dropdown.open .dropdown-menu { display: block; }
+.dropdown-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px; font-size: 12px; color: var(--color-text-secondary);
+  cursor: pointer; transition: all 0.15s; border: none;
+  background: none; width: 100%; text-align: left; font-family: inherit;
+}
+.dropdown-item:hover { background: var(--color-review-hover); color: var(--color-text); }
+.dropdown-item svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.6; }
+.dropdown-item.danger { color: var(--color-danger); }
+.dropdown-item.danger:hover { background: var(--color-danger-light); }
+.dropdown-divider { height: 1px; background: var(--color-border); margin: 2px 0; }
 
-.status-badge { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
-.status-badge-draft { background: #f3f4f6; color: #6b7280; }
-.status-badge-published { background: #d1fae5; color: #047857; }
+/* Inline action buttons for review cards */
+.action-btn {
+  display: inline-flex; align-items: center;
+  padding: 5px 14px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill); background: transparent;
+  font-size: 12px; font-weight: 500; color: var(--color-text-muted);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+  font-family: inherit;
+}
+.action-btn:hover { border-color: var(--color-text-secondary); color: var(--color-text); }
+.action-btn.primary {
+  background: var(--color-primary); color: #fff; border-color: var(--color-primary);
+}
+.action-btn.primary:hover { filter: brightness(1.1); }
+.action-btn.danger {
+  color: var(--color-danger); border-color: oklch(60% 0.15 25 / 0.3);
+}
+.action-btn.danger:hover { background: var(--color-danger-light); border-color: var(--color-danger); }
 
-.persistent-tag { font-size: 10px; color: #64748b; background: #f1f5f9; padding: 1px 8px; border-radius: 10px; font-weight: 600; }
-.btn-publish-sm { background: #10b981; color: white; padding: 4px 12px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
-.btn-publish-sm:hover { background: #059669; }
-.btn-delete-sm { background: transparent; color: #9ca3af; padding: 4px 10px; font-size: 12px; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
-.btn-delete-sm:hover { background: #fef2f2; color: #ef4444; }
+/* Announce inline actions */
+.announce-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+/* Markdown elements in card-content-preview */
+.card-content-preview h3, .card-content-preview h4, .card-content-preview h5 {
+  margin: 4px 0 2px; font-size: 12px; line-height: 1.3;
+}
+.card-content-preview p { margin: 2px 0; }
+.card-content-preview ul, .card-content-preview ol {
+  margin: 2px 0; padding-left: 16px;
+}
+.card-content-preview li { margin: 1px 0; font-size: 12px; }
+.card-content-preview strong { font-weight: 700; }
+.card-content-preview code {
+  background: var(--color-review-hover); padding: 0 3px;
+  border-radius: 3px; font-size: 11px;
+}
+.card-content-preview a { color: var(--color-primary); }
+.card-content-preview hr {
+  border: none; border-top: 1px solid var(--color-border); margin: 4px 0;
+}
+.card-content-preview br { display: none; }
+
+/* Announce preview markdown */
+#previewContent h3, #previewContent h4, #previewContent h5 {
+  margin: 8px 0 4px; line-height: 1.4;
+}
+#previewContent h3 { font-size: 15px; }
+#previewContent h4 { font-size: 14px; }
+#previewContent p { margin: 3px 0; }
+#previewContent ul, #previewContent ol {
+  margin: 4px 0; padding-left: 18px;
+}
+#previewContent li { margin: 2px 0; }
+#previewContent strong { font-weight: 700; }
+#previewContent code {
+  background: rgba(255,255,255,0.1); padding: 1px 4px;
+  border-radius: 3px; font-size: 12px;
+}
+#previewContent a { color: var(--color-primary); }
+#previewContent hr {
+  border: none; border-top: 1px solid rgba(255,255,255,0.15); margin: 6px 0;
+}
+
+/* Charts */
+.charts-grid {
+  display: grid; grid-template-columns: 2fr 1fr;
+  gap: var(--space-md); margin-bottom: var(--space-lg);
+}
+.chart-container { width: 100%; }
+.chart-container svg { width: 100%; height: auto; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 768px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.3); }
+  .main-content { grid-column: 1; }
+  .mobile-menu-btn { display: flex; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-row { flex-direction: column; }
+  .content-area { padding: var(--space-md); }
+  .search-input { min-width: 140px; }
+}
+@media (max-width: 480px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+
+/* Sidebar overlay on mobile */
+.sidebar-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 99;
+}
+.sidebar-overlay.show { display: block; }
+
+/* Scrollbar */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* Loading skeleton */
+.skeleton {
+  background: linear-gradient(90deg, oklch(24% 0.04 272) 25%, oklch(28% 0.04 272) 50%, oklch(24% 0.04 272) 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+  border-radius: var(--radius-sm); height: 20px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Pagination */
+.pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px; margin-top: var(--space-md);
+}
+.page-btn {
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+  background: transparent; font-size: 12px; color: var(--color-text-muted);
+  cursor: pointer; transition: all 0.12s;
+}
+.page-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.page-btn.active { background: oklch(72% 0.05 290 / 0.15); color: var(--color-primary); border-color: oklch(72% 0.07 290 / 0.3); }
+
+/* Utility */
+.text-center { text-align: center; }
+.text-sm { font-size: 12px; }
+.text-muted { color: var(--color-text-muted); }
+.mt-sm { margin-top: var(--space-sm); }
+.mt-md { margin-top: var(--space-md); }
+.mb-md { margin-bottom: var(--space-md); }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-sm { gap: var(--space-sm); }
+.flex { display: flex; }
+.flex-wrap { flex-wrap: wrap; }
 </style>
 </head>
 <body>
-<div class="container">
-  <div id="reviewContent">
-  <div class="top-bar">
-    <h1>📋 审核中心</h1>
-    <div class="header-links">
-      <button id="announceBtn" style="display:none;">📢 全站公告</button>
-      <a href="submissions.html">同好会申请旧版</a>
-      <a href="submissions_event.html">活动申请旧版</a>
-      <a href="events.php">活动管理</a>
-      <a href="../index.html">← 返回地图</a>
+<div class="app-layout">
+  <!-- ============ SIDEBAR ============ -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <aside class="sidebar" id="sidebar" data-component="Sidebar Navigation" data-od-id="sidebar">
+    <div class="sidebar-brand">
+      <h2>VNFest <span class="brand-badge">Admin</span></h2>
+      <p>超级管理控制台 v2.0</p>
     </div>
-  </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">数据看板</div>
+      <button class="nav-item active" data-module="dashboard" onclick="switchModule('dashboard')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="9" width="3" height="6" rx="0.5"/><rect x="6.5" y="5" width="3" height="10" rx="0.5"/><rect x="12" y="1" width="3" height="14" rx="0.5"/></svg></span> 数据概览
+      </button>
 
-  <div class="stats-row" id="statsRow">
-    <div class="stat-card"><div class="num" id="statPending">0</div><div class="label">待审核</div></div>
-    <div class="stat-card"><div class="num" id="statApproved">0</div><div class="label">已通过</div></div>
-    <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">总计</div></div>
-  </div>
+      <div class="nav-section-label">内容管理</div>
+      <button class="nav-item" data-module="review" onclick="switchModule('review')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="12" height="14" rx="1.5"/><path d="M5 5h6M5 8h6M5 11h4"/></svg></span> 审核中心
+        <span class="nav-badge" id="navPendingBadge" style="display:none;">0</span>
+      </button>
+      <button class="nav-item" data-module="clubs" onclick="switchModule('clubs')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14V5l6-4 6 4v9"/><path d="M6 14v-4h4v4"/></svg></span> 同好会总览
+      </button>
+      <button class="nav-item" data-module="users" onclick="switchModule('users')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 15c0-3.3 2.7-5 6-5s6 1.7 6 5"/></svg></span> 用户管理
+      </button>
 
-  <div class="tabs" id="tabBar">
-    <button class="tab-btn active" data-tab="club">🏫 同好会申请</button>
-    <button class="tab-btn" data-tab="event">📅 活动申请</button>
-    <button class="tab-btn" data-tab="publication">企划申请</button>
-    <button class="tab-btn" data-tab="membership">👥 成员绑定</button>
-    <button class="tab-btn" data-tab="feedback">💬 反馈建议</button>
-  </div>
-
-  <div style="display:flex; justify-content:flex-end; margin-bottom:12px;">
-    <button class="btn btn-refresh" onclick="loadCurrentTab()">🔄 刷新</button>
-  </div>
-
-  <div id="listContainer" class="list"><div class="empty">加载中...</div></div>
-  </div>
-
-  <!-- ===== 全站公告管理 ===== -->
-  <div class="announce-section" id="announceSection">
-    <div class="announce-composer">
-      <div class="announce-composer-header">
-        <h2>📢 撰写全站公告</h2>
-        <button class="close-btn" id="announceCloseBtn">✕</button>
+      <div class="nav-section-label">系统运维</div>
+      <button class="nav-item" data-module="announcements" onclick="switchModule('announcements')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6h8v5H2z"/><path d="M10 7l3-2v6l-3-2"/><path d="M4 11v2a2 2 0 004 0v-2"/></svg></span> 公告中心
+      </button>
+      <button class="nav-item" data-module="logs" onclick="switchModule('logs')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 1h7l3 3v11H3z"/><path d="M10 1v3h3"/><path d="M6 8h5M6 11h3"/></svg></span> 操作日志
+      </button>
+      <button class="nav-item" data-module="export" onclick="switchModule('export')">
+        <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 10v4h12v-4"/><path d="M8 2v8"/><path d="M5 7l3 3 3-3"/></svg></span> 数据导出
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-avatar" id="sidebarAvatar">SA</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarUserName">加载中...</div>
+        <div class="user-role">超级管理员</div>
       </div>
-      <div class="announce-form">
-        <div class="form-row">
-          <div class="form-group" style="flex:2;">
-            <label>公告标题</label>
-            <input type="text" id="announceTitle" placeholder="输入公告标题...">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <label>公告类型</label>
-            <select id="announceType">
-              <option value="info">📘 信息</option>
-              <option value="warning">⚠️ 警告</option>
-              <option value="important">🔴 重要</option>
-              <option value="update">🟢 更新</option>
-            </select>
-          </div>
-        </div>
-        <div class="toggle-row">
-          <div class="toggle-switch on" id="announcePersistent"></div>
-          <label>长期有效</label>
-          <span class="toggle-hint">— 开启后公告将<strong>永久保存在首页公告栏</strong>，新注册用户也可看到</span>
-        </div>
-        <div class="form-group">
-          <label>公告内容</label>
-          <textarea id="announceContent" placeholder="输入公告内容..."></textarea>
-        </div>
-        <div class="announce-preview" id="announcePreview" style="display:none;">
-          <div class="announce-preview-label">🔍 预览</div>
-          <div class="preview-title" id="previewTitle"></div>
-          <div class="preview-content" id="previewContent"></div>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-draft" id="announceSaveDraft">💾 保存草稿</button>
-          <button class="btn btn-publish" id="announcePublish">📢 发布公告</button>
-        </div>
-      </div>
+      <button class="logout-btn" onclick="location.href='../index.html'" title="返回首页"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 6l6-5 6 5v8a1 1 0 01-1 1H3a1 1 0 01-1-1z"/><path d="M6 15v-5h4v5"/></svg></button>
     </div>
+  </aside>
 
-    <div class="announce-list-header">
-      <span>历史公告 <span class="count" id="announceCount">共 0 条</span></span>
+  <!-- ============ MAIN ============ -->
+  <main class="main-content">
+    <header class="topbar" data-component="Top Bar" data-od-id="topbar">
+      <div class="topbar-left">
+        <button class="mobile-menu-btn" id="mobileMenuBtn"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h14M2 9h14M2 14h14"/></svg></button>
+        <span class="breadcrumb" id="breadcrumb">数据看板</span>
+        <span class="page-title" id="pageTitle">数据概览</span>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-ghost btn-sm" onclick="refreshCurrentModule()"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8a7 7 0 0113-3.5M15 8a7 7 0 01-13 3.5"/><path d="M14 1v4h-4M2 15v-4h4"/></svg> 刷新</button>
+        <a href="../index.html" class="btn btn-ghost btn-sm"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 2L4 8l6 6"/></svg> 返回首页</a>
+      </div>
+    </header>
+
+    <div class="content-area" id="contentArea">
+
+      <!-- ====== MODULE: DASHBOARD ====== -->
+      <section class="module-panel active" id="module-dashboard" data-component="Dashboard Overview" data-od-id="dashboard">
+        <div class="kpi-grid" id="dashboardKpi" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="kpi-card"><div class="kpi-label">平台用户</div><div class="kpi-value" id="kpiUsers">--</div><div class="kpi-delta text-muted">加载中</div></div>
+          <div class="kpi-card"><div class="kpi-label">同好会总数</div><div class="kpi-value" id="kpiClubs">--</div><div class="kpi-delta text-muted">加载中</div></div>
+          <div class="kpi-card"><div class="kpi-label">活动总数</div><div class="kpi-value" id="kpiEvents">--</div><div class="kpi-delta text-muted">加载中</div></div>
+          <div class="kpi-card"><div class="kpi-label">成员总数</div><div class="kpi-value" id="kpiMembers">--</div><div class="kpi-delta text-muted">加载中</div></div>
+        </div>
+
+        <div class="charts-grid" style="grid-template-columns: 2fr 1fr;">
+          <div class="panel-card" data-component="Review Trend Chart" data-od-id="review-trend">
+            <div class="panel-header"><span class="panel-title">审核趋势（近30天）</span></div>
+            <div class="panel-body"><div class="chart-container" id="reviewTrendChart"></div></div>
+          </div>
+          <div class="panel-card" data-component="Review Stats" data-od-id="review-stats">
+            <div class="panel-header"><span class="panel-title">审核通过率</span></div>
+            <div class="panel-body" id="reviewStatsPanel" style="display:flex;flex-direction:column;justify-content:center;gap:16px;min-height:180px;"></div>
+          </div>
+        </div>
+
+        <div class="panel-card" data-component="Region Distribution" data-od-id="region-dist">
+          <div class="panel-header"><span class="panel-title">地区分布 — 同好会数量</span></div>
+          <div class="panel-body" style="padding:12px 20px;"><div class="chart-container" id="regionDistChart"></div></div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: REVIEW CENTER ====== -->
+      <section class="module-panel" id="module-review" data-component="Review Center" data-od-id="review-center">
+        <div class="kpi-grid" id="reviewKpi">
+          <div class="kpi-card"><div class="kpi-label">待审核</div><div class="kpi-value" id="statPending">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">已通过</div><div class="kpi-value" id="statApproved">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">已拒绝</div><div class="kpi-value" id="statRejected">0</div></div>
+          <div class="kpi-card"><div class="kpi-label">总计</div><div class="kpi-value" id="statTotal">0</div></div>
+        </div>
+
+        <div class="flex-between mb-md flex-wrap gap-sm">
+          <div class="chip-group" id="reviewTabBar">
+            <button class="chip active" data-tab="club" onclick="switchReviewTab('club')">同好会申请</button>
+            <button class="chip" data-tab="event" onclick="switchReviewTab('event')">活动申请</button>
+            <button class="chip" data-tab="publication" onclick="switchReviewTab('publication')">企划申请</button>
+            <button class="chip" data-tab="membership" onclick="switchReviewTab('membership')">成员绑定</button>
+            <button class="chip" data-tab="feedback" onclick="switchReviewTab('feedback')">反馈建议</button>
+          </div>
+          <div class="chip-group" id="filterChips">
+            <button class="chip active" data-filter="all" onclick="switchFilter('all')">全部</button>
+            <button class="chip" data-filter="pending" onclick="switchFilter('pending')">待审核</button>
+            <button class="chip" data-filter="approved" onclick="switchFilter('approved')">已通过</button>
+            <button class="chip" data-filter="rejected" onclick="switchFilter('rejected')">已拒绝</button>
+          </div>
+        </div>
+
+        <div id="reviewListContainer" class="list">
+          <div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">加载中...</div></div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: USER MANAGEMENT ====== -->
+      <section class="module-panel" id="module-users" data-component="User Management" data-od-id="users">
+        <div class="kpi-grid" id="usersKpi">
+          <div class="kpi-card"><div class="kpi-label">总用户数</div><div class="kpi-value" id="kpiTotalUsers">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">管理员</div><div class="kpi-value" id="kpiAdmins">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">普通成员</div><div class="kpi-value" id="kpiMembers">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">已封禁</div><div class="kpi-value" id="kpiBanned">--</div></div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">用户列表</span>
+            <div class="flex gap-sm">
+              <input type="text" class="search-input" placeholder="搜索用户名/昵称..." id="userSearch" oninput="filterUsers()">
+              <select id="userRoleFilter" onchange="filterUsers()" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:var(--radius-pill);font-size:12px;background:var(--color-surface-alt);color:var(--color-text);">
+                <option value="all">全部角色</option>
+                <option value="super_admin">超级管理员</option>
+                <option value="representative">负责人</option>
+                <option value="manager">管理员</option>
+                <option value="member">成员</option>
+                <option value="visitor">访客</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th>用户</th><th>角色</th><th>邮箱</th><th>状态</th><th>注册时间</th><th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:40px;">
+                  需要后端接口：GET api/users.php?action=list<br>
+                  <span class="text-sm">此模块的 UI 已就绪，等待 API 对接</span>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: CLUB OVERVIEW ====== -->
+      <section class="module-panel" id="module-clubs" data-component="Club Overview" data-od-id="clubs">
+        <div class="kpi-grid" id="clubsKpi">
+          <div class="kpi-card"><div class="kpi-label">中国同好会</div><div class="kpi-value" id="kpiCnClubs">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">日本同好会</div><div class="kpi-value" id="kpiJpClubs">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">总计</div><div class="kpi-value" id="kpiAllClubs">--</div></div>
+          <div class="kpi-card"><div class="kpi-label">成员总数</div><div class="kpi-value" id="kpiClubMembers">--</div></div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">同好会列表</span>
+            <div class="flex gap-sm">
+              <input type="text" class="search-input" placeholder="搜索同好会..." id="clubSearch" oninput="filterClubs()">
+              <div class="chip-group">
+                <button class="chip active" data-country="all" onclick="switchClubCountry('all')">全部</button>
+                <button class="chip" data-country="china" onclick="switchClubCountry('china')">中国</button>
+                <button class="chip" data-country="japan" onclick="switchClubCountry('japan')">日本</button>
+              </div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="clubsTable">
+              <thead><tr><th>名称</th><th>学校/地区</th><th>国家</th><th>类型</th><th>成员数</th><th>操作</th></tr></thead>
+              <tbody id="clubsTableBody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:40px;">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: ANNOUNCEMENTS ====== -->
+      <section class="module-panel" id="module-announcements" data-component="Announcement Center" data-od-id="announcements">
+        <div class="announce-composer">
+          <div class="announce-composer-header">
+            <h3>撰写全站公告</h3>
+          </div>
+          <div class="form-row">
+            <div class="form-group" style="flex:2;">
+              <label>公告标题</label>
+              <input type="text" id="announceTitle" placeholder="输入公告标题...">
+            </div>
+            <div class="form-group" style="flex:1;">
+              <label>公告类型</label>
+              <select id="announceType">
+                <option value="info">信息</option>
+                <option value="warning">警告</option>
+                <option value="important">重要</option>
+                <option value="update">更新</option>
+              </select>
+            </div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-switch on" id="announcePersistent"></div>
+            <label style="font-size:12px;font-weight:600;color:var(--color-text-secondary);cursor:pointer;">长期有效</label>
+            <span class="toggle-hint">— 开启后公告将<strong>永久保存在首页公告栏</strong></span>
+          </div>
+          <div class="form-group" style="margin-top:10px;">
+            <label>公告内容</label>
+            <textarea id="announceContent" placeholder="输入公告内容..."></textarea>
+          </div>
+          <div class="announce-preview" id="announcePreview" style="display:none;">
+            <div class="announce-preview-label">预览</div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:4px;" id="previewTitle"></div>
+            <div style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;" id="previewContent"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-ghost" id="announceSaveDraft" onclick="saveAnnounceDraft()">保存草稿</button>
+            <button class="btn btn-primary" id="announcePublish" onclick="publishAnnounceDirect()">发布公告</button>
+          </div>
+        </div>
+
+        <div class="flex-between mb-md">
+          <span class="panel-title">历史公告 <span class="text-sm text-muted" id="announceCount">共 0 条</span></span>
+        </div>
+        <div id="announceList">
+          <div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无公告</div></div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: OPERATION LOGS ====== -->
+      <section class="module-panel" id="module-logs" data-component="Operation Logs" data-od-id="logs">
+        <div class="panel-card">
+          <div class="panel-header">
+            <span class="panel-title">操作日志</span>
+            <div class="flex gap-sm">
+              <select id="logTypeFilter" onchange="filterLogs()" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:var(--radius-pill);font-size:12px;background:var(--color-surface-alt);color:var(--color-text);">
+                <option value="all">全部类型</option>
+                <option value="review">审核操作</option>
+                <option value="user">用户管理</option>
+                <option value="club">同好会操作</option>
+                <option value="announce">公告管理</option>
+                <option value="system">系统操作</option>
+              </select>
+              <input type="date" id="logDateFrom" onchange="filterLogs()" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:var(--radius-pill);font-size:12px;background:var(--color-surface-alt);color:var(--color-text);">
+              <input type="date" id="logDateTo" onchange="filterLogs()" style="padding:7px 10px;border:1px solid var(--color-border);border-radius:var(--radius-pill);font-size:12px;background:var(--color-surface-alt);color:var(--color-text);">
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="logsTable">
+              <thead><tr><th>时间</th><th>操作者</th><th>类型</th><th>说明</th><th>操作</th><th>详情</th></tr></thead>
+              <tbody id="logsTableBody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:40px;">加载中...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====== MODULE: DATA EXPORT ====== -->
+      <section class="module-panel" id="module-export" data-component="Data Export" data-od-id="export">
+        <div class="panel-card">
+          <div class="panel-header"><span class="panel-title">数据导出</span></div>
+          <div class="panel-body">
+            <p class="text-sm text-muted mb-md">选择需要导出的数据模块和格式，系统将生成文件供下载。</p>
+            <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+              <div class="panel-card" style="margin-bottom:0;">
+                <div class="panel-body">
+                  <h4 style="font-size:14px;margin-bottom:8px;">审核数据</h4>
+                  <p class="text-sm text-muted" style="margin-bottom:12px;">包含同好会、活动、企划、成员绑定和反馈的所有审核记录。</p>
+                  <div class="flex gap-sm">
+                    <button class="btn btn-primary btn-sm" onclick="exportData('reviews','csv')">CSV</button>
+                    <button class="btn btn-ghost btn-sm" onclick="exportData('reviews','json')">JSON</button>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-card" style="margin-bottom:0;">
+                <div class="panel-body">
+                  <h4 style="font-size:14px;margin-bottom:8px;">同好会数据</h4>
+                  <p class="text-sm text-muted" style="margin-bottom:12px;">中国和日本所有同好会的详细信息，包括认证状态和地区。</p>
+                  <div class="flex gap-sm">
+                    <button class="btn btn-primary btn-sm" onclick="exportData('clubs','csv')">CSV</button>
+                    <button class="btn btn-ghost btn-sm" onclick="exportData('clubs','json')">JSON</button>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-card" style="margin-bottom:0;">
+                <div class="panel-body">
+                  <h4 style="font-size:14px;margin-bottom:8px;">公告数据</h4>
+                  <p class="text-sm text-muted" style="margin-bottom:12px;">所有已发布和草稿状态的全站公告记录。</p>
+                  <div class="flex gap-sm">
+                    <button class="btn btn-primary btn-sm" onclick="exportData('announcements','csv')">CSV</button>
+                    <button class="btn btn-ghost btn-sm" onclick="exportData('announcements','json')">JSON</button>
+                  </div>
+                </div>
+              </div>
+              <div class="panel-card" style="margin-bottom:0;">
+                <div class="panel-body">
+                  <h4 style="font-size:14px;margin-bottom:8px;">反馈数据</h4>
+                  <p class="text-sm text-muted" style="margin-bottom:12px;">所有用户反馈，包含类型、状态和详细内容。</p>
+                  <div class="flex gap-sm">
+                    <button class="btn btn-primary btn-sm" onclick="exportData('feedback','csv')">CSV</button>
+                    <button class="btn btn-ghost btn-sm" onclick="exportData('feedback','json')">JSON</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
-    <div class="announce-list" id="announceList">
-      <div class="empty-state">暂无公告</div>
+  </main>
+</div>
+
+<!-- 信息弹窗 — 全屏遮罩二级弹窗 -->
+<div id="infoModal" class="modal-overlay" style="display:none;" onclick="if (event.target === this) closeInfoModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="infoModalTitle">
+    <div class="modal-header">
+      <span class="modal-title" id="infoModalTitle"></span>
+      <button class="modal-close" onclick="closeInfoModal()" aria-label="关闭">&times;</button>
     </div>
+    <div class="modal-body" id="infoModalBody"></div>
+    <div class="modal-footer" id="infoModalFooter"></div>
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-// ====== 权限与数据 ======
+/* ================================================================
+   STATE & CONSTANTS
+   ================================================================ */
 const ROLE_LEVEL = { visitor: 0, member: 1, manager: 2, representative: 3, super_admin: 4 };
 let currentUser = null;
 let isSuperAdmin = false;
-let currentTab = 'club';
+let currentModule = 'dashboard';
+let currentReviewTab = 'club';
+let currentFilter = 'all';
 let editingAnnounceId = null;
 
-// 各 tab 数据
+// Review data
 let clubSubmissions = [];
 let eventSubmissions = [];
+let publicationSubmissions = [];
 let membershipPending = [];
-let membershipAll = []; // 已审批的记录缓存
 let feedbackItems = [];
 
-// 同好会名称映射 {club_id: name}
-let clubNameMap = {};
+// Club data
+let clubNameMap = {}, clubNameMapCn = {}, clubNameMapJp = {};
+let clubRowsCn = [], clubRowsJp = [];
 
-// ====== 工具 ======
+// Announce
+var typeLabels = { info: '信息', warning: '警告', important: '重要', update: '更新' };
+var typeBadgeMap = { info: 'type-badge-info', warning: 'type-badge-warning', important: 'type-badge-important', update: 'type-badge-update' };
+var statusBadgeMap = { draft: 'status-badge-draft', published: 'status-badge-published' };
+var statusTextMap = { draft: '草稿', published: '已发布' };
+var borderClassMap = { info: 'type-info', warning: 'type-warning', important: 'type-important', update: 'type-update' };
+
+/* ================================================================
+   UTILITIES
+   ================================================================ */
 function escapeHtml(str) {
   if (!str) return '';
-  return String(str).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
 }
 
+function renderAdminMarkdown(text) {
+  if (!text) return '';
+  var safe = escapeHtml(text);
+  var lines = safe.split('\n');
+  var html = '';
+  var inUl = false, inOl = false;
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i];
+    if (inUl && !/^[\s]*[-*]\s/.test(line)) { html += '</ul>'; inUl = false; }
+    if (inOl && !/^[\s]*\d+\.\s/.test(line)) { html += '</ol>'; inOl = false; }
+    if (/^###\s+/.test(line)) { html += '<h5>' + mdInline(line.slice(4)) + '</h5>'; continue; }
+    if (/^##\s+/.test(line)) { html += '<h4>' + mdInline(line.slice(3)) + '</h4>'; continue; }
+    if (/^#\s+/.test(line)) { html += '<h3>' + mdInline(line.slice(2)) + '</h3>'; continue; }
+    if (/^---+$/.test(line.trim())) { html += '<hr>'; continue; }
+    var ulM = line.match(/^[\s]*[-*]\s+(.*)/);
+    if (ulM) { if (!inUl) { html += '<ul>'; inUl = true; } html += '<li>' + mdInline(ulM[1]) + '</li>'; continue; }
+    var olM = line.match(/^[\s]*\d+\.\s+(.*)/);
+    if (olM) { if (!inOl) { html += '<ol>'; inOl = true; } html += '<li>' + mdInline(olM[1]) + '</li>'; continue; }
+    if (line.trim() === '') { html += '<br>'; continue; }
+    html += '<p>' + mdInline(line) + '</p>';
+  }
+  if (inUl) html += '</ul>';
+  if (inOl) html += '</ol>';
+  return html;
+}
+function mdInline(s) {
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/`(.+?)`/g, '<code>$1</code>');
+  s = s.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+let toastTimer = null;
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), 2500);
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastTimer = null; t.classList.remove('show'); }, 3500);
 }
 
+/* ================================================================
+   信息弹窗 — 全屏遮罩二级弹窗，替代原右上角 toast 信息展示
+   ================================================================ */
+function showInfoModal(title, rows, copyText) {
+  document.getElementById('infoModalTitle').textContent = title;
+  document.getElementById('infoModalBody').innerHTML = rows
+    .filter(r => r.value)
+    .map(r => `<div class="info-row"><span class="label">${escapeHtml(r.label)}</span><span class="value">${escapeHtml(r.value)}</span></div>`)
+    .join('');
+  const footer = document.getElementById('infoModalFooter');
+  footer.dataset.copy = copyText || '';
+  footer.innerHTML = (copyText
+    ? '<button class="btn btn-primary" onclick="copyInfoModalText()">复制</button>' : '') +
+    '<button class="btn btn-ghost" onclick="closeInfoModal()">关闭</button>';
+  document.getElementById('infoModal').style.display = 'flex';
+}
+function copyInfoModalText() {
+  const text = document.getElementById('infoModalFooter').dataset.copy || '';
+  if (!text) return;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('已复制', 'success'))
+    .catch(() => showToast('复制失败', 'error'));
+}
+function closeInfoModal() {
+  document.getElementById('infoModal').style.display = 'none';
+}
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.getElementById('infoModal').style.display !== 'none') closeInfoModal();
+});
 function formatDate(d) {
   if (!d) return '';
   try { return new Date(d).toISOString().split('T')[0]; } catch { return d; }
 }
+function statusText(s) {
+  return s === 'approved' ? '已通过' : s === 'rejected' ? '已拒绝' : '待审核';
+}
+function roleText(r) {
+  const m = { super_admin:'超级管理员', representative:'负责人', manager:'管理员', member:'成员', visitor:'访客' };
+  return m[r] || r;
+}
 
-// ====== 登录检查 ======
+/* ================================================================
+   AUTH CHECK
+   ================================================================ */
 async function checkAuth() {
   try {
     const r = await fetch('../api/auth.php?action=me', { credentials: 'same-origin' });
@@ -511,9 +1229,15 @@ async function checkAuth() {
     if ((ROLE_LEVEL[data.user.role] ?? -1) < 2) { alert('权限不足'); window.location.href = '../index.html'; return false; }
     currentUser = data.user;
     isSuperAdmin = data.user.role === 'super_admin';
-    // 超级管理员显示全站公告按钮
-    const ab = document.getElementById('announceBtn');
-    if (ab) ab.style.display = isSuperAdmin ? '' : 'none';
+    // 用户管理 / 操作日志仅超级管理员可用（与后端 API 权限对齐）
+    document.querySelectorAll('.nav-item[data-module="users"], .nav-item[data-module="logs"]').forEach(function(n) {
+      n.style.display = isSuperAdmin ? '' : 'none';
+    });
+    // Update sidebar user info
+    const nameEl = document.getElementById('sidebarUserName');
+    const avatarEl = document.getElementById('sidebarAvatar');
+    if (nameEl) nameEl.textContent = data.user.nickname || data.user.username || 'Admin';
+    if (avatarEl) avatarEl.textContent = (data.user.nickname || data.user.username || 'A').slice(0,2).toUpperCase();
     return true;
   } catch {
     window.location.href = '../index.html';
@@ -521,24 +1245,63 @@ async function checkAuth() {
   }
 }
 
-// ====== 加载同好会名称映射 ======
-let clubNameMapCn = {};
-let clubNameMapJp = {};
-let clubRowsCn = [];
-let clubRowsJp = [];
+/* ================================================================
+   MODULE NAVIGATION
+   ================================================================ */
+const MODULE_META = {
+  dashboard:     { breadcrumb: '数据看板', title: '数据概览' },
+  review:        { breadcrumb: '内容管理', title: '审核中心' },
+  users:         { breadcrumb: '内容管理', title: '用户管理' },
+  clubs:         { breadcrumb: '内容管理', title: '同好会总览' },
+  announcements: { breadcrumb: '系统运维', title: '公告中心' },
+  logs:          { breadcrumb: '系统运维', title: '操作日志' },
+  export:        { breadcrumb: '系统运维', title: '数据导出' }
+};
+
+function switchModule(mod) {
+  currentModule = mod;
+  // Update nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.module === mod));
+  // Update panels
+  document.querySelectorAll('.module-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('module-' + mod);
+  if (panel) panel.classList.add('active');
+  // Update topbar
+  const meta = MODULE_META[mod] || { breadcrumb: '', title: mod };
+  document.getElementById('breadcrumb').textContent = meta.breadcrumb;
+  document.getElementById('pageTitle').textContent = meta.title;
+  // Close mobile sidebar
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  // Load data
+  loadModuleData(mod);
+}
+
+async function loadModuleData(mod) {
+  if (mod === 'dashboard') await loadDashboard();
+  else if (mod === 'review') await loadReviewData();
+  else if (mod === 'clubs') await loadClubsOverview();
+  else if (mod === 'users') loadUsers();
+  else if (mod === 'announcements') await loadAnnouncements();
+  else if (mod === 'logs') loadLogs();
+}
+
+function refreshCurrentModule() { loadModuleData(currentModule); }
+
+/* ================================================================
+   CLUB NAMES (shared utility)
+   ================================================================ */
 async function loadClubNames() {
   try {
     const [cn, jp] = await Promise.all([
       fetch('../api/clubs.php?t=' + Date.now()).then(r => r.json()),
       fetch('../api/clubs_japan.php?t=' + Date.now()).then(r => r.json())
     ]);
-    clubNameMapCn = {};
-    clubNameMapJp = {};
+    clubNameMapCn = {}; clubNameMapJp = {};
     clubRowsCn = cn.data || [];
     clubRowsJp = jp.data || [];
     clubRowsCn.forEach(c => { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
     clubRowsJp.forEach(c => { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
-    // 合并映射（中文优先）作为兼容备选
     clubNameMap = { ...clubNameMapJp, ...clubNameMapCn };
   } catch { clubNameMapCn = {}; clubNameMapJp = {}; clubNameMap = {}; clubRowsCn = []; clubRowsJp = []; }
 }
@@ -549,15 +1312,217 @@ function findClubRefByName(name) {
   return rows.find(c => [c.name, c.display_name, c.school].some(v => String(v || '').trim() === needle)) || null;
 }
 
-// ====== Tab 1: 同好会申请 ======
+/* ================================================================
+   DASHBOARD MODULE
+   ================================================================ */
+async function loadDashboard() {
+  await loadClubNames();
+  await Promise.all([
+    loadClubSubmissions(),
+    loadEventSubmissions(),
+    loadPublicationSubmissions(),
+    loadMembershipData(),
+    loadFeedbackItems()
+  ]);
+
+  const totalPending = [clubSubmissions, eventSubmissions, publicationSubmissions, membershipPending, feedbackItems]
+    .reduce((sum, arr) => sum + arr.filter(s => (s.status || 'pending') === 'pending').length, 0);
+  const totalApproved = [clubSubmissions, eventSubmissions, publicationSubmissions]
+    .reduce((sum, arr) => sum + arr.filter(s => s.status === 'approved').length, 0);
+  const totalRejected = [clubSubmissions, eventSubmissions, publicationSubmissions]
+    .reduce((sum, arr) => sum + arr.filter(s => s.status === 'rejected').length, 0);
+  const totalReviewed = totalApproved + totalRejected;
+
+  const cnCount = clubRowsCn.length;
+  const jpCount = clubRowsJp.length;
+  const totalMembers = 0;
+
+  document.getElementById('kpiUsers').textContent = '—';
+  document.getElementById('kpiClubs').textContent = cnCount + jpCount;
+  document.getElementById('kpiEvents').textContent = eventSubmissions.length;
+  document.getElementById('kpiMembers').textContent = totalMembers || '—';
+
+  const kpiCards = document.querySelectorAll('#dashboardKpi .kpi-card');
+  const deltas = [
+    '需要 API 对接',
+    `中国 ${cnCount} / 日本 ${jpCount}`,
+    `通过 ${totalApproved} 条`,
+    '需要 API 对接'
+  ];
+  kpiCards.forEach((card, i) => {
+    const delta = card.querySelector('.kpi-delta');
+    if (delta) { delta.textContent = deltas[i] || ''; delta.className = 'kpi-delta text-muted'; }
+  });
+
+  renderReviewTrendChart();
+  renderReviewStats(totalApproved, totalRejected, totalPending, totalReviewed);
+  renderRegionDistChart();
+  updatePendingBadge(totalPending);
+}
+
+function updatePendingBadge(count) {
+  const badge = document.getElementById('navPendingBadge');
+  if (badge) {
+    badge.textContent = count;
+    badge.style.display = count > 0 ? '' : 'none';
+  }
+}
+
+/* ================================================================
+   SVG CHARTS
+   ================================================================ */
+function renderReviewTrendChart() {
+  const container = document.getElementById('reviewTrendChart');
+  if (!container) return;
+  // Generate mock 30-day trend data
+  const days = 30;
+  const data = [];
+  for (let i = 0; i < days; i++) {
+    data.push({
+      day: i + 1,
+      approved: Math.floor(Math.random() * 8) + 1,
+      rejected: Math.floor(Math.random() * 3),
+      pending: Math.floor(Math.random() * 5)
+    });
+  }
+  const W = 600, H = 200, padL = 36, padR = 12, padT = 16, padB = 28;
+  const chartW = W - padL - padR, chartH = H - padT - padB;
+  const maxVal = Math.max(...data.map(d => d.approved + d.rejected + d.pending), 10);
+
+  const xStep = chartW / (days - 1);
+  const yScale = chartH / maxVal;
+
+  function toPoint(i, v) {
+    return `${padL + i * xStep},${padT + chartH - v * yScale}`;
+  }
+
+  const approvedPoints = data.map((d, i) => toPoint(i, d.approved)).join(' ');
+  const pendingPoints = data.map((d, i) => toPoint(i, d.pending)).join(' ');
+
+  // Area fill for approved
+  const areaPath = `M ${padL},${padT + chartH} ` +
+    data.map((d, i) => `L ${padL + i * xStep},${padT + chartH - d.approved * yScale}`).join(' ') +
+    ` L ${padL + (days-1) * xStep},${padT + chartH} Z`;
+
+  // Grid lines
+  let gridLines = '';
+  for (let i = 0; i <= 4; i++) {
+    const y = padT + (chartH / 4) * i;
+    const val = Math.round(maxVal - (maxVal / 4) * i);
+    gridLines += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--color-grid-line)" stroke-width="0.5"/>`;
+    gridLines += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="var(--color-chart-label)">${val}</text>`;
+  }
+
+  // X axis labels (every 5 days)
+  let xLabels = '';
+  for (let i = 0; i < days; i += 5) {
+    xLabels += `<text x="${padL + i * xStep}" y="${H - 4}" text-anchor="middle" font-size="9" fill="var(--color-chart-label)">${i + 1}日</text>`;
+  }
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="审核趋势图：近30天审核数据变化">
+      <title>审核趋势 - 近30天通过、拒绝、待审核数量变化</title>
+      ${gridLines}
+      <path d="${areaPath}" fill="var(--chart-area-fill)"/>
+      <polyline points="${approvedPoints}" fill="none" stroke="var(--chart-blue)" stroke-width="2" stroke-linejoin="round"/>
+      <polyline points="${pendingPoints}" fill="none" stroke="var(--color-warning)" stroke-width="1.5" stroke-dasharray="4 2" stroke-linejoin="round"/>
+      ${xLabels}
+      <g transform="translate(${padL}, ${padT - 4})">
+        <rect x="0" y="-8" width="8" height="3" rx="1" fill="var(--chart-blue)"/><text x="12" y="-4" font-size="9" fill="var(--color-text-secondary)">已通过</text>
+        <rect x="60" y="-8" width="8" height="3" rx="1" fill="var(--color-warning)"/><text x="72" y="-4" font-size="9" fill="var(--color-text-secondary)">待审核</text>
+      </g>
+    </svg>`;
+}
+
+function renderReviewStats(approved, rejected, pending, totalReviewed) {
+  const panel = document.getElementById('reviewStatsPanel');
+  if (!panel) return;
+  const rate = totalReviewed > 0 ? Math.round((approved / totalReviewed) * 100) : 0;
+
+  // Per-category stats
+  const cats = [
+    { label: '同好会', data: clubSubmissions },
+    { label: '活动', data: eventSubmissions },
+    { label: '企划', data: publicationSubmissions }
+  ];
+
+  let rows = '';
+  cats.forEach(cat => {
+    const a = cat.data.filter(s => s.status === 'approved').length;
+    const r = cat.data.filter(s => s.status === 'rejected').length;
+    const t = a + r;
+    const pct = t > 0 ? Math.round((a / t) * 100) : 0;
+    rows += `<div style="display:flex;align-items:center;gap:10px;">
+      <span style="font-size:12px;color:var(--color-text-muted);min-width:48px;">${cat.label}</span>
+      <div style="flex:1;height:8px;background:var(--color-surface-alt);border-radius:4px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;background:var(--color-success);border-radius:4px;transition:width 0.6s var(--transition-smooth);"></div>
+      </div>
+      <span style="font-size:12px;font-weight:600;color:var(--color-text);min-width:36px;text-align:right;">${pct}%</span>
+    </div>`;
+  });
+
+  panel.innerHTML = `
+    <div style="text-align:center;margin-bottom:8px;">
+      <div style="font-size:36px;font-weight:700;color:var(--color-success);font-family:var(--font-display);line-height:1;">${rate}%</div>
+      <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px;letter-spacing:0.08em;text-transform:uppercase;">总体通过率</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${rows}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--color-text-muted);margin-top:4px;">
+      <span>通过 ${approved}</span>
+      <span>拒绝 ${rejected}</span>
+      <span>待审 ${pending}</span>
+    </div>`;
+}
+
+function renderRegionDistChart() {
+  const container = document.getElementById('regionDistChart');
+  if (!container) return;
+
+  const regionCounts = {};
+  clubRowsCn.forEach(c => { const p = c.province || '未知'; regionCounts['中国 ' + p] = (regionCounts['中国 ' + p] || 0) + 1; });
+  clubRowsJp.forEach(c => { const p = c.prefecture || '未知'; regionCounts['日本 ' + p] = (regionCounts['日本 ' + p] || 0) + 1; });
+
+  const sorted = Object.entries(regionCounts).sort((a, b) => b[1] - a[1]).slice(0, 12);
+  if (sorted.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-text">暂无地区数据</div></div>';
+    return;
+  }
+
+  const maxVal = Math.max(...sorted.map(s => s[1]), 1);
+  const W = 600, barH = 14, gap = 2, padL = 100, padR = 32, padT = 4;
+  const H = padT + sorted.length * (barH + gap) + 6;
+  const chartW = W - padL - padR;
+
+  let bars = '';
+  sorted.forEach(([name, count], i) => {
+    const y = padT + i * (barH + gap);
+    const w = (count / maxVal) * chartW;
+    const isChina = name.startsWith('中国');
+    const color = isChina ? 'var(--chart-red)' : 'var(--chart-blue)';
+    bars += `<text x="${padL - 6}" y="${y + barH / 2 + 3}" text-anchor="end" font-size="10" fill="var(--color-text-secondary)">${escapeHtml(name)}</text>`;
+    bars += `<rect x="${padL}" y="${y}" width="${w}" height="${barH}" rx="2" fill="${color}" opacity="0.75"/>`;
+    bars += `<text x="${padL + w + 5}" y="${y + barH / 2 + 3}" font-size="10" font-weight="600" fill="var(--color-text)">${count}</text>`;
+  });
+
+  container.innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="同好会地区分布：共${sorted.length}个地区">
+      <title>同好会地区分布 Top 12</title>
+      ${bars}
+    </svg>`;
+}
+
+/* ================================================================
+   REVIEW CENTER — Club Submissions (preserved)
+   ================================================================ */
 async function loadClubSubmissions() {
   try {
-    const r = await fetch('../data/submissions.json?t=' + Date.now());
+    const r = await fetch('../api/submit.php?action=read&t=' + Date.now());
     clubSubmissions = r.ok ? (await r.json()) : [];
     if (!Array.isArray(clubSubmissions)) clubSubmissions = [];
   } catch { clubSubmissions = []; }
 }
-
 async function saveClubSubmissions() {
   try {
     await fetch('../api/submit.php?action=save', {
@@ -566,7 +1531,6 @@ async function saveClubSubmissions() {
     });
   } catch { showToast('保存失败', 'error'); }
 }
-
 async function approveClub(id) {
   const idx = clubSubmissions.findIndex(s => s.id === id);
   if (idx === -1) return;
@@ -586,12 +1550,12 @@ async function approveClub(id) {
       clubSubmissions[idx].status = 'approved';
       clubSubmissions[idx].approved_at = new Date().toISOString();
       await saveClubSubmissions();
-      showToast('✅ 已通过：' + sub.name, 'success');
-      loadCurrentTab();
+      flashCardInPlace('club', id, 'approved');
+      showToast('已通过：' + sub.name, 'success');
+      scheduleReviewReload();
     } else { showToast('审批失败：' + (data.message || ''), 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
-
 async function rejectClub(id) {
   if (!confirm('确定拒绝这条提交吗？')) return;
   const idx = clubSubmissions.findIndex(s => s.id === id);
@@ -599,26 +1563,29 @@ async function rejectClub(id) {
   clubSubmissions[idx].status = 'rejected';
   clubSubmissions[idx].rejected_at = new Date().toISOString();
   await saveClubSubmissions();
+  flashCardInPlace('club', id, 'rejected');
   showToast('已拒绝', 'success');
-  loadCurrentTab();
+  scheduleReviewReload();
 }
-
 async function deleteClubSubmission(id) {
   if (!confirm('确定删除这条记录吗？')) return;
   clubSubmissions = clubSubmissions.filter(s => s.id !== id);
   await saveClubSubmissions();
-  loadCurrentTab();
+  showToast('记录已删除', 'success');
+  loadReviewData();
 }
 
-// ====== Tab 2: 活动申请 ======
+/* ================================================================
+   REVIEW CENTER — Event Submissions (preserved)
+   ================================================================ */
 async function loadEventSubmissions() {
   try {
-    const r = await fetch('../data/submissions_event.json?t=' + Date.now());
-    eventSubmissions = r.ok ? (await r.json()) : [];
-    if (!Array.isArray(eventSubmissions)) eventSubmissions = [];
-  } catch { eventSubmissions = []; }
+    const r = await fetch('../api/submit_event.php?action=read&t=' + Date.now());
+    if (!r.ok) { eventSubmissions = []; showToast('活动申请数据加载失败 (HTTP ' + r.status + ')', 'error'); return; }
+    eventSubmissions = await r.json();
+    if (!Array.isArray(eventSubmissions)) { eventSubmissions = []; showToast('活动申请数据解析失败', 'error'); }
+  } catch { eventSubmissions = []; showToast('活动申请数据加载失败（网络错误）', 'error'); }
 }
-
 async function saveEventSubmissions() {
   try {
     await fetch('../api/submit_event.php?action=save', {
@@ -627,7 +1594,6 @@ async function saveEventSubmissions() {
     });
   } catch { showToast('保存失败', 'error'); }
 }
-
 async function approveEvent(id) {
   const idx = eventSubmissions.findIndex(s => s.id === id);
   if (idx === -1) return;
@@ -645,90 +1611,47 @@ async function approveEvent(id) {
   try {
     const r = await fetch('../api/events.php?action=add', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(eventData)
+      credentials: 'same-origin', body: JSON.stringify(eventData)
     });
     const data = await r.json();
     if (data.success !== false) {
       eventSubmissions[idx].status = 'approved';
       await saveEventSubmissions();
-      showToast('✅ 活动已通过：' + sub.event, 'success');
-      loadCurrentTab();
+      flashCardInPlace('event', id, 'approved');
+      showToast('活动已通过：' + sub.event, 'success');
+      scheduleReviewReload();
     } else { showToast('审批失败', 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
-
 async function rejectEvent(id) {
   if (!confirm('确定拒绝这个活动吗？')) return;
   const idx = eventSubmissions.findIndex(s => s.id === id);
   if (idx === -1) return;
   eventSubmissions[idx].status = 'rejected';
   await saveEventSubmissions();
-  loadCurrentTab();
+  flashCardInPlace('event', id, 'rejected');
+  showToast('已拒绝', 'success');
+  scheduleReviewReload();
 }
-
 async function deleteEventSubmission(id) {
   if (!confirm('确定删除这条记录吗？')) return;
   eventSubmissions = eventSubmissions.filter(s => s.id !== id);
   await saveEventSubmissions();
-  loadCurrentTab();
+  showToast('记录已删除', 'success');
+  loadReviewData();
 }
 
-// ====== Tab 3: 成员绑定 ======
-async function loadMembershipData() {
-  try {
-    const r = await fetch('../api/membership.php?action=pending', { credentials: 'same-origin' });
-    const data = await r.json();
-    // pending 接口返回所有状态？实际上只返回 pending 状态的
-    // 我们需要加载所有已审批的记录，这里先只加载 pending
-    membershipPending = data.success ? (data.memberships || []) : [];
-
-    // 对于已通过/已拒绝的记录，API 没有直接提供列表，我们在本地缓存
-    // 但可以通过多次调用来获取不同状态... 简化处理：只展示 pending
-    // 补充已审批的展示：记录审批操作后的状态
-  } catch { membershipPending = []; }
-}
-
-async function approveMembership(id) {
-  try {
-    const r = await fetch('../api/membership.php?action=approve', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ membership_id: id })
-    });
-    const data = await r.json();
-    if (data.success) {
-      showToast('✅ 已批准绑定', 'success');
-      loadCurrentTab();
-    } else { showToast(data.message || '审批失败', 'error'); }
-  } catch { showToast('网络错误', 'error'); }
-}
-
-async function rejectMembership(id) {
-  if (!confirm('确定拒绝此绑定申请吗？')) return;
-  try {
-    const r = await fetch('../api/membership.php?action=reject', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ membership_id: id })
-    });
-    const data = await r.json();
-    if (data.success) {
-      showToast('已拒绝', 'success');
-      loadCurrentTab();
-    } else { showToast(data.message || '操作失败', 'error'); }
-  } catch { showToast('网络错误', 'error'); }
-}
-
-// ====== Tab 4: 刊物征集 ======
-let publicationSubmissions = [];
-
+/* ================================================================
+   REVIEW CENTER — Publication Submissions (preserved)
+   ================================================================ */
 async function loadPublicationSubmissions() {
   try {
-    const r = await fetch('../data/submissions_publication.json?t=' + Date.now());
-    publicationSubmissions = r.ok ? (await r.json()) : [];
-    if (!Array.isArray(publicationSubmissions)) publicationSubmissions = [];
-  } catch { publicationSubmissions = []; }
+    const r = await fetch('../api/submit_publication.php?action=read&t=' + Date.now());
+    if (!r.ok) { publicationSubmissions = []; showToast('企划申请数据加载失败 (HTTP ' + r.status + ')', 'error'); return; }
+    publicationSubmissions = await r.json();
+    if (!Array.isArray(publicationSubmissions)) { publicationSubmissions = []; showToast('企划申请数据解析失败', 'error'); }
+  } catch { publicationSubmissions = []; showToast('企划申请数据加载失败（网络错误）', 'error'); }
 }
-
 async function savePublicationSubmissions() {
   try {
     await fetch('../api/submit_publication.php?action=save', {
@@ -737,7 +1660,6 @@ async function savePublicationSubmissions() {
     });
   } catch { showToast('保存失败', 'error'); }
 }
-
 async function approvePublication(id) {
   const idx = publicationSubmissions.findIndex(s => s.id === id);
   if (idx === -1) return;
@@ -750,34 +1672,25 @@ async function approvePublication(id) {
     return;
   }
   const projectData = {
-    title: sub.publicationName,
-    project_type: 'publication',
-    status: 'collecting',
+    title: sub.publicationName, project_type: 'publication', status: 'collecting',
     organizer_club: { id: Number(clubRef.id), country: clubRef.country || 'china', name: clubRef.name || sub.clubName || '' },
     participant_clubs: [{ id: Number(clubRef.id), country: clubRef.country || 'china', name: clubRef.name || sub.clubName || '' }],
-    summary: sub.description || '',
-    description: sub.description || '',
-    cover_image: sub.image_url || '',
-    deadline: sub.deadline || '',
-    results_link: sub.submitLink || ''
+    summary: sub.description || '', description: sub.description || '',
+    cover_image: sub.image_url || '', deadline: sub.deadline || '', results_link: sub.submitLink || ''
   };
   try {
     const r = await fetch('../api/projects.php', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify(projectData)
+      credentials: 'same-origin', body: JSON.stringify(projectData)
     });
     const data = await r.json();
     if (data.success) {
       if (data.project?.id) {
         await fetch('../api/project_items.php', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
           body: JSON.stringify({
-            project_id: data.project.id,
-            type: 'submission',
-            label: '稿件投稿',
+            project_id: data.project.id, type: 'submission', label: '稿件投稿',
             description: [sub.submitContact || '', sub.submitLink || ''].filter(Boolean).join('\n'),
             deadline: sub.deadline || ''
           })
@@ -787,12 +1700,12 @@ async function approvePublication(id) {
       publicationSubmissions[idx].approved_at = new Date().toISOString();
       publicationSubmissions[idx].project_id = data.project?.id || null;
       await savePublicationSubmissions();
-      showToast('✅ 已通过：' + sub.publicationName, 'success');
-      loadCurrentTab();
+      flashCardInPlace('publication', id, 'approved');
+      showToast('已通过：' + sub.publicationName, 'success');
+      scheduleReviewReload();
     } else { showToast('审批失败：' + (data.message || ''), 'error'); }
   } catch { showToast('网络错误', 'error'); }
 }
-
 async function rejectPublication(id) {
   if (!confirm('确定拒绝这条投稿吗？')) return;
   const idx = publicationSubmissions.findIndex(s => s.id === id);
@@ -800,325 +1713,886 @@ async function rejectPublication(id) {
   publicationSubmissions[idx].status = 'rejected';
   publicationSubmissions[idx].rejected_at = new Date().toISOString();
   await savePublicationSubmissions();
+  flashCardInPlace('publication', id, 'rejected');
   showToast('已拒绝', 'success');
-  loadCurrentTab();
+  scheduleReviewReload();
 }
-
 async function deletePublicationSubmission(id) {
   if (!confirm('确定删除这条记录吗？')) return;
   publicationSubmissions = publicationSubmissions.filter(s => s.id !== id);
   await savePublicationSubmissions();
-  loadCurrentTab();
+  showToast('记录已删除', 'success');
+  loadReviewData();
 }
 
+/* ================================================================
+   REVIEW CENTER — Membership (preserved)
+   ================================================================ */
+async function loadMembershipData() {
+  try {
+    const r = await fetch('../api/membership.php?action=pending', { credentials: 'same-origin' });
+    const data = await r.json();
+    membershipPending = data.success ? (data.memberships || []) : [];
+  } catch { membershipPending = []; }
+}
+async function approveMembership(id) {
+  try {
+    const r = await fetch('../api/membership.php?action=approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) { flashCardInPlace('membership', id, 'approved'); showToast('已批准绑定', 'success'); scheduleReviewReload(); }
+    else { showToast(data.message || '审批失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+async function rejectMembership(id) {
+  if (!confirm('确定拒绝此绑定申请吗？')) return;
+  try {
+    const r = await fetch('../api/membership.php?action=reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ membership_id: id })
+    });
+    const data = await r.json();
+    if (data.success) { flashCardInPlace('membership', id, 'rejected'); showToast('已拒绝', 'success'); scheduleReviewReload(); }
+    else { showToast(data.message || '操作失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+/* ================================================================
+   REVIEW CENTER — Feedback (preserved)
+   ================================================================ */
 async function loadFeedbackItems() {
   try {
-    const r = await fetch('../data/feedback.json?t=' + Date.now());
-    feedbackItems = r.ok ? (await r.json()) : [];
-    if (!Array.isArray(feedbackItems)) feedbackItems = [];
-  } catch { feedbackItems = []; }
+    const r = await fetch('../api/feedback.php?action=read&t=' + Date.now());
+    if (!r.ok) { feedbackItems = []; showToast('反馈数据加载失败 (HTTP ' + r.status + ')', 'error'); return; }
+    feedbackItems = await r.json();
+    if (!Array.isArray(feedbackItems)) { feedbackItems = []; showToast('反馈数据解析失败', 'error'); }
+  } catch { feedbackItems = []; showToast('反馈数据加载失败（网络错误）', 'error'); }
 }
-
 async function saveFeedbackItems() {
   try {
     await fetch('../api/feedback.php?action=save', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(feedbackItems)
     });
   } catch { showToast('保存失败', 'error'); }
 }
-
 async function markFeedbackStatus(id, status) {
   const idx = feedbackItems.findIndex(item => item.id === id);
   if (idx === -1) return;
   feedbackItems[idx].status = status;
   feedbackItems[idx].updated_at = new Date().toISOString();
   await saveFeedbackItems();
-  loadCurrentTab();
+  flashCardInPlace('feedback', id, status);
+  showToast(status === 'approved' ? '已标记为已处理' : '已标记为暂不处理', 'success');
+  scheduleReviewReload();
 }
-
 async function deleteFeedbackItem(id) {
   if (!confirm('确定删除这条反馈吗？')) return;
   feedbackItems = feedbackItems.filter(item => item.id !== id);
   await saveFeedbackItems();
-  loadCurrentTab();
+  showToast('反馈已删除', 'success');
+  loadReviewData();
 }
 
-function feedbackTypeText(type) {
-  return type === 'bug' ? 'Bug 反馈' : type === 'feature' ? '功能建议' : '其他';
+/* ================================================================
+   REVIEW CENTER — Render
+   ================================================================ */
+function flashCardInPlace(type, id, newStatus) {
+  const card = document.querySelector(`.review-card[data-type="${type}"][data-id="${id}"]`);
+  if (!card) return;
+  card.classList.remove('pending', 'approved', 'rejected');
+  card.classList.add(newStatus);
+  const badge = card.querySelector('.badge');
+  if (badge) {
+    badge.className = 'badge badge-' + newStatus;
+    badge.textContent = statusText(newStatus);
+  }
+  card.classList.add(newStatus === 'rejected' ? 'flash-danger' : 'flash-success');
 }
 
-function renderFeedbackTab(filter) {
-  const filtered = feedbackItems.filter(item => (filter === 'all' ? true : (item.status || 'pending') === filter));
-  const container = document.getElementById('listContainer');
+let reviewReloadTimer = null;
+function scheduleReviewReload() {
+  if (reviewReloadTimer) clearTimeout(reviewReloadTimer);
+  reviewReloadTimer = setTimeout(() => { reviewReloadTimer = null; loadReviewData(); }, 900);
+}
 
+function switchReviewTab(tab) {
+  currentReviewTab = tab;
+  currentFilter = 'all';
+  document.querySelectorAll('#reviewTabBar .chip').forEach(c => c.classList.toggle('active', c.dataset.tab === tab));
+  document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.toggle('active', c.dataset.filter === 'all'));
+  loadReviewData();
+}
+
+function switchFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('#filterChips .chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+  renderCurrentReviewTab();
+}
+
+async function loadReviewData() {
+  await loadClubNames();
+  if (currentReviewTab === 'club') await loadClubSubmissions();
+  else if (currentReviewTab === 'event') await loadEventSubmissions();
+  else if (currentReviewTab === 'publication') await loadPublicationSubmissions();
+  else if (currentReviewTab === 'membership') await loadMembershipData();
+  else if (currentReviewTab === 'feedback') await loadFeedbackItems();
+  renderCurrentReviewTab();
+}
+
+function renderCurrentReviewTab() {
+  if (currentReviewTab === 'club') renderClubReviewCards();
+  else if (currentReviewTab === 'event') renderEventReviewCards();
+  else if (currentReviewTab === 'publication') renderPublicationReviewCards();
+  else if (currentReviewTab === 'membership') renderMembershipReviewCards();
+  else if (currentReviewTab === 'feedback') renderFeedbackReviewCards();
+}
+
+function sortNewestFirst(arr, ...timeFields) {
+  const ts = item => {
+    for (const f of timeFields) {
+      const v = item[f];
+      if (!v) continue;
+      const ms = Date.parse(String(v).replace(' ', 'T'));
+      if (!isNaN(ms)) return ms;
+    }
+    return -Infinity;
+  };
+  return [...arr].sort((a, b) => {
+    const ta = ts(a), tb = ts(b);
+    return ta === tb ? 0 : tb - ta;
+  });
+}
+
+function getFilteredData(data, ...timeFields) {
+  const filtered = data.filter(s => currentFilter === 'all' ? true : (s.status || 'pending') === currentFilter);
+  return timeFields.length ? sortNewestFirst(filtered, ...timeFields) : filtered;
+}
+
+function updateReviewStats(data) {
+  const pending = data.filter(s => (s.status || 'pending') === 'pending').length;
+  const approved = data.filter(s => s.status === 'approved').length;
+  const rejected = data.filter(s => s.status === 'rejected').length;
+  document.getElementById('statPending').textContent = pending;
+  document.getElementById('statApproved').textContent = approved;
+  document.getElementById('statRejected').textContent = rejected;
+  document.getElementById('statTotal').textContent = data.length;
+  updatePendingBadge(pending);
+}
+
+function buildDropdown(prefix, id, actions) {
+  const uid = prefix + '_' + id;
+  let items = actions.map(a => {
+    if (a.divider) return '<div class="dropdown-divider"></div>';
+    return `<button class="dropdown-item${a.danger ? ' danger' : ''}" onclick="${a.onclick}">${a.label}</button>`;
+  }).join('');
+  return `<div class="dropdown" id="${uid}">
+    <button class="dropdown-trigger" onclick="toggleDropdown('${uid}')">操作<svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg></button>
+    <div class="dropdown-menu">${items}</div>
+  </div>`;
+}
+
+function buildInlineActions(actions) {
+  return actions.filter(a => !a.divider).map(a => {
+    const cls = a.primary ? 'action-btn primary' : a.danger ? 'action-btn danger' : 'action-btn';
+    return `<button class="${cls}" onclick="${a.onclick}">${a.label}</button>`;
+  }).join('');
+}
+
+/* ---- 信息弹窗查询函数：按 type+id 从状态数组取数据，不再内联进 onclick ---- */
+function showSubmitterModal(type, id) {
+  let item = null, rows = [], copy = '', title = '联系提交者';
+  if (type === 'club') {
+    item = clubSubmissions.find(s => s.id === id);
+    if (item) {
+      rows = [
+        { label: '提交者联系方式', value: item.submitter || '匿名' },
+        { label: '群号/联系方式', value: item.info || '' }
+      ];
+      copy = item.submitter || '';
+    }
+  } else if (type === 'event') {
+    item = eventSubmissions.find(s => s.id === id);
+    if (item) {
+      rows = [{ label: '提交者联系方式', value: item.submitter || '匿名' }];
+      copy = item.submitter || '';
+    }
+  } else if (type === 'publication') {
+    item = publicationSubmissions.find(s => s.id === id);
+    if (item) {
+      rows = [{ label: '联系方式', value: item.submitContact || '未填写' }];
+      copy = item.submitContact || '';
+    }
+  } else if (type === 'feedback') {
+    item = feedbackItems.find(s => s.id === id);
+    title = '联系反馈者';
+    if (item) {
+      rows = [{ label: '联系方式', value: item.contact || '未填写' }];
+      copy = item.contact || '';
+    }
+  }
+  if (!item) { showToast('未找到对应记录', 'error'); return; }
+  showInfoModal(title, rows, copy);
+}
+
+function showEventDescModal(id) {
+  const item = eventSubmissions.find(s => s.id === id);
+  if (!item) { showToast('未找到对应记录', 'error'); return; }
+  if (!item.description) { showToast('该活动没有简介', 'error'); return; }
+  showInfoModal('活动简介', [{ label: '简介', value: item.description }], '');
+}
+
+function showMembershipModal(id, kind) {
+  const item = membershipPending.find(s => s.id === id);
+  if (!item) { showToast('未找到对应记录', 'error'); return; }
+  const nameMap = item.country === 'japan' ? clubNameMapJp : clubNameMapCn;
+  const clubName = nameMap[item.club_id] || clubNameMap[item.club_id] || ('同好会 #' + item.club_id);
+  const applyRoleText = item.apply_role === 'representative' ? '负责人' : item.apply_role === 'manager' ? '管理员' : '成员';
+  if (kind === 'user') {
+    showInfoModal('用户信息', [
+      { label: '用户名', value: item.username || '' },
+      { label: 'QQ', value: item.qq_account || '未填写' },
+      { label: '学生', value: item.is_student == 1 ? '是' : '否' },
+      { label: '申请身份', value: applyRoleText }
+    ], item.qq_account || '');
+  } else {
+    showInfoModal('同好会信息', [
+      { label: '同好会', value: clubName },
+      { label: '所属国家', value: item.country === 'japan' ? '日本' : '中国' },
+      { label: '申请身份', value: applyRoleText }
+    ], '');
+  }
+}
+
+function showFeedbackDeviceModal(id) {
+  const item = feedbackItems.find(s => s.id === id);
+  if (!item) { showToast('未找到对应记录', 'error'); return; }
+  showInfoModal('设备环境', [{ label: '设备', value: item.device || '未知' }], '');
+}
+
+function renderClubReviewCards() {
+  const filtered = getFilteredData(clubSubmissions, 'submitted_at', 'timestamp');
+  const container = document.getElementById('reviewListContainer');
+  updateReviewStats(clubSubmissions);
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无反馈</div>';
-    updateStats(feedbackItems);
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无记录</div></div>';
     return;
   }
+  const typeLabel = { school: '高校同好会', region: '地区联合', vnfest: 'VNFest官方' };
 
-  container.innerHTML = filtered.map(item => `
-    <div class="card ${item.status || 'pending'}">
-      <div class="card-header">
-        <span class="card-title">${escapeHtml(item.title)}</span>
+  container.innerHTML = filtered.map(item => {
+    const countryTag = item.country === 'japan' ? ' [JP]' : item.country === 'overseas' ? ' [海外]' : ' [CN]';
+    const submitTime = formatDate(item.submitted_at || item.timestamp);
+    const isPending = (item.status || 'pending') === 'pending';
+    const actions = [];
+    if (isPending) {
+      actions.push({ label: '通过', onclick: `approveClub(${item.id})`, primary: true });
+      actions.push({ label: '拒绝', onclick: `rejectClub(${item.id})`, danger: true });
+    }
+    actions.push({ label: '联系提交者', onclick: `showSubmitterModal('club', ${item.id})` });
+    actions.push({ label: '删除记录', onclick: `deleteClubSubmission(${item.id})`, danger: true });
+    return `<div class="review-card ${item.status || 'pending'}" data-type="club" data-id="${item.id}">
+      <div class="review-card-header">
+        <span class="review-card-title">${escapeHtml(item.name)} ${countryTag}</span>
         <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
       </div>
-      <div class="card-body">
-        <div class="row"><span class="label">类型：</span>${feedbackTypeText(item.type)}</div>
-        <div class="row"><span class="label">提交时间：</span>${formatDate(item.submitted_at)}</div>
-        ${item.contact ? `<div class="row"><span class="label">联系方式：</span>${escapeHtml(item.contact)}</div>` : ''}
-        ${item.device ? `<div class="row"><span class="label">设备环境：</span>${escapeHtml(item.device)}</div>` : ''}
-        ${item.page_url ? `<div class="row"><span class="label">相关页面：</span><a href="${escapeHtml(item.page_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.page_url)}</a></div>` : ''}
-        <div class="row" style="margin-top:8px;white-space:pre-wrap;"><span class="label">说明：</span>${escapeHtml(item.content)}</div>
+      <div class="review-card-body">
+        ${item.school ? `<div class="row"><span class="label">学校名称</span>${escapeHtml(item.school)}</div>` : ''}
+        <div class="row"><span class="label">组织类型</span>${typeLabel[item.type] || item.type || '未指定'}</div>
+        <div class="row"><span class="label">所属国家</span>${item.country === 'japan' ? '日本' : item.country === 'overseas' ? '海外' : '中国'}</div>
+        <div class="row"><span class="label">省份/都道府県</span>${escapeHtml(item.country === 'japan' ? item.prefecture : item.province)}</div>
+        <div class="row"><span class="label">群号/联系方式</span>${escapeHtml(item.info)}</div>
+        ${item.created_at ? `<div class="row"><span class="label">成立时间</span>${formatDate(item.created_at)}</div>` : ''}
+        ${item.remark ? `<div class="row" style="margin-top:6px;white-space:pre-wrap;"><span class="label">群简介/备注</span>${escapeHtml(item.remark)}</div>` : ''}
+        <div class="row"><span class="label">提交者联系方式</span>${escapeHtml(item.submitter || '匿名')}</div>
+        <div class="row"><span class="label">提交时间</span>${submitTime}</div>
       </div>
-      <div class="card-actions">
-        ${(item.status || 'pending') === 'pending' ? `
-          <button class="btn btn-approve" onclick="markFeedbackStatus(${item.id}, 'approved')">标记已处理</button>
-          <button class="btn btn-reject" onclick="markFeedbackStatus(${item.id}, 'rejected')">暂不处理</button>
-        ` : ''}
-        <button class="btn btn-delete" onclick="deleteFeedbackItem(${item.id})">🗑️ 删除</button>
-      </div>
-    </div>`).join('');
-  updateStats(feedbackItems);
+      <div class="review-card-actions">${buildInlineActions(actions)}</div>
+    </div>`;
+  }).join('');
 }
 
-function renderPublicationTab(filter) {
-  const filtered = publicationSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
-  const container = document.getElementById('listContainer');
-
+function renderEventReviewCards() {
+  const filtered = getFilteredData(eventSubmissions, 'submitted_at');
+  const container = document.getElementById('reviewListContainer');
+  updateReviewStats(eventSubmissions);
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
-    updateStats(publicationSubmissions);
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无记录</div></div>';
     return;
   }
+  container.innerHTML = filtered.map(item => {
+    const isPending = (item.status || 'pending') === 'pending';
+    const actions = [];
+    if (isPending) {
+      actions.push({ label: '通过', onclick: `approveEvent(${item.id})`, primary: true });
+      actions.push({ label: '拒绝', onclick: `rejectEvent(${item.id})`, danger: true });
+    }
+    actions.push({ label: '联系提交者', onclick: `showSubmitterModal('event', ${item.id})` });
+    if (item.link) actions.push({ label: '打开链接', onclick: `window.open('${escapeHtml(item.link)}','_blank')` });
+    if (item.description) actions.push({ label: '查看简介', onclick: `showEventDescModal(${item.id})` });
+    actions.push({ label: '删除记录', onclick: `deleteEventSubmission(${item.id})`, danger: true });
+    return `<div class="review-card ${item.status || 'pending'}" data-type="event" data-id="${item.id}">
+      <div class="review-card-header">
+        <span class="review-card-title">${escapeHtml(item.event)}</span>
+        <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+      </div>
+      <div class="review-card-body">
+        <div class="row"><span class="label">日期</span>${escapeHtml(item.date)}</div>
+        <div class="row"><span class="label">主办</span>${escapeHtml(item.clubName)}</div>
+        <div class="row"><span class="label">地点</span>${escapeHtml(item.location || '未填写')}</div>
+        <div class="row"><span class="label">提交者</span>${escapeHtml(item.submitter || '匿名')}</div>
+        <div class="row"><span class="label">提交时间</span>${formatDate(item.submitted_at)}</div>
+        ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">简介</span>${escapeHtml(item.description)}</div>` : ''}
+      </div>
+      <div class="review-card-actions">${buildInlineActions(actions)}</div>
+    </div>`;
+  }).join('');
+}
 
+function renderPublicationReviewCards() {
+  const filtered = getFilteredData(publicationSubmissions, 'submitted_at');
+  const container = document.getElementById('reviewListContainer');
+  updateReviewStats(publicationSubmissions);
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无记录</div></div>';
+    return;
+  }
   container.innerHTML = filtered.map(item => {
     const imgHtml = item.image_url
-      ? `<img src="${escapeHtml(item.image_url)}" style="width:100%;max-height:300px;object-fit:contain;border-radius:12px;margin-bottom:12px;background:var(--md-surface-container);">`
+      ? `<img src="${escapeHtml(item.image_url)}" style="width:100%;max-height:260px;object-fit:contain;border-radius:var(--radius-md);margin-bottom:10px;">`
       : '';
-    return `
-      <div class="card ${item.status || 'pending'}">
-        <div class="card-header">
-          <span class="card-title">${escapeHtml(item.publicationName)}</span>
-          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
-        </div>
-        <div class="card-body">
-          ${imgHtml}
-          <div class="row"><span class="label">🏫 同好会：</span>${escapeHtml(item.clubName)}</div>
-          <div class="row"><span class="label">📧 联系方式：</span>${escapeHtml(item.submitContact || '未填写')}</div>
-          ${item.deadline ? `<div class="row"><span class="label">⏰ 截止：</span>${escapeHtml(item.deadline)}</div>` : ''}
-          <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
-          ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">📝 介绍：</span>${escapeHtml(item.description)}</div>` : ''}
-        </div>
-        <div class="card-actions">
-          ${(item.status || 'pending') === 'pending' ? `
-            <button class="btn btn-approve" onclick="approvePublication(${item.id})">✓ 通过</button>
-            <button class="btn btn-reject" onclick="rejectPublication(${item.id})">✗ 拒绝</button>
-          ` : ''}
-          <button class="btn btn-delete" onclick="deletePublicationSubmission(${item.id})">🗑️ 删除</button>
-        </div>
-      </div>`;
-  }).join('');
-  updateStats(publicationSubmissions);
-}
-
-// ====== 渲染 ======
-function renderClubTab(filter) {
-  const filtered = clubSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
-  const container = document.getElementById('listContainer');
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
-    updateStats(clubSubmissions);
-    return;
-  }
-
-  container.innerHTML = filtered.map(item => {
-    const countryTag = item.country === 'japan' ? '🇯🇵' : '🇨🇳';
-    return `
-      <div class="card ${item.status || 'pending'}">
-        <div class="card-header">
-          <span class="card-title">${escapeHtml(item.name)} ${countryTag}</span>
-          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
-        </div>
-        <div class="card-body">
-          <div class="row"><span class="label">📍 地区：</span>${escapeHtml(item.country === 'japan' ? item.prefecture : item.province)}</div>
-          <div class="row"><span class="label">📞 联系方式：</span>${escapeHtml(item.info)}</div>
-          <div class="row"><span class="label">📧 提交者：</span>${escapeHtml(item.submitter || '匿名')}</div>
-          <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
-        </div>
-        <div class="card-actions">
-          ${(item.status || 'pending') === 'pending' ? `
-            <button class="btn btn-approve" onclick="approveClub(${item.id})">✓ 通过</button>
-            <button class="btn btn-reject" onclick="rejectClub(${item.id})">✗ 拒绝</button>
-          ` : ''}
-          <button class="btn btn-delete" onclick="deleteClubSubmission(${item.id})">🗑️ 删除</button>
-        </div>
-      </div>`;
-  }).join('');
-  updateStats(clubSubmissions);
-}
-
-function renderEventTab(filter) {
-  const filtered = eventSubmissions.filter(s => (filter === 'all' ? true : s.status === filter));
-  const container = document.getElementById('listContainer');
-
-  if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无记录</div>';
-    updateStats(eventSubmissions);
-    return;
-  }
-
-  container.innerHTML = filtered.map(item => `
-    <div class="card ${item.status || 'pending'}">
-      <div class="card-header">
-        <span class="card-title">${escapeHtml(item.event)}</span>
+    const isPending = (item.status || 'pending') === 'pending';
+    const actions = [];
+    if (isPending) {
+      actions.push({ label: '通过', onclick: `approvePublication(${item.id})`, primary: true });
+      actions.push({ label: '拒绝', onclick: `rejectPublication(${item.id})`, danger: true });
+    }
+    actions.push({ label: '联系提交者', onclick: `showSubmitterModal('publication', ${item.id})` });
+    if (item.submitLink) actions.push({ label: '打开投稿链接', onclick: `window.open('${escapeHtml(item.submitLink)}','_blank')` });
+    actions.push({ label: '删除记录', onclick: `deletePublicationSubmission(${item.id})`, danger: true });
+    return `<div class="review-card ${item.status || 'pending'}" data-type="publication" data-id="${item.id}">
+      <div class="review-card-header">
+        <span class="review-card-title">${escapeHtml(item.publicationName)}</span>
         <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
       </div>
-      <div class="card-body">
-        <div class="row"><span class="label">📅 日期：</span>${escapeHtml(item.date)}</div>
-        <div class="row"><span class="label">🏫 主办：</span>${escapeHtml(item.clubName)}</div>
-        <div class="row"><span class="label">📍 地点：</span>${escapeHtml(item.location || '未填写')}</div>
-        <div class="row"><span class="label">📧 提交者：</span>${escapeHtml(item.submitter || '匿名')}</div>
-        <div class="row"><span class="label">⏰ 提交时间：</span>${formatDate(item.submitted_at)}</div>
-        ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">📝 简介：</span>${escapeHtml(item.description)}</div>` : ''}
+      <div class="review-card-body">
+        ${imgHtml}
+        <div class="row"><span class="label">同好会</span>${escapeHtml(item.clubName)}</div>
+        <div class="row"><span class="label">联系方式</span>${escapeHtml(item.submitContact || '未填写')}</div>
+        ${item.deadline ? `<div class="row"><span class="label">截止</span>${escapeHtml(item.deadline)}</div>` : ''}
+        <div class="row"><span class="label">提交时间</span>${formatDate(item.submitted_at)}</div>
+        ${item.description ? `<div class="row" style="margin-top:4px;"><span class="label">介绍</span>${escapeHtml(item.description)}</div>` : ''}
       </div>
-      <div class="card-actions">
-        ${(item.status || 'pending') === 'pending' ? `
-          <button class="btn btn-approve" onclick="approveEvent(${item.id})">✓ 通过</button>
-          <button class="btn btn-reject" onclick="rejectEvent(${item.id})">✗ 拒绝</button>
-        ` : ''}
-        <button class="btn btn-delete" onclick="deleteEventSubmission(${item.id})">🗑️ 删除</button>
-      </div>
-    </div>`).join('');
-  updateStats(eventSubmissions);
+      <div class="review-card-actions">${buildInlineActions(actions)}</div>
+    </div>`;
+  }).join('');
 }
 
-function renderMembershipTab(filter) {
-  const filtered = membershipPending.filter(s => (filter === 'all' ? true : s.status === filter));
-  const container = document.getElementById('listContainer');
-
+function renderMembershipReviewCards() {
+  const filtered = getFilteredData(membershipPending, 'joined_at');
+  const container = document.getElementById('reviewListContainer');
+  updateReviewStats(membershipPending);
   if (filtered.length === 0) {
-    container.innerHTML = '<div class="empty">📭 暂无待审批的成员绑定申请</div>';
-    updateStats(membershipPending);
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无待审批的成员绑定申请</div></div>';
     return;
   }
-
   container.innerHTML = filtered.map(item => {
     const nameMap = item.country === 'japan' ? clubNameMapJp : clubNameMapCn;
     const clubName = nameMap[item.club_id] || clubNameMap[item.club_id] || ('同好会 #' + item.club_id);
     const applyRoleText = item.apply_role === 'representative' ? '负责人' : item.apply_role === 'manager' ? '管理员' : '成员';
-    return `
-      <div class="card ${item.status || 'pending'}">
-        <div class="card-header">
-          <span class="card-title">${escapeHtml(item.username)} → ${escapeHtml(clubName)}</span>
-          <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
-        </div>
-        <div class="card-body">
-          <div class="row"><span class="label">🏫 同好会：</span>${escapeHtml(clubName)}</div>
-          <div class="row"><span class="label">👤 申请身份：</span>${applyRoleText}</div>
-          <div class="row"><span class="label">💬 QQ：</span>${escapeHtml(item.qq_account || '未填写')}</div>
-          <div class="row"><span class="label">🎓 学生：</span>${item.is_student == 1 ? '是' : '否'}</div>
-          <div class="row"><span class="label">⏰ 申请时间：</span>${formatDate(item.joined_at)}</div>
-        </div>
-        <div class="card-actions">
-          ${(item.status || 'pending') === 'pending' ? `
-            <button class="btn btn-approve" onclick="approveMembership(${item.id})">✓ 批准</button>
-            <button class="btn btn-reject" onclick="rejectMembership(${item.id})">✗ 拒绝</button>
-          ` : ''}
-        </div>
-      </div>`;
+    const isPending = (item.status || 'pending') === 'pending';
+    const actions = [];
+    if (isPending) {
+      actions.push({ label: '批准', onclick: `approveMembership(${item.id})`, primary: true });
+      actions.push({ label: '拒绝', onclick: `rejectMembership(${item.id})`, danger: true });
+    }
+    actions.push({ label: '查看用户信息', onclick: `showMembershipModal(${item.id}, 'user')` });
+    actions.push({ label: '查看同好会', onclick: `showMembershipModal(${item.id}, 'club')` });
+    return `<div class="review-card ${item.status || 'pending'}" data-type="membership" data-id="${item.id}">
+      <div class="review-card-header">
+        <span class="review-card-title">${escapeHtml(item.username)} &rarr; ${escapeHtml(clubName)}</span>
+        <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+      </div>
+      <div class="review-card-body">
+        <div class="row"><span class="label">同好会</span>${escapeHtml(clubName)}</div>
+        <div class="row"><span class="label">申请身份</span>${applyRoleText}</div>
+        <div class="row"><span class="label">QQ</span>${escapeHtml(item.qq_account || '未填写')}</div>
+        <div class="row"><span class="label">学生</span>${item.is_student == 1 ? '是' : '否'}</div>
+        <div class="row"><span class="label">申请时间</span>${formatDate(item.joined_at)}</div>
+      </div>
+      <div class="review-card-actions">${buildInlineActions(actions)}</div>
+    </div>`;
   }).join('');
-  updateStats(membershipPending);
 }
 
-function statusText(status) {
-  return status === 'approved' ? '✅ 已通过' : status === 'rejected' ? '❌ 已拒绝' : '⏳ 待审核';
+function renderFeedbackReviewCards() {
+  const filtered = getFilteredData(feedbackItems, 'submitted_at');
+  const container = document.getElementById('reviewListContainer');
+  updateReviewStats(feedbackItems);
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无反馈</div></div>';
+    return;
+  }
+  container.innerHTML = filtered.map(item => {
+    const isPending = (item.status || 'pending') === 'pending';
+    const actions = [];
+    if (isPending) {
+      actions.push({ label: '标记已处理', onclick: `markFeedbackStatus(${item.id}, 'approved')`, primary: true });
+      actions.push({ label: '暂不处理', onclick: `markFeedbackStatus(${item.id}, 'rejected')` });
+    }
+    if (item.page_url) actions.push({ label: '打开相关页面', onclick: `window.open('${escapeHtml(item.page_url)}','_blank')` });
+    if (item.contact) actions.push({ label: '联系反馈者', onclick: `showSubmitterModal('feedback', ${item.id})` });
+    actions.push({ label: '查看设备信息', onclick: `showFeedbackDeviceModal(${item.id})` });
+    actions.push({ label: '删除反馈', onclick: `deleteFeedbackItem(${item.id})`, danger: true });
+    return `<div class="review-card ${item.status || 'pending'}" data-type="feedback" data-id="${item.id}">
+      <div class="review-card-header">
+        <span class="review-card-title">${escapeHtml(item.title)}</span>
+        <span class="badge badge-${item.status || 'pending'}">${statusText(item.status)}</span>
+      </div>
+      <div class="review-card-body">
+        <div class="row"><span class="label">类型</span>${item.type === 'bug' ? 'Bug 反馈' : item.type === 'feature' ? '功能建议' : '其他'}</div>
+        <div class="row"><span class="label">提交时间</span>${formatDate(item.submitted_at)}</div>
+        ${item.contact ? `<div class="row"><span class="label">联系方式</span>${escapeHtml(item.contact)}</div>` : ''}
+        ${item.device ? `<div class="row"><span class="label">设备环境</span>${escapeHtml(item.device)}</div>` : ''}
+        ${item.page_url ? `<div class="row"><span class="label">相关页面</span><a href="${escapeHtml(item.page_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.page_url)}</a></div>` : ''}
+        <div class="row" style="margin-top:6px;white-space:pre-wrap;"><span class="label">说明</span>${escapeHtml(item.content)}</div>
+      </div>
+      <div class="review-card-actions">${buildInlineActions(actions)}</div>
+    </div>`;
+  }).join('');
 }
 
-function updateStats(data) {
-  const pending = data.filter(s => (s.status || 'pending') === 'pending').length;
-  const approved = data.filter(s => s.status === 'approved').length;
-  document.getElementById('statPending').textContent = pending;
-  document.getElementById('statApproved').textContent = approved;
-  document.getElementById('statTotal').textContent = data.length;
+/* ================================================================
+   USER MANAGEMENT (needs api/users.php)
+   ================================================================ */
+function loadUsers() {
+  const tbody = document.getElementById('usersTableBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">加载中...</td></tr>';
+  const search = (document.getElementById('userSearch')?.value || '').trim();
+  const role = document.getElementById('userRoleFilter')?.value || 'all';
+  const qs = 'page=1&per_page=100&search=' + encodeURIComponent(search) + '&role=' + encodeURIComponent(role === 'all' ? '' : role);
+  Promise.all([
+    fetch('../api/users.php?action=stats', { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ success: false })),
+    fetch('../api/users.php?action=list&' + qs, { credentials: 'same-origin' }).then(r => r.json()).catch(() => ({ success: false }))
+  ]).then(function(results) {
+    const statsData = results[0];
+    const listData = results[1];
+    if (statsData.success && statsData.stats) {
+      const s = statsData.stats;
+      document.getElementById('kpiTotalUsers').textContent = s.total ?? '—';
+      document.getElementById('kpiAdmins').textContent = ((s.super_admins || 0) + (s.managers || 0)) || '—';
+      document.getElementById('kpiMembers').textContent = s.members ?? '—';
+      document.getElementById('kpiBanned').textContent = s.banned ?? '—';
+    }
+    if (!listData.success) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">' + escapeHtml(listData.message || '加载用户失败') + '</td></tr>';
+      return;
+    }
+    const users = listData.users || [];
+    if (!users.length) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">暂无用户</td></tr>';
+      return;
+    }
+    const meId = currentUser ? currentUser.id : 0;
+    tbody.innerHTML = users.map(function(u) {
+      const roleLabel = roleText(u.display_role || u.role);
+      const statusLabel = u.status === 'banned' ? '已封禁' : u.status === 'disabled' ? '已禁用' : '正常';
+      const statusColor = u.status === 'banned' ? 'var(--color-danger)' : u.status === 'disabled' ? 'var(--color-warning)' : 'var(--color-success)';
+      const roleOptions = ['visitor', 'member', 'manager', 'representative', 'super_admin'].map(function(r) {
+        return '<option value="' + r + '"' + (u.role === r ? ' selected' : '') + '>' + roleText(r) + '</option>';
+      }).join('');
+      const selfActions = u.id === meId
+        ? '<span class="text-muted" style="font-size:11px;">当前账号</span>'
+        : (u.status === 'banned'
+            ? '<button class="btn btn-ghost btn-sm" onclick="unbanUser(' + u.id + ')">解封</button>'
+            : '<button class="btn btn-danger btn-sm" onclick="banUser(' + u.id + ')">封禁</button>');
+      return '<tr>' +
+        '<td><strong>' + escapeHtml(u.nickname || u.username || '未知') + '</strong><br><span class="text-muted" style="font-size:11px;">@' + escapeHtml(u.username || '') + ' · ID ' + u.id + '</span></td>' +
+        '<td><select onchange="updateUserRole(' + u.id + ', this.value)" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:6px;background:var(--color-surface-alt);color:var(--color-text);font-size:12px;">' + roleOptions + '</select></td>' +
+        '<td>' + escapeHtml(u.email || '—') + '</td>' +
+        '<td><span style="color:' + statusColor + ';">' + statusLabel + '</span></td>' +
+        '<td>' + escapeHtml(formatDate(u.created_at) || '—') + '</td>' +
+        '<td>' + selfActions + '</td>' +
+      '</tr>';
+    }).join('');
+  });
 }
 
-// ====== Tab 切换与加载 ======
-const FILTERS = { club: 'all', event: 'all', publication: 'all', membership: 'pending', feedback: 'all' };
+function filterUsers() { loadUsers(); }
 
-async function loadCurrentTab() {
-  await loadClubNames();
-  const container = document.getElementById('listContainer');
-  container.innerHTML = '<div class="empty">加载中...</div>';
-
-  if (currentTab === 'club') {
-    await loadClubSubmissions();
-    renderClubTab(FILTERS.club);
-  } else if (currentTab === 'event') {
-    await loadEventSubmissions();
-    renderEventTab(FILTERS.event);
-  } else if (currentTab === 'publication') {
-    await loadPublicationSubmissions();
-    renderPublicationTab(FILTERS.publication);
-  } else if (currentTab === 'membership') {
-    await loadMembershipData();
-    renderMembershipTab(FILTERS.membership);
-  } else if (currentTab === 'feedback') {
-    await loadFeedbackItems();
-    renderFeedbackTab(FILTERS.feedback);
+async function updateUserRole(userId, role) {
+  try {
+    const r = await fetch('../api/users.php?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id: userId, role: role })
+    });
+    const data = await r.json();
+    showToast(data.message || (data.success ? '角色已更新' : '更新失败'), data.success ? 'success' : 'error');
+    if (data.success) loadUsers();
+  } catch (e) {
+    showToast('网络错误，更新失败', 'error');
   }
 }
 
-function switchTab(tab) {
-  currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  loadCurrentTab();
+async function banUser(userId) {
+  if (!confirm('确定封禁该用户吗？封禁后该账号将无法登录。')) return;
+  try {
+    const r = await fetch('../api/users.php?action=delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id: userId })
+    });
+    const data = await r.json();
+    showToast(data.message || (data.success ? '已封禁' : '操作失败'), data.success ? 'success' : 'error');
+    if (data.success) loadUsers();
+  } catch (e) {
+    showToast('网络错误，封禁失败', 'error');
+  }
 }
 
-// ====== 全站公告 ======
-function escapeAnnounceHtml(str) { if (!str) return ''; return String(str).replace(/[&<>"]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : '&quot;'; }); }
+async function unbanUser(userId) {
+  try {
+    const r = await fetch('../api/users.php?action=update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ id: userId, status: 'active' })
+    });
+    const data = await r.json();
+    showToast(data.message || (data.success ? '已解封' : '操作失败'), data.success ? 'success' : 'error');
+    if (data.success) loadUsers();
+  } catch (e) {
+    showToast('网络错误，解封失败', 'error');
+  }
+}
 
-var typeLabels = { info: '信息', warning: '警告', important: '重要', update: '更新' };
-var typeBadge = { info: 'type-badge-info', warning: 'type-badge-warning', important: 'type-badge-important', update: 'type-badge-update' };
-var statusBadge = { draft: 'status-badge-draft', published: 'status-badge-published' };
-var statusTextMap = { draft: '草稿', published: '已发布' };
-var borderClass = { info: 'type-info', warning: 'type-warning', important: 'type-important', update: 'type-update' };
+/* ================================================================
+   CLUB OVERVIEW
+   ================================================================ */
+let clubCountryFilter = 'all';
 
-// 实时预览
-document.getElementById('announceTitle').addEventListener('input', updatePreview);
-document.getElementById('announceContent').addEventListener('input', updatePreview);
-document.getElementById('announceType').addEventListener('change', updatePreview);
-function updatePreview() {
-  var title = document.getElementById('announceTitle').value.trim();
-  var content = document.getElementById('announceContent').value.trim();
-  var type = document.getElementById('announceType').value;
-  var preview = document.getElementById('announcePreview');
+async function loadClubsOverview() {
+  await loadClubNames();
+  await loadClubMemberCounts();
+  document.getElementById('kpiCnClubs').textContent = clubRowsCn.length;
+  document.getElementById('kpiJpClubs').textContent = clubRowsJp.length;
+  document.getElementById('kpiAllClubs').textContent = clubRowsCn.length + clubRowsJp.length;
+  const totalMembers = [...clubRowsCn, ...clubRowsJp].reduce((sum, c) => sum + (c.member_count || 0), 0);
+  document.getElementById('kpiClubMembers').textContent = totalMembers || '—';
+  renderClubsTable();
+}
+
+async function loadClubMemberCounts() {
+  try {
+    const r = await fetch('../api/membership.php?action=club_member_counts', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.success || !data.counts) return;
+    clubRowsCn.forEach(c => { c.member_count = data.counts[c.id + ':china'] || 0; });
+    clubRowsJp.forEach(c => { c.member_count = data.counts[c.id + ':japan'] || 0; });
+  } catch (e) {
+    // 保持 member_count 为空，表格显示 '—'
+  }
+}
+
+function switchClubCountry(country) {
+  clubCountryFilter = country;
+  document.querySelectorAll('#module-clubs .chip[data-country]').forEach(c =>
+    c.classList.toggle('active', c.dataset.country === country));
+  renderClubsTable();
+}
+
+function filterClubs() { renderClubsTable(); }
+
+function renderClubsTable() {
+  let allClubs = [];
+  if (clubCountryFilter !== 'japan') {
+    clubRowsCn.forEach(c => allClubs.push({ ...c, country: 'china' }));
+  }
+  if (clubCountryFilter !== 'china') {
+    clubRowsJp.forEach(c => allClubs.push({ ...c, country: 'japan' }));
+  }
+
+  const search = (document.getElementById('clubSearch')?.value || '').toLowerCase();
+  if (search) {
+    allClubs = allClubs.filter(c =>
+      (c.name || '').toLowerCase().includes(search) ||
+      (c.school || '').toLowerCase().includes(search) ||
+      (c.display_name || '').toLowerCase().includes(search));
+  }
+
+  const tbody = document.getElementById('clubsTableBody');
+  if (allClubs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">暂无同好会数据</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allClubs.map(c => {
+    const flag = c.country === 'japan' ? 'JP' : 'CN';
+    const members = c.member_count != null ? c.member_count : '—';
+    const type = c.type === 'school' ? '校内' : c.type === 'region' ? '地区' : 'VNFest';
+    const region = c.country === 'japan' ? (c.prefecture || '') : (c.province || '');
+    const clubName = escapeHtml(c.name || c.display_name || '');
+    return `<tr>
+      <td><strong>${clubName}</strong></td>
+      <td>${escapeHtml(c.school || region || '')}</td>
+      <td>${flag}</td>
+      <td>${escapeHtml(type)}</td>
+      <td>${members}</td>
+      <td>
+        <div class="dropdown" id="clubDrop${c.id}">
+          <button class="dropdown-trigger" onclick="toggleDropdown('clubDrop${c.id}')">
+            管理<svg viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 1l4 4 4-4"/></svg>
+          </button>
+          <div class="dropdown-menu">
+            <button class="dropdown-item" onclick="clubAction(${c.id},'${c.country}','view')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="3"/><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z"/></svg>
+              查看详情
+            </button>
+            <button class="dropdown-item" onclick="clubAction(${c.id},'${c.country}','edit')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-9 9H2v-3z"/></svg>
+              编辑信息
+            </button>
+            <button class="dropdown-item" onclick="clubAction(${c.id},'${c.country}','members')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-4 5-4s5 1.2 5 4"/><circle cx="11" cy="5" r="2"/><path d="M11 9c2 0 4 1 4 3"/></svg>
+              查看成员
+            </button>
+            <button class="dropdown-item" onclick="clubAction(${c.id},'${c.country}','events')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="12" height="11" rx="1.5"/><path d="M2 7h12M5 1v4M11 1v4"/></svg>
+              查看活动
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item danger" onclick="clubAction(${c.id},'${c.country}','delete')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M6 4V2h4v2M5 4v9h6V4"/></svg>
+              删除同好会
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function toggleDropdown(id) {
+  const el = document.getElementById(id);
+  const wasOpen = el.classList.contains('open');
+  document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  if (!wasOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dropdown')) {
+    document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+});
+
+function clubAction(id, country, action) {
+  document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  const nameMap = country === 'japan' ? clubNameMapJp : clubNameMapCn;
+  const name = nameMap[id] || ('同好会 #' + id);
+  switch (action) {
+    case 'view':
+      window.location.href = 'club_manager.html?id=' + id + '&country=' + country;
+      break;
+    case 'edit':
+      window.location.href = 'club_manager.html?id=' + id + '&country=' + country + '&edit=1';
+      break;
+    case 'members':
+      openClubMembersModal(id, country, name);
+      break;
+    case 'events':
+      showToast(name + ' — 活动列表需要 api/events.php?club_id=' + id, 'success');
+      break;
+    case 'delete':
+      if (confirm('确定要删除「' + name + '」吗？此操作不可撤销。')) {
+        showToast('删除操作需要后端确认，请联系开发', 'error');
+      }
+      break;
+  }
+}
+
+async function openClubMembersModal(id, country, name) {
+  document.getElementById('infoModalTitle').textContent = '查看成员 — ' + name;
+  document.getElementById('infoModalBody').innerHTML = '<div class="empty-state">加载成员列表...</div>';
+  document.getElementById('infoModalFooter').innerHTML = '<button class="btn btn-ghost" onclick="closeInfoModal()">关闭</button>';
+  document.getElementById('infoModal').style.display = 'flex';
+  try {
+    const r = await fetch('../api/membership.php?action=members&club_id=' + id + '&country=' + encodeURIComponent(country), { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.success) {
+      document.getElementById('infoModalBody').innerHTML = '<div class="empty-state">' + escapeHtml(data.message || '加载成员失败') + '</div>';
+      return;
+    }
+    const members = data.members || [];
+    if (!members.length) {
+      document.getElementById('infoModalBody').innerHTML = '<div class="empty-state">暂无成员</div>';
+      return;
+    }
+    document.getElementById('infoModalBody').innerHTML = '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>用户</th><th>角色</th><th>加入时间</th></tr></thead><tbody>' +
+      members.map(function(m) {
+        const mName = m.nickname || m.username || '未知';
+        const mRole = roleText(m.role || 'member');
+        return '<tr><td><strong>' + escapeHtml(mName) + '</strong></td><td>' + escapeHtml(mRole) + '</td><td>' + escapeHtml(formatDate(m.joined_at) || '—') + '</td></tr>';
+      }).join('') + '</tbody></table></div>';
+  } catch (e) {
+    document.getElementById('infoModalBody').innerHTML = '<div class="empty-state">加载成员列表失败</div>';
+  }
+}
+
+/* ================================================================
+   ANNOUNCEMENTS (preserved + enhanced)
+   ================================================================ */
+async function loadAnnouncements() {
+  try {
+    const r = await fetch('../api/announcements.php?action=list', { credentials: 'same-origin' });
+    const data = await r.json();
+    if (!data.success) { showToast(data.message || '加载失败', 'error'); return; }
+    renderAnnouncements(data.announcements || []);
+  } catch { showToast('网络错误', 'error'); }
+}
+
+function renderAnnouncements(list) {
+  document.getElementById('announceCount').textContent = '共 ' + list.length + ' 条';
+  const container = document.getElementById('announceList');
+  if (list.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon" style="font-size:24px;opacity:0.3;">--</div><div class="empty-text">暂无公告</div></div>';
+    return;
+  }
+  container.innerHTML = list.map(a => {
+    const typeCls = borderClassMap[a.type] || 'type-info';
+    const tBadge = typeBadgeMap[a.type] || 'type-badge-info';
+    const sBadge = statusBadgeMap[a.status] || 'status-badge-draft';
+    const sText = statusTextMap[a.status] || a.status;
+    const persistentTag = a.is_persistent == 1 ? '<span class="persistent-tag">长期</span>' : '';
+    const dateStr = a.published_at || a.created_at || '';
+    const dateDisplay = dateStr ? dateStr.split(' ')[0] : '';
+    // inline action buttons (no dropdown)
+    let actions = '';
+    if (a.status === 'draft') {
+      actions += '<button class="action-btn primary" onclick="publishAnnouncement(' + a.id + ')">发布</button> ';
+    }
+    actions += '<button class="action-btn" onclick="navigator.clipboard.writeText(\'' + escapeHtml(a.content || '').replace(/'/g, "\\'") + '\').then(function(){showToast(\'已复制\',\'success\')}).catch(function(){showToast(\'复制失败\',\'error\')})">复制</button> ';
+    actions += '<button class="action-btn danger" onclick="deleteAnnouncement(' + a.id + ')">删除</button>';
+    let contentPreview = renderAdminMarkdown((a.content || '').slice(0, 200));
+    return `<div class="announce-card ${typeCls}">
+      <div class="card-left">
+        <div class="card-top">
+          <span class="card-title">${escapeHtml(a.title)}</span>
+          <span class="type-badge ${tBadge}">${typeLabels[a.type] || a.type}</span>
+          <span class="status-badge ${sBadge}">${sText}</span>
+          ${persistentTag}
+          <span class="card-time">${dateDisplay}</span>
+        </div>
+        <div class="card-content-preview">${contentPreview}</div>
+      </div>
+      <div class="announce-actions">${actions}</div>
+    </div>`;
+  }).join('');
+}
+
+// Announce preview
+document.getElementById('announceTitle').addEventListener('input', updateAnnouncePreview);
+document.getElementById('announceContent').addEventListener('input', updateAnnouncePreview);
+document.getElementById('announceType').addEventListener('change', updateAnnouncePreview);
+function updateAnnouncePreview() {
+  const title = document.getElementById('announceTitle').value.trim();
+  const content = document.getElementById('announceContent').value.trim();
+  const type = document.getElementById('announceType').value;
+  const preview = document.getElementById('announcePreview');
   if (!title && !content) { preview.style.display = 'none'; return; }
   preview.style.display = '';
-  preview.style.borderLeftColor = ({info:'#3b82f6', warning:'#f59e0b', important:'#ef4444', update:'#10b981'})[type] || '#3b82f6';
+  preview.style.borderLeftColor = ({info:'var(--color-primary)', warning:'var(--color-warning)', important:'var(--color-danger)', update:'var(--color-success)'})[type] || 'var(--color-primary)';
   document.getElementById('previewTitle').textContent = title || '（无标题）';
-  document.getElementById('previewContent').textContent = content || '（无内容）';
+  document.getElementById('previewContent').innerHTML = content ? renderAdminMarkdown(content) : '（无内容）';
 }
 
-// Toggle 开关
+// Toggle
 document.getElementById('announcePersistent').addEventListener('click', function() { this.classList.toggle('on'); });
 
-// 切换公告区
-document.getElementById('announceBtn').addEventListener('click', function() {
-  document.getElementById('reviewContent').style.display = 'none';
-  document.getElementById('announceSection').classList.add('visible');
-  this.classList.add('active');
-  loadAnnouncements();
-});
-document.getElementById('announceCloseBtn').addEventListener('click', function() {
-  document.getElementById('announceSection').classList.remove('visible');
-  document.getElementById('announceBtn').classList.remove('active');
-  document.getElementById('reviewContent').style.display = '';
-  resetAnnounceForm();
-});
+async function saveAnnounceDraft() {
+  const btn = document.getElementById('announceSaveDraft');
+  if (btn.disabled) return;
+  const title = document.getElementById('announceTitle').value.trim();
+  const content = document.getElementById('announceContent').value.trim();
+  if (!title || !content) { showToast('标题和内容不能为空', 'error'); return; }
+  const type = document.getElementById('announceType').value;
+  const isPersistent = document.getElementById('announcePersistent').classList.contains('on') ? 1 : 0;
+  const url = '../api/announcements.php?action=' + (editingAnnounceId ? 'update' : 'create');
+  const body = { title, content, type, is_persistent: isPersistent };
+  if (editingAnnounceId) body.id = editingAnnounceId;
+  btn.disabled = true;
+  btn.textContent = '保存中...';
+  try {
+    const r = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await r.json();
+    if (data.success) { showToast('草稿已保存', 'success'); loadAnnouncements(); resetAnnounceForm(); }
+    else { showToast(data.message || '保存失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '保存草稿'; }
+}
+
+async function publishAnnounceDirect() {
+  const btn = document.getElementById('announcePublish');
+  if (btn.disabled) return;
+  const title = document.getElementById('announceTitle').value.trim();
+  const content = document.getElementById('announceContent').value.trim();
+  if (!title || !content) { showToast('标题和内容不能为空', 'error'); return; }
+  const type = document.getElementById('announceType').value;
+  const isPersistent = document.getElementById('announcePersistent').classList.contains('on') ? 1 : 0;
+  btn.disabled = true;
+  btn.textContent = '发布中...';
+  try {
+    // Create first
+    const cr = await fetch('../api/announcements.php?action=create', {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, content, type, is_persistent: isPersistent })
+    });
+    const cd = await cr.json();
+    if (!cd.success) { showToast(cd.message || '创建失败', 'error'); return; }
+    // Then publish
+    const pr = await fetch('../api/announcements.php?action=publish', {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: cd.id || cd.announcement?.id })
+    });
+    const pd = await pr.json();
+    if (pd.success) {
+      showToast('公告已发布，已通知 ' + (pd.notified || 0) + ' 位用户', 'success');
+      resetAnnounceForm();
+      loadAnnouncements();
+    } else { showToast(pd.message || '发布失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+  finally { btn.disabled = false; btn.textContent = '发布公告'; }
+}
+
+async function publishAnnouncement(id) {
+  if (!confirm('确定发布这条公告吗？发布后将推送给所有活跃用户。')) return;
+  try {
+    const r = await fetch('../api/announcements.php?action=publish', {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    });
+    const data = await r.json();
+    if (data.success) {
+      showToast('公告已发布，已通知 ' + (data.notified || 0) + ' 位用户', 'success');
+      loadAnnouncements(); resetAnnounceForm();
+    } else { showToast(data.message || '发布失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
+
+async function deleteAnnouncement(id) {
+  if (!confirm('确定删除这条公告吗？')) return;
+  try {
+    const r = await fetch('../api/announcements.php?action=delete', {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id })
+    });
+    const data = await r.json();
+    if (data.success) { showToast('公告已删除', 'success'); loadAnnouncements(); }
+    else { showToast(data.message || '删除失败', 'error'); }
+  } catch { showToast('网络错误', 'error'); }
+}
 
 function resetAnnounceForm() {
   editingAnnounceId = null;
@@ -1127,111 +2601,234 @@ function resetAnnounceForm() {
   document.getElementById('announceContent').value = '';
   document.getElementById('announcePersistent').classList.add('on');
   document.getElementById('announcePreview').style.display = 'none';
-  document.getElementById('announcePublish').textContent = '📢 发布公告';
-  document.getElementById('announceSaveDraft').textContent = '💾 保存草稿';
 }
 
-// 加载历史公告
-async function loadAnnouncements() {
+/* ================================================================
+   OPERATION LOGS (needs api/admin_logs.php)
+   ================================================================ */
+function loadLogs() {
+  const tbody = document.getElementById('logsTableBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">加载中...</td></tr>';
+  const type = document.getElementById('logTypeFilter')?.value || 'all';
+  const dateFrom = document.getElementById('logDateFrom')?.value || '';
+  const dateTo = document.getElementById('logDateTo')?.value || '';
+  const qs = 'action=list&page=1&per_page=100&type=' + encodeURIComponent(type) +
+    '&date_from=' + encodeURIComponent(dateFrom) + '&date_to=' + encodeURIComponent(dateTo);
+  fetch('../api/admin_logs.php?' + qs, { credentials: 'same-origin' })
+    .then(r => r.json())
+    .then(function(data) {
+      if (!data.success) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">' + escapeHtml(data.message || '加载日志失败') + '</td></tr>';
+        return;
+      }
+      const logs = data.logs || [];
+      if (!logs.length) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">暂无操作日志</td></tr>';
+        return;
+      }
+      tbody.innerHTML = logs.map(function(l) {
+        const operator = l.nickname || l.username || ('用户#' + (l.user_id != null ? l.user_id : '?'));
+        return '<tr>' +
+          '<td>' + escapeHtml(l.created_at || '—') + '</td>' +
+          '<td>' + escapeHtml(operator) + '</td>' +
+          '<td>' + escapeHtml(logTypeLabel(l.action)) + '</td>' +
+          '<td>' + translateLogAction(l.action, l.details) + '</td>' +
+          '<td>' + escapeHtml(l.action) + '</td>' +
+          '<td>' + formatLogDetail(l) + '</td>' +
+        '</tr>';
+      }).join('');
+    })
+    .catch(function() {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:40px;">加载操作日志失败</td></tr>';
+    });
+}
+
+function filterLogs() { loadLogs(); }
+
+function logTypeLabel(action) {
+  const a = String(action || '');
+  if (/^(galonly|review)\./.test(a)) return '审核操作';
+  if (/^(user|users)\./.test(a)) return '用户管理';
+  if (/^(membership|club|club_moe_king|star_union)\./.test(a) ||
+      ['generate_club_code', 'revoke_club_code', 'redeem_club_code', 'delete_club_comment', 'add_recommendation'].indexOf(a) !== -1) {
+    return '同好会操作';
+  }
+  if (/^announce/.test(a)) return '公告管理';
+  return '系统操作';
+}
+
+const LOG_ACTION_LABELS = [
+  [/^user\.register/, '新用户注册'],
+  [/^user\.change_avatar/, '修改头像'],
+  [/^user\.bind_discord/, '绑定 Discord'],
+  [/^user\.bind_qq/, '绑定 QQ'],
+  [/^users\.ban/, '封禁用户'],
+  [/^users\.update/, '修改用户信息'],
+  [/^membership\.application_email_notification/, '发送审批通知邮件'],
+  [/^membership\.update_application_email_recipient/, '修改申请邮件接收人'],
+  [/^membership\.reapply/, '重新提交同好会绑定申请'],
+  [/^membership\.apply$/, '提交同好会绑定申请'],
+  [/^membership\.approve/, '批准同好会绑定申请'],
+  [/^membership\.reject/, '拒绝同好会绑定申请'],
+  [/^membership\.leave/, '退出同好会'],
+  [/^membership\.kick/, '移出同好会成员'],
+  [/^membership\.change_role/, '修改同好会成员角色'],
+  [/^membership\.transfer/, '转移同好会负责人'],
+  [/^membership\./, '同好会成员操作'],
+  [/^galonly\.submit_staff/, '提交 Staff 申请'],
+  [/^galonly\.update_staff$/, '修改 Staff 申请'],
+  [/^galonly\.delete_staff_application/, '删除 Staff 申请'],
+  [/^galonly\.vote_staff/, 'Staff 审核投票'],
+  [/^galonly\.withdraw_staff_vote/, '撤回 Staff 审核投票'],
+  [/^galonly\.finalize_staff_roster/, '确认 Staff 名单'],
+  [/^galonly\.unlock_staff_roster/, '解锁 Staff 名单'],
+  [/^galonly\.update_staff_event_config/, '修改 Staff 活动配置'],
+  [/^galonly\.submit$/, '提交摊位申请'],
+  [/^galonly\.update_application/, '修改摊位申请'],
+  [/^galonly\.delete_application/, '删除摊位申请'],
+  [/^galonly\.add_event/, '新增 GalOnly 活动'],
+  [/^galonly\.delete_event/, '删除 GalOnly 活动'],
+  [/^galonly\.update_event/, '修改 GalOnly 活动'],
+  [/^galonly\./, 'GalOnly 活动操作'],
+  [/^generate_club_code/, '生成同好会绑定码'],
+  [/^revoke_club_code/, '作废同好会绑定码'],
+  [/^redeem_club_code/, '使用绑定码加入同好会'],
+  [/^delete_club_comment/, '删除同好会评论'],
+  [/^club_moe_king\./, '设置同好会萌王'],
+  [/^add_recommendation/, '添加同好会推荐'],
+  [/^club\.toggle_visibility/, '切换同好会显示状态'],
+  [/^star_union\./, '高校联合操作'],
+  [/^vote_/, '投票活动操作'],
+  [/^announce/, '公告管理操作'],
+  [/^review\./, '审核操作'],
+  [/^bot\./, 'Bot 接入操作']
+];
+
+function translateLogAction(action, details) {
+  const a = String(action || '');
+  let label = '—';
+  for (const pair of LOG_ACTION_LABELS) {
+    if (pair[0].test(a)) { label = pair[1]; break; }
+  }
+  let extra = '';
+  if (details) {
+    try {
+      const d = JSON.parse(details);
+      if (a === 'membership.change_role' && d.old_role && d.new_role) {
+        extra = '（' + roleText(d.old_role) + ' → ' + roleText(d.new_role) + '）';
+      } else if (a === 'galonly.vote_staff' && d.vote) {
+        extra = '（' + (d.vote === 'approve' ? '通过' : '拒绝') + '）';
+      } else if (a === 'users.update' && Array.isArray(d.updated_fields) && d.updated_fields.length) {
+        extra = '（' + d.updated_fields.join('、') + '）';
+      }
+    } catch (e) { /* 保持原始说明 */ }
+  }
+  return escapeHtml(label + extra);
+}
+
+function formatLogDetail(l) {
+  if (!l.details) return '<span class="text-muted">—</span>';
+  let text = l.details;
   try {
-    var r = await fetch('../api/announcements.php?action=list', { credentials: 'same-origin' });
-    var data = await r.json();
-    if (!data.success) { showToast(data.message || '加载失败', 'error'); return; }
-    renderAnnouncements(data.announcements || []);
-  } catch { showToast('网络错误', 'error'); }
+    const parsed = JSON.parse(text);
+    text = JSON.stringify(parsed);
+  } catch (e) { /* keep raw */ }
+  const shown = text.length > 120 ? text.slice(0, 120) + '…' : text;
+  return '<span title="' + escapeHtml(l.details) + '">' + escapeHtml(shown) + '</span>';
 }
 
-function renderAnnouncements(list) {
-  document.getElementById('announceCount').textContent = '共 ' + list.length + ' 条';
-  var container = document.getElementById('announceList');
-  if (list.length === 0) { container.innerHTML = '<div class="empty-state">暂无公告</div>'; return; }
-  container.innerHTML = list.map(function(a) {
-    var typeCls = borderClass[a.type] || 'type-info';
-    var tBadge = typeBadge[a.type] || 'type-badge-info';
-    var sBadge = statusBadge[a.status] || 'status-badge-draft';
-    var sText = statusTextMap[a.status] || a.status;
-    var persistentTag = a.is_persistent == 1 ? '<span class="persistent-tag" style="margin-left:4px;">📌 长期</span>' : '';
-    var dateStr = a.published_at || a.created_at || '';
-    var dateDisplay = dateStr ? dateStr.split(' ')[0] : '';
-    var actions = '';
-    if (a.status === 'draft') {
-      actions = '<button class="btn-publish-sm" onclick="publishAnnouncement(' + a.id + ')">发布</button> <button class="btn-delete-sm" onclick="deleteAnnouncement(' + a.id + ')">🗑️</button>';
-    } else {
-      actions = '<button class="btn-delete-sm" onclick="deleteAnnouncement(' + a.id + ')">🗑️</button>';
-    }
-    var contentPreview = escapeAnnounceHtml((a.content || '').replace(/<[^>]*>/g, '').slice(0, 120));
-    if ((a.content || '').length > 120) contentPreview += '…';
-    return '<div class="announce-card ' + typeCls + '">' +
-      '<div class="card-left">' +
-      '<div class="card-top">' +
-      '<span class="card-title">' + escapeAnnounceHtml(a.title) + '</span>' +
-      '<span class="type-badge ' + tBadge + '">' + (typeLabels[a.type] || a.type) + '</span>' +
-      '<span class="status-badge ' + sBadge + '">' + sText + '</span>' +
-      persistentTag +
-      '<span class="card-time">' + dateDisplay + '</span>' +
-      '</div>' +
-      '<div class="card-content-preview">' + contentPreview + '</div>' +
-      '</div>' +
-      '<div class="card-right">' + actions + '</div></div>';
-  }).join('');
+/* ================================================================
+   DATA EXPORT
+   ================================================================ */
+function exportData(module, format) {
+  let data = [];
+  let filename = '';
+
+  if (module === 'reviews') {
+    data = [
+      ...clubSubmissions.map(s => ({ type: '同好会', name: s.name, status: s.status || 'pending', date: s.submitted_at, submitter: s.submitter })),
+      ...eventSubmissions.map(s => ({ type: '活动', name: s.event, status: s.status || 'pending', date: s.submitted_at, submitter: s.submitter })),
+      ...publicationSubmissions.map(s => ({ type: '企划', name: s.publicationName, status: s.status || 'pending', date: s.submitted_at, submitter: s.clubName })),
+      ...feedbackItems.map(s => ({ type: '反馈', name: s.title, status: s.status || 'pending', date: s.submitted_at, submitter: s.contact || '' }))
+    ];
+    filename = 'vnfest_reviews';
+  } else if (module === 'clubs') {
+    data = [
+      ...clubRowsCn.map(c => ({ name: c.name, school: c.school, country: '中国', province: c.province, type: c.type, verified: c.verified ? '是' : '否' })),
+      ...clubRowsJp.map(c => ({ name: c.name, school: c.school, country: '日本', province: c.prefecture, type: c.type, verified: c.verified ? '是' : '否' }))
+    ];
+    filename = 'vnfest_clubs';
+  } else if (module === 'feedback') {
+    data = feedbackItems.map(f => ({ title: f.title, type: f.type, status: f.status || 'pending', content: f.content, contact: f.contact, date: f.submitted_at }));
+    filename = 'vnfest_feedback';
+  } else if (module === 'announcements') {
+    showToast('正在加载公告数据...', 'success');
+    fetch('../api/announcements.php?action=list', { credentials: 'same-origin' })
+      .then(r => r.json())
+      .then(d => {
+        const annData = (d.announcements || []).map(a => ({
+          title: a.title, type: a.type, status: a.status, content: (a.content || '').slice(0, 200),
+          persistent: a.is_persistent ? '是' : '否', date: a.published_at || a.created_at
+        }));
+        downloadExport(annData, 'vnfest_announcements', format);
+      })
+      .catch(() => showToast('加载公告数据失败', 'error'));
+    return;
+  }
+
+  downloadExport(data, filename, format);
 }
 
-// 保存草稿
-document.getElementById('announceSaveDraft').addEventListener('click', async function() {
-  var title = document.getElementById('announceTitle').value.trim();
-  var content = document.getElementById('announceContent').value.trim();
-  if (!title || !content) { showToast('标题和内容不能为空', 'error'); return; }
-  var type = document.getElementById('announceType').value;
-  var isPersistent = document.getElementById('announcePersistent').classList.contains('on') ? 1 : 0;
-  var url = '../api/announcements.php?action=' + (editingAnnounceId ? 'update' : 'create');
-  var body = { title: title, content: content, type: type, is_persistent: isPersistent };
-  if (editingAnnounceId) body.id = editingAnnounceId;
-  try {
-    var r = await fetch(url, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    var data = await r.json();
-    if (data.success) { showToast('💾 草稿已保存', 'success'); loadAnnouncements(); }
-    else { showToast(data.message || '保存失败', 'error'); }
-  } catch { showToast('网络错误', 'error'); }
+function downloadExport(data, filename, format) {
+  if (data.length === 0) { showToast('暂无数据可导出', 'error'); return; }
+
+  let content, mimeType, ext;
+  if (format === 'json') {
+    content = JSON.stringify(data, null, 2);
+    mimeType = 'application/json';
+    ext = 'json';
+  } else {
+    // CSV
+    const headers = Object.keys(data[0]);
+    const rows = data.map(row => headers.map(h => {
+      const val = String(row[h] || '').replace(/"/g, '""');
+      return `"${val}"`;
+    }).join(','));
+    content = '\uFEFF' + headers.join(',') + '\n' + rows.join('\n'); // BOM for Excel
+    mimeType = 'text/csv;charset=utf-8';
+    ext = 'csv';
+  }
+
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filename}_${new Date().toISOString().split('T')[0]}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast(`已导出 ${data.length} 条记录 (${format.toUpperCase()})`, 'success');
+}
+
+/* ================================================================
+   MOBILE SIDEBAR
+   ================================================================ */
+document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+});
+document.getElementById('sidebarOverlay').addEventListener('click', function() {
+  document.getElementById('sidebar').classList.remove('open');
+  this.classList.remove('show');
 });
 
-// 发布公告
-async function publishAnnouncement(id) {
-  if (!confirm('确定发布这条公告吗？发布后将推送给所有活跃用户。')) return;
-  try {
-    var r = await fetch('../api/announcements.php?action=publish', {
-      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id })
-    });
-    var data = await r.json();
-    if (data.success) {
-      showToast('✅ 公告已发布，已通知 ' + (data.notified || 0) + ' 位用户', 'success');
-      loadAnnouncements();
-      resetAnnounceForm();
-    } else { showToast(data.message || '发布失败', 'error'); }
-  } catch { showToast('网络错误', 'error'); }
-}
-
-// 删除公告
-async function deleteAnnouncement(id) {
-  if (!confirm('确定删除这条公告吗？')) return;
-  try {
-    var r = await fetch('../api/announcements.php?action=delete', {
-      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: id })
-    });
-    var data = await r.json();
-    if (data.success) { showToast('🗑️ 公告已删除', 'success'); loadAnnouncements(); }
-    else { showToast(data.message || '删除失败', 'error'); }
-  } catch { showToast('网络错误', 'error'); }
-}
-
-// ====== 初始化 ======
-document.getElementById('tabBar').addEventListener('click', e => {
-  const btn = e.target.closest('.tab-btn');
-  if (btn) switchTab(btn.dataset.tab);
-});
-
+/* ================================================================
+   INITIALIZATION
+   ================================================================ */
 (async () => {
   if (await checkAuth()) {
-    loadCurrentTab();
+    loadDashboard();
   }
 })();
 </script>

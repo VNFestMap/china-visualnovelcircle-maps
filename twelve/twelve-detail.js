@@ -57,11 +57,12 @@
   }
 
   function loadProject(projectId) {
+    ensureClubNamesLoaded();
     api('../api/twelve_contests.php?action=get&project_id=' + projectId).then(function (data) {
       if (!data || !data.data) { renderEmpty('活动不存在'); return; }
       STATE.project = data.data;
       $('mdContestTitle').textContent = data.data.title;
-      $('mdInfoClub').textContent = '同好会 #' + esc(data.data.club_id);
+      $('mdInfoClub').textContent = resolveClubName(data.data.club_id, data.data.country);
       loadStages(projectId);
     }).catch(function () {
       renderEmpty('加载失败，请刷新重试');

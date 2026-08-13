@@ -23,11 +23,14 @@
   let hubClubs = [];
   let hubFilterType = 'all';
   let hubFilterStatus = 'all';
+  let hubFilterPanelOpen = false;
   let hubSelectedId = null;
   let hubSelectedTab = 'overview';
   let loading = false;
   let hubProjectsLoadedAt = 0;
   let hubProjectsRequest = null;
+  let hubSelectionToken = 0;
+  let hubEventsBound = false;
 
   function esc(value) {
     if (window.Utils && typeof window.Utils.escapeHTML === 'function') return window.Utils.escapeHTML(value);
@@ -38,9 +41,24 @@
     return window.Utils && typeof window.Utils.resolveMediaUrl === 'function' ? window.Utils.resolveMediaUrl(value) : String(value || '');
   }
 
+  function vnIconHtml(name, className) {
+    const safeName = String(name || '').replace(/[^a-z0-9-]/gi, '');
+    const extraClass = className ? ' ' + String(className).replace(/[^a-z0-9_ -]/gi, '') : '';
+    return '<span class="vn-icon' + extraClass + '" aria-hidden="true"><svg><use href="#vn-icon-' + safeName + '"></use></svg></span>';
+  }
+
   function apiUrl(url, params) {
     const query = new URLSearchParams(params || {});
     return query.toString() ? url + '?' + query.toString() : url;
+  }
+
+  function projectId(value) {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  }
+
+  function sameProjectId(left, right) {
+    return projectId(left) === projectId(right);
   }
 
   async function request(url, options) {
@@ -191,7 +209,7 @@
   }
 
   function itemIcon(type) {
-    return ({ submission: '✎', registration: '◈', collaboration: '⚒', survey: '☰', voting: '○', other: '·' })[type] || '·';
+    return ({ submission: 'pen', registration: 'check', collaboration: 'gear', survey: 'list', voting: 'spark', other: 'link' })[type] || 'link';
   }
 
   async function loadHubProjects(force) {
@@ -248,7 +266,7 @@
       const type = projectTypeClass(project);
       const status = project.status || 'draft';
       return `
-        <button class="hub-card${project.id === hubSelectedId ? ' selected' : ''}" type="button" data-id="${esc(project.id)}">
+        <button class="hub-card${sameProjectId(project.id, hubSelectedId) ? ' selected' : ''}" type="button" data-id="${esc(project.id)}">
           <span class="hc-top">
             <span class="hc-top-left"><span class="hc-title">${esc(project.title || '未命名企划')}</span></span>
             <span class="hc-top-right">
@@ -269,34 +287,108 @@
 
   function renderHubShell() {
     renderHubList();
-    document.querySelectorAll('#hubTypeFilterBar .hub-filter-type').forEach((btn) => btn.classList.toggle('active', btn.dataset.type === hubFilterType));
-    document.querySelectorAll('#hubStatusFilterBar .hub-filter-status').forEach((btn) => btn.classList.toggle('active', btn.dataset.status === hubFilterStatus));
+    document.querySelectorAll('#hubTypeFilterBar .hub-filter-type').forEach((btn) => {
+      const active = btn.dataset.type === hubFilterType;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    document.querySelectorAll('#hubStatusFilterBar .hub-filter-status').forEach((btn) => {
+      const active = btn.dataset.status === hubFilterStatus;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+    const summary = document.getElementById('hubFilterSummary');
+    if (summary) {
+      const typeText = hubFilterType === 'all' ? '全部类型' : (TYPE_SHORT[hubFilterType] || '其他');
+      const statusText = hubFilterStatus === 'all' ? '全部状态' : (STATUS_MAP[hubFilterStatus] || '未知状态');
+      summary.textContent = typeText + ' · ' + statusText;
+    }
+  }
+
+  function setHubFilterPanelOpen(open, restoreFocus) {
+    const panel = document.getElementById('hubFilterPanel');
+    const toggle = document.getElementById('hubFilterToggle');
+    const backdrop = document.getElementById('hubFilterBackdrop');
+    if (!panel || !toggle) return;
+    hubFilterPanelOpen = Boolean(open);
+    panel.hidden = !hubFilterPanelOpen;
+    panel.classList.toggle('open', hubFilterPanelOpen);
+    toggle.classList.toggle('active', hubFilterPanelOpen);
+    toggle.setAttribute('aria-expanded', hubFilterPanelOpen ? 'true' : 'false');
+    if (backdrop) backdrop.hidden = !hubFilterPanelOpen;
+    if (!hubFilterPanelOpen && restoreFocus) toggle.focus();
+  }
+
+  function resetHubFilters() {
+    const changed = hubFilterType !== 'all' || hubFilterStatus !== 'all';
+    hubFilterType = 'all';
+    hubFilterStatus = 'all';
+    if (changed) handleHubFilterChange();
+    else renderHubShell();
+  }
+
+  function getHubBody() {
+    return document.querySelector('#hubModal .hub-body');
+  }
+
+  function leaveHubDetailMode() {
+    const body = getHubBody();
+    if (body) body.classList.remove('hub-show-detail');
+  }
+
+  function clearHubDetail() {
+    const detail = document.getElementById('hubDetailContent');
+    const empty = document.getElementById('hubDetailEmpty');
+    if (detail) detail.innerHTML = '';
+    if (empty) empty.style.display = '';
+  }
+
+  function resetHubSelection() {
+    hubSelectedId = null;
+    hubSelectedTab = 'overview';
+    hubSelectionToken += 1;
+    leaveHubDetailMode();
+    clearHubDetail();
+    document.querySelectorAll('#hubProjectList .hub-card').forEach((card) => card.classList.remove('selected'));
+  }
+
+  function handleHubFilterChange() {
+    resetHubSelection();
+    renderHubShell();
   }
 
   async function selectHubProject(projectId) {
-    hubSelectedId = parseInt(projectId);
+    const selectedId = String(projectId || '');
+    if (!selectedId) return;
+    hubSelectedId = selectedId;
     hubSelectedTab = 'overview';
-    renderHubShell();
+    const selectionToken = ++hubSelectionToken;
+    // Targeted update: set selected class explicitly on each card (no full list rebuild)
+    document.querySelectorAll('#hubProjectList .hub-card').forEach((card) => {
+      const isSelected = sameProjectId(card.dataset.id, selectedId);
+      card.classList[isSelected ? 'add' : 'remove']('selected');
+    });
     const detail = document.getElementById('hubDetailContent');
     const empty = document.getElementById('hubDetailEmpty');
     if (empty) empty.style.display = 'none';
     if (detail) detail.innerHTML = '<div class="hub-detail-loading">加载详情...</div>';
     try {
-      await Promise.all([loadHubItems(hubSelectedId), loadHubParticipants(hubSelectedId)]);
+      await Promise.all([loadHubItems(selectedId), loadHubParticipants(selectedId)]);
+      if (selectionToken !== hubSelectionToken || !sameProjectId(hubSelectedId, selectedId)) return;
       renderHubDetail();
       if (window.innerWidth <= 768) {
-        const body = document.querySelector('.hub-body');
+        const body = getHubBody();
         if (body) body.classList.add('hub-show-detail');
       }
     } catch (error) {
+      if (selectionToken !== hubSelectionToken || !sameProjectId(hubSelectedId, selectedId)) return;
       if (detail) detail.innerHTML = '<div class="hub-detail-error">' + esc(error.message) + '</div>';
     }
   }
 
   function goBackHubList() {
-    const body = document.querySelector('.hub-body');
-    if (body) body.classList.remove('hub-show-detail');
-    hubSelectedId = null;
+    resetHubSelection();
+    renderHubShell();
   }
 
   function tabButton(tab, label) {
@@ -305,7 +397,7 @@
 
   function renderHubDetail() {
     const detail = document.getElementById('hubDetailContent');
-    const project = hubProjects.find((p) => parseInt(p.id) === parseInt(hubSelectedId));
+    const project = hubProjects.find((p) => sameProjectId(p.id, hubSelectedId));
     if (!detail || !project) return;
     const type = projectTypeClass(project);
     const status = project.status || 'draft';
@@ -372,7 +464,7 @@
           const type = itemTypeClass(item);
           const closed = item.status === 'closed';
           return `<div class="item-card">
-            <div class="item-icon ${esc(type)}">${esc(itemIcon(type))}</div>
+            <div class="item-icon ${esc(type)}">${vnIconHtml(itemIcon(type))}</div>
             <div class="item-body">
               <div class="item-label">${esc(item.label || ITEM_LABEL[type])}</div>
               <div class="item-desc">${esc(item.description || '')}</div>
@@ -420,29 +512,34 @@
   async function openHubModal() {
     const modal = document.getElementById('hubModal');
     if (!modal) return;
+    closeHubFormModal();
+    setHubFilterPanelOpen(false);
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     loading = !hubProjects.length;
+    leaveHubDetailMode();
+    clearHubDetail();
     renderHubShell();
     try {
       await loadHubProjects();
       loading = false;
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
-        hubSelectedId = null;
+        resetHubSelection();
         renderHubShell();
-        const body = document.querySelector('.hub-body');
-        if (body) body.classList.remove('hub-show-detail');
       } else {
-        if (!hubSelectedId || !hubProjects.some((p) => parseInt(p.id) === parseInt(hubSelectedId))) {
-          const first = filteredProjects()[0] || hubProjects[0];
-          hubSelectedId = first ? parseInt(first.id) : null;
+        const filtered = filteredProjects();
+        if (!hubSelectedId || !filtered.some((p) => sameProjectId(p.id, hubSelectedId))) {
+          const first = filtered[0];
+          hubSelectedId = first ? projectId(first.id) : null;
         }
         renderHubShell();
         if (hubSelectedId) await selectHubProject(hubSelectedId);
+        else clearHubDetail();
       }
     } catch (error) {
       loading = false;
+      resetHubSelection();
       const list = document.getElementById('hubProjectList');
       if (list) list.innerHTML = '<div class="hub-detail-error">' + esc(error.message) + '</div>';
     }
@@ -451,6 +548,9 @@
   function closeHubModal() {
     const modal = document.getElementById('hubModal');
     if (!modal) return;
+    closeHubFormModal();
+    setHubFilterPanelOpen(false);
+    leaveHubDetailMode();
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
   }
@@ -666,7 +766,7 @@
   }
 
   function openHubParticipationForm(itemId) {
-    const project = hubProjects.find((p) => parseInt(p.id) === parseInt(hubSelectedId));
+    const project = hubProjects.find((p) => sameProjectId(p.id, hubSelectedId));
     const item = hubItems.find((it) => it.id === itemId);
     const formatType = item ? itemTypeClass(item) : null;
     const isSubmission = formatType === 'submission';
@@ -710,7 +810,7 @@
   }
 
   async function deleteCurrentProject() {
-    const project = hubProjects.find((p) => parseInt(p.id) === parseInt(hubSelectedId));
+    const project = hubProjects.find((p) => sameProjectId(p.id, hubSelectedId));
     if (!project || !confirm('确定删除「' + (project.title || '未命名企划') + '」吗？')) return;
     await request(API.projects, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ph_method: 'DELETE', id: project.id }) });
     hubProjectsLoadedAt = 0;
@@ -724,22 +824,36 @@
   }
 
   function bindHubEvents() {
+    if (hubEventsBound) return;
+    hubEventsBound = true;
     document.getElementById('hubModalClose')?.addEventListener('click', closeHubModal);
-    document.getElementById('hubModal')?.addEventListener('click', (event) => { if (event.target === event.currentTarget) closeHubModal(); });
+    document.getElementById('hubModal')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) {
+        closeHubModal();
+        return;
+      }
+      const panel = document.getElementById('hubFilterPanel');
+      const toggle = document.getElementById('hubFilterToggle');
+      if (hubFilterPanelOpen && panel && toggle && !panel.contains(event.target) && !toggle.contains(event.target)) {
+        setHubFilterPanelOpen(false);
+      }
+    });
     document.getElementById('hubCreateBtn')?.addEventListener('click', () => openHubCreateForm());
+    document.getElementById('hubFilterToggle')?.addEventListener('click', () => setHubFilterPanelOpen(!hubFilterPanelOpen));
+    document.getElementById('hubFilterBackdrop')?.addEventListener('click', () => setHubFilterPanelOpen(false, true));
+    document.getElementById('hubFilterReset')?.addEventListener('click', resetHubFilters);
+    document.getElementById('hubFilterDone')?.addEventListener('click', () => setHubFilterPanelOpen(false, true));
     document.getElementById('hubTypeFilterBar')?.addEventListener('click', (event) => {
       const btn = event.target.closest('[data-type]');
       if (!btn) return;
       hubFilterType = btn.dataset.type;
-      hubSelectedId = null;
-      renderHubShell();
+      handleHubFilterChange();
     });
     document.getElementById('hubStatusFilterBar')?.addEventListener('click', (event) => {
       const btn = event.target.closest('[data-status]');
       if (!btn) return;
       hubFilterStatus = btn.dataset.status;
-      hubSelectedId = null;
-      renderHubShell();
+      handleHubFilterChange();
     });
     document.getElementById('hubProjectList')?.addEventListener('click', (event) => {
       const card = event.target.closest('[data-id]');
@@ -755,7 +869,7 @@
       const actionEl = event.target.closest('[data-hub-action]');
       if (!actionEl) return;
       const action = actionEl.dataset.hubAction;
-      const project = hubProjects.find((p) => parseInt(p.id) === parseInt(hubSelectedId));
+      const project = hubProjects.find((p) => sameProjectId(p.id, hubSelectedId));
       try {
         if (action === 'participate') openHubParticipationForm(actionEl.dataset.itemId);
         if (action === 'edit-project') openHubCreateForm(project);
@@ -769,20 +883,29 @@
       }
     });
     document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') {
-        closeHubFormModal();
-        closeHubModal();
-      }
+      if (event.key !== 'Escape') return;
+      const hubModal = document.getElementById('hubModal');
+      const formModal = document.getElementById('hubFormModal');
+      if (formModal?.classList.contains('open')) closeHubFormModal();
+      else if (hubFilterPanelOpen) setHubFilterPanelOpen(false, true);
+      else if (hubModal?.classList.contains('open')) closeHubModal();
     });
   }
 
   window.openHubModal = openHubModal;
   window.closeHubModal = closeHubModal;
   window.openHubCreateForm = openHubCreateForm;
-  document.addEventListener('DOMContentLoaded', function () {
+
+  function initHubModule() {
     bindHubEvents();
     const prefetch = () => loadHubProjects().catch(() => {});
     if ('requestIdleCallback' in window) window.requestIdleCallback(prefetch, { timeout: 2500 });
     else window.setTimeout(prefetch, 1200);
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initHubModule, { once: true });
+  } else {
+    initHubModule();
+  }
 })();

@@ -12,6 +12,10 @@ const ROLE_HIERARCHY = [
 
 function initSession(): void {
     if (session_status() === PHP_SESSION_NONE) {
+        // 7 天：与 makoquiz bind_token 有效期对齐，避免"关了浏览器就丢登录态"
+        $lifetime = 604800;
+        ini_set('session.cookie_lifetime', (string)$lifetime);
+        ini_set('session.gc_maxlifetime', (string)$lifetime);
         ini_set('session.cookie_httponly', '1');
         ini_set('session.cookie_samesite', 'Lax');
         ini_set('session.use_only_cookies', '1');
@@ -30,26 +34,30 @@ function getCurrentUser(): ?array {
     }
 
     $db = getDB();
-    try {
-        $stmt = $db->prepare(
-            'SELECT u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit, u.profile_bio
-             FROM users u
-             WHERE u.id = ? AND u.status = \'active\''
-        );
-        $stmt->execute([$_SESSION['user_id']]);
-        $user = $stmt->fetch();
-    } catch (PDOException $e) {
-        // profile_bio 列尚不存在（迁移未执行），回退到不带该列的查询
-        $stmt = $db->prepare(
-            'SELECT u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit
-             FROM users u
-             WHERE u.id = ? AND u.status = \'active\''
-        );
-        $stmt->execute([$_SESSION['user_id']]);
-        $user = $stmt->fetch();
-        if ($user) {
-            $user['profile_bio'] = '';
+    $user = false;
+    $variants = [
+        'u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit, u.profile_bio, u.membership_application_email_enabled, u.display_membership_id, u.language_preference',
+        'u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit, u.profile_bio, u.membership_application_email_enabled, u.display_membership_id',
+        'u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit, u.profile_bio, u.membership_application_email_enabled',
+        'u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit, u.membership_application_email_enabled',
+        'u.id, u.username, u.nickname, u.avatar_url, u.role, u.status, u.email, u.email_verified_at, u.qq_openid, u.discord_id, u.is_audit',
+    ];
+    foreach ($variants as $columns) {
+        try {
+            $stmt = $db->prepare("SELECT {$columns} FROM users u WHERE u.id = ? AND u.status = 'active'");
+            $stmt->execute([$_SESSION['user_id']]);
+            $user = $stmt->fetch();
+            break;
+        } catch (PDOException $e) {
+            continue;
         }
+    }
+    if ($user) {
+        $user['profile_bio'] = $user['profile_bio'] ?? '';
+        $user['membership_application_email_enabled'] = $user['membership_application_email_enabled'] ?? 1;
+        $user['display_membership_id'] = $user['display_membership_id'] ?? null;
+        $user['language_preference'] = in_array(($user['language_preference'] ?? null), ['zh', 'ja'], true)
+            ? $user['language_preference'] : null;
     }
 
     if (!$user) {

@@ -139,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'id' => $maxId + 1,
         'province' => $provinces[0],
         'provinces' => $provinces,
+        'city' => $input['city'] ?? '',
         'school' => $input['school'] ?? '',
         'name' => $input['name'],
         'display_name' => $input['name'],
@@ -173,6 +174,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
 
     // 权限检查：允许系统管理员或俱乐部级管理员编辑
     $authUser = requireLogin();
+    if (($input['operation'] ?? '') === 'jiangsu_city_bulk' && ($authUser['role'] ?? '') !== 'super_admin') {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => '江苏专项仅超级管理员可用']);
+        exit();
+    }
     $clubId = (int)$input['id'];
     $clubCountry = $input['country'] ?? 'china';
     if ($authUser['role'] !== 'super_admin' && !canManageClubInCountry($authUser, $clubId, $clubCountry)) {
@@ -195,6 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'PUT') {
                 $rows[$i]['province'] = $input['province'];
                 unset($rows[$i]['provinces']);
             }
+            $rows[$i]['city'] = $input['city'] ?? $item['city'] ?? '';
             $rows[$i]['school'] = $input['school'] ?? $item['school'];
             $rows[$i]['name'] = $input['name'] ?? $item['name'];
             $rows[$i]['display_name'] = $input['name'] ?? $item['name'];

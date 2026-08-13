@@ -35,7 +35,7 @@ GitHub Actions 自动构建 Docker 镜像
 cd /www/wwwroot/162.251.93.178
 
 # 克隆代码
-git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git .
+git clone https://github.com/VNFestMap/china-visualnovelcircle-maps.git .
 git checkout main
 
 # 创建配置文件和持久化目录
@@ -98,6 +98,15 @@ location / {
 
 你什么都不用做。约 1-2 分钟后刷新网站即可看到新版本。
 
+用户中心的 `user.html` 会引用带哈希的 `user-v2-assets/index-*.js` 和 `index-*.css`。每次构建必须把 HTML 与对应的两个静态文件一起提交；只发布 HTML 会让 Nginx 对缺失资源返回 404 HTML，浏览器在 `nosniff` 下会报 `NS_ERROR_CORRUPTED_CONTENT`。在 `user-v2-react` 执行 `npm.cmd run build` 会自动同步这两个文件到根目录。发布后可检查：
+
+```bash
+curl -I https://www.map.vnfest.top/user-v2-assets/index-你的哈希.js
+curl -I https://www.map.vnfest.top/user-v2-assets/index-你的哈希.css
+```
+
+成功时 JS 应为 `application/javascript`，CSS 应为 `text/css`，不能是 `text/html` 或 `404`。
+
 ### 手动触发
 
 也可以在 GitHub 仓库页面：
@@ -128,7 +137,7 @@ docker compose up -d
 
 ```bash
 # 克隆
-git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git
+git clone https://github.com/VNFestMap/china-visualnovelcircle-maps.git
 cd china-visualnovelcircle-maps
 
 # 配置（本地用 SQLite，不用配 MySQL）

@@ -50,6 +50,7 @@
       "defaultExpanded": false,
       "navigationScope": "group",
       "articleIds": [
+        "updates/2-1-0",
         "updates/2026-08-13-display-language-preferences",
         "updates/2-0-0",
         "updates/1-7-1",
@@ -121,28 +122,28 @@
                 "Wiki 入口から百科、公開資料庫、本ガイドへ移動します。"
               ]
             },
+            {
+              "type": "tip",
+              "label": "ゲスト利用",
+              "text": "地図と公開情報は登録不要です。参加、投稿、投票、管理が必要な時だけアカウントを作成してください。"
+            }
+          ]
+        },
         {
-          "type": "tip",
-          "label": "ゲスト利用",
-          "text": "地図と公開情報は登録不要です。参加、投稿、投票、管理が必要な時だけアカウントを作成してください。"
-        }
-      ]
-    },
-    {
-      "title": "問題が発生した場合",
-      "blocks": [
-        {
-          "type": "list",
-          "items": [
-            "最新情報が表示されない場合は、ページを再読込し、ネットワーク接続を確認します。",
-            "アカウント、参加資格、同好会への申請については、該当する同好会の代表者へ連絡します。",
-            "サイトの不具合は、メインサイトの「フィードバック」から再現手順と画面画像を送信します。",
-            "フィードバック、Wiki、グループチャットへ、パスワード、セッション情報、Botトークン、その他の機密情報を送信しないでください。"
+          "title": "問題が発生した場合",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "最新情報が表示されない場合は、ページを再読込し、ネットワーク接続を確認します。",
+                "アカウント、参加資格、同好会への申請については、該当する同好会の代表者へ連絡します。",
+                "サイトの不具合は、メインサイトの「フィードバック」から再現手順と画面画像を送信します。",
+                "フィードバック、Wiki、グループチャットへ、パスワード、セッション情報、Botトークン、その他の機密情報を送信しないでください。"
+              ]
+            }
           ]
         }
       ]
-    }
-  ]
     },
     {
       "id": "platform/accounts-and-roles",
@@ -1407,6 +1408,10 @@
             },
             {
               "type": "code",
+              "text": "/gal地图 详情 china:2\n\nchina:2 北京大学GalGame同好会\n学校：北京大学\n国家/地区：中国\n地区：北京\n类型：高校同好会 / 认证：是\n成员数：128\n联系方式：隐藏\n成立/登记：2021-09-12\nWiki：北大GalgameWiki https://wiki.vnfest.top/beida\n萌王：高岭爱花\n关联刊物：北大Galgame同好会刊物 vol.3；Galgame文化交流志"
+            },
+            {
+              "type": "code",
               "text": "/gal地图 galonly\n\nGalOnly 活动概览：\n- 2026 GalOnly 上海（SH2026）（上海 / 2026-12-05）待审摊位 3 / 待审 Staff 5\n查询：/gal地图 galonly 摊位 <活动名>，/gal地图 galonly staff <活动名>，/gal地图 galonly 详情 <申请ID>"
             },
             {
@@ -1575,6 +1580,143 @@
       ]
     },
     {
+      "id": "updates/2-1-0",
+      "product": "VNFest 2.1.0",
+      "audience": "全利用者と運営者",
+      "title": "2.1.0｜フォーラム、スーパー管理コンソール、北京 GalOnly と設定集約",
+      "summary": "2.1.0 では独立フォーラム、スーパー管理コンソール、MakoQuiz 連携、北京 GalOnly 第2回を追加し、言語・テーマ・マップ設定をユーザーセンターへ集約。GalOnly、Wiki、コンテスト、会員、バックエンドの安定性も大幅に強化しました。",
+      "updatedAt": "2026-08-14",
+      "search": [
+        "2.1.0 フォーラム スーパー管理コンソール 北京 GalOnly MakoQuiz 環境設定 言語 テーマ 代表同好会 Wiki 利用ガイド 江蘇 3D 星図 AstrBot"
+      ],
+      "nextId": "updates/2026-08-13-display-language-preferences",
+      "sections": [
+        {
+          "title": "新規モジュール",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "独立フォーラムモジュール（Forum/）を追加し、統一「フォーラム広場」を公開：投稿、返信、いいね、お気に入り、共有、通報、タグ、分類、検索、ページング。本文は Markdown と画像添付に対応し、投稿者は「代表同好会」を表示できます。",
+                "北京 GalOnly（第2回）の大学ブース申請と Staff 募集を追加し、活動ロゴと独立した投稿・審査フローを整備しました。",
+                "MakoQuiz 連携を追加：戦績送信・照会エンドポイント（api/quiz.php）、クロスサイト身分共有と HMAC バインドトークン（api/quiz_auth.php）。",
+                "「代表同好会」表示（includes/display_club.php）を追加：アカウントは正式なアクティブ会籍を一つ選んで公開表示でき、中国/日本で ID を分離します。",
+                "Wiki 利用ガイドシステム（wiki/guide/）を追加：グループナビ、中日二言語、サイト内検索、前後ページ。管理用エディター（admin/wiki_guide_editor.html）も提供。",
+                "3D 星図観測台プロトタイプ（star_map_3d.html）を追加。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "設定・言語・テーマ",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "言語、テーマ、マップ操作反転をユーザーセンターの「環境設定」へ集約し、他の正式ページから重複設定を撤去。",
+                "共通言語ランタイムと静的日本語カタログを追加し、アカウント言語を端末間で同期。未ログイン時はブラウザー言語で表示し、?lang= の一時上書きも維持。",
+                "共通テーマランタイムを追加し、ライト、ダーク、システム連動の三状態と旧テーマキーの自動移行に対応。",
+                "テーマトークン（css/theme-tokens.css）と認証共通スタイル（css/auth-shared.css）を追加し、ログイン画面などの認証 UI を統一。",
+                "トップページと正式ページの重複する言語・テーマ・マップ操作スイッチを整理し、画面復帰時の UI コントラクトを追加。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "GalOnly とイベント",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "上海 GalOnly の Staff 募集、ブース申請、イベント一覧、ポスター、Staff ガイドを全面更新。",
+                "GalOnly 審査画面を Booth／Staff 二モードへ再構築し、応募・投票・審査・配置の全工程に対応。",
+                "GalOnly API（api/galonly.php）を拡張し、イベント・応募・Staff 申請機能を補完。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "管理バックエンド",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "レビュー/審査画面を「スーパー管理コンソール」へ再構築し、審査トレンド、同好会地域分布 Top 12 などの運営ダッシュボードを追加。",
+                "操作ログ API（api/admin_logs.php）を追加し、スーパー管理者のみが管理操作履歴を照会可能。",
+                "同好会管理、刊行物管理、投稿審査、Wiki 編集などの管理画面を更新。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "アカウント・会員・通知",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "認証システムを強化（api/auth.php、login.html、css/auth-shared.css）し、ログイン・登録・OAuth の体験と安全性を向上。",
+                "会員申請にメール通知を追加し、担当者が申請を通知で受け取れます（api/membership.php）。",
+                "サイト内通知の同期処理を更新（api/notifications.php）。",
+                "ユーザーセンター React アプリを更新：代表同好会の選択、環境設定、アカウントページのレイアウト改善。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Wiki と資料",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "Wiki コンテンツと静的ページを全量再生成し、複数校の百科事典エントリを更新（china-*、japan-1 など）。",
+                "資料公開庫のアップロード・管理ページを更新し、wiki.css を改善。",
+                "Wiki トップの「最近の更新」と資料公開庫への導線を更新（wiki/index.json）。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "マップ・コンテスト・ツール",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "江蘇省 13 地級市のサブマップ（js/jiangsu.js）を追加。自己完結のオフライン SVG パスで、外部地図リクエスト不要。",
+                "萌戦、十二器、投票イベントページを小幅更新。",
+                "同好会広場、連合星図、企画ハブの操作と絞り込みを強化（club_square.html、star_map.html、js/project-hub.js）。",
+                "壁紙システムを更新：訪問者用標準壁紙、失敗時フォールバック、ユーザーセンター入口（js/page-background.js）。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "ボット連携",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "AstrBot プラグインを beta0.5 へ更新：GalOnly イベント・応募・Staff 申請の照会/同期を追加（api/bot.php、全サイトキーのみ）。",
+                "同好会管理の Bot 接続ページにプラグインダウンロードボタンと利用説明を追加し、downloads/ に astrbot_plugin_galgamemap_beta0.5.zip を提供。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "開発品質",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "契約・ブラウザーテストを約16本追加し、言語ランタイム、i18n カタログ、表示設定、Wiki 利用ガイド、江蘇都市、会員申請メール、通知同期、企画ハブ絞り込み、ページ i18n 性能、管理コンソールなどを網羅。",
+                "ビルド/同期スクリプトを追加：build-jiangsu-js.mjs、sync-user-v2-assets.mjs、sync-wiki-guide-seed.php。",
+                ".gitignore、.dockerignore、DEPLOY.md などの開発・デプロイ設定を整備。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "updates/2026-08-13-display-language-preferences",
       "product": "VNFest 更新履歴",
       "audience": "全利用者",
@@ -1584,6 +1726,7 @@
       "search": [
         "更新履歴 環境設定 言語 日本語 テーマ マップ操作 壁紙 ユーザーセンター 性能"
       ],
+      "previousId": "updates/2-1-0",
       "nextId": "updates/2-0-0",
       "sections": [
         {

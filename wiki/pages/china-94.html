@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-language"></script>
   <title>江苏大学·玄唐Galgame交流会 - 同好会维基</title>
   <link rel="stylesheet" href="../wiki.css">
 </head>
@@ -13,10 +16,6 @@
     <span>同好会维基</span>
   </header>
   <main class="wiki-page">
-    <nav class="wiki-language-switch" id="wikiLanguageSwitch" aria-label="Language">
-      <a href="?lang=zh" data-wiki-switch-lang="zh">中文</a>
-      <a href="?lang=ja" data-wiki-switch-lang="ja">日本語</a>
-    </nav>
     <article class="wiki-article" data-wiki-lang="zh">
       <h1>江苏大学·玄唐Galgame交流会</h1>
       <aside class="wiki-infobox">
@@ -46,31 +45,35 @@
       <footer class="wiki-footer">最后更新：2026-05-15</footer>
     </article>
     <article class="wiki-article" data-wiki-lang="ja">
-      <h1>江苏大学·玄唐Galgame交流会</h1>
+      <h1>江蘇大学・玄唐Galgame交流会</h1>
       <aside class="wiki-infobox">
-    <div class="wiki-infobox-title">江苏大学·玄唐Galgame交流会</div>
-    <table><tr><th>学校</th><td>江苏大学</td></tr>
-<tr><th>地区</th><td>江苏省</td></tr>
+    <div class="wiki-infobox-title">江蘇大学・玄唐Galgame交流会</div>
+    <table><tr><th>学校</th><td>江蘇大学</td></tr>
+<tr><th>地区</th><td>江苏</td></tr>
 <tr><th>类型</th><td>高校同好会</td></tr>
-<tr><th>成立时间</th><td>2017-11-08 00:00:00</td></tr>
-<tr><th>状态</th><td>已认证</td></tr></table>
+<tr><th>成立时间</th><td>2017-11-08</td></tr>
+<tr><th>状态</th><td>已认证</td></tr>
+<tr><th>地域</th><td>中国・江蘇省</td></tr>
+<tr><th>種別</th><td>大学同好会</td></tr>
+<tr><th>設立日</th><td>2017-11-08</td></tr>
+<tr><th>状態</th><td>認証済み</td></tr></table>
   </aside>
-      <p class="wiki-summary">欢迎来到玄唐 Galgame 交流会</p>
+      <p class="wiki-summary">玄唐Galgame交流会へようこそ。</p>
       <section class="wiki-image-gallery" aria-label="图片"><figure class="wiki-image-card wiki-image-align-center wiki-image-fit-cover" style="--wiki-image-width:100%">
-      <img src="../uploads/china-94/20260515012446_4bb1e888.png?t=1778779486" alt="image (2)" loading="lazy">
-      <figcaption>群Logo</figcaption>
+      <img src="../uploads/china-94/20260515012446_4bb1e888.png?t=1778779486" alt="玄唐Galgame交流会ロゴ" loading="lazy">
+      <figcaption>グループロゴ</figcaption>
     </figure></section>
       <nav class="wiki-toc" aria-label="目录"><div class="wiki-toc-title">目录</div><ol><li><a href="#section-1">概要</a></li></ol></nav>
       
     <section class="wiki-section" id="section-1">
       <h2>概要</h2>
-      <p>交流旮旯心得，帮助旮旯小白。</p>
+      <p>Galgameの感想を共有し、初心者を支援します。</p>
 <p>Bilibili：https://b23.tv/wUM6Rzb</p>
-<p>微信公众号：玄唐观鸟部落</p>
+<p>WeChat公式アカウント：玄唐観鳥部落</p>
 <p>Bangumi：https://chii.in/group/ujsgal</p>
     </section>
   
-      <section class="wiki-section wiki-references"><h2>参考资料</h2><ol><li><a href="../../index.html" target="_blank" rel="noopener noreferrer">Galgame 同好会地图登记资料</a></li></ol></section>
+      <section class="wiki-section wiki-references"><h2>参考资料</h2><ol><li><a href="../../index.html" target="_blank" rel="noopener noreferrer">Galgame同好会マップ登録情報</a></li></ol></section>
       <footer class="wiki-footer">最后更新：2026-05-15</footer>
     </article>
     <article class="wiki-article" hidden>
@@ -104,16 +107,18 @@
   </main>
   <script>
   (function () {
-    var params = new URLSearchParams(window.location.search);
-    var lang = params.get('lang') || localStorage.getItem('language') || 'zh';
-    lang = lang === 'ja' ? 'ja' : 'zh';
-    document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
-    document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
-      node.hidden = node.getAttribute('data-wiki-lang') !== lang;
-    });
-    document.querySelectorAll('[data-wiki-switch-lang]').forEach(function (node) {
-      node.classList.toggle('active', node.getAttribute('data-wiki-switch-lang') === lang);
-    });
+    function applyLanguage() {
+      var lang = window.VNFLanguage && window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
+      document.documentElement.lang = lang === 'ja' ? 'ja' : 'zh-CN';
+      document.querySelectorAll('[data-wiki-lang]').forEach(function (node) {
+        node.hidden = node.getAttribute('data-wiki-lang') !== lang;
+      });
+    }
+    applyLanguage();
+    if (window.VNFLanguage) {
+      window.VNFLanguage.subscribe(applyLanguage);
+      window.VNFLanguage.ready.then(applyLanguage);
+    }
   })();
   </script>
 </body>

@@ -50,6 +50,7 @@
       "defaultExpanded": false,
       "navigationScope": "group",
       "articleIds": [
+        "updates/2-1-0",
         "updates/2026-08-13-display-language-preferences",
         "updates/2-0-0",
         "updates/1-7-1",
@@ -1580,6 +1581,143 @@
       ]
     },
     {
+      "id": "updates/2-1-0",
+      "product": "VNFest 2.1.0",
+      "audience": "所有用户与运营者",
+      "title": "2.1.0｜论坛、超级管理控制台、北京 GalOnly 与偏好集中化",
+      "summary": "2.1.0 新增独立论坛、超级管理控制台、MakoQuiz 答题连携与北京 GalOnly 第二届，并把语言、主题与地图偏好统一收口到用户中心；同时大幅增强 GalOnly、Wiki、赛事、会籍与后端稳定性。",
+      "updatedAt": "2026-08-14",
+      "search": [
+        "2.1.0 论坛 超级管理控制台 北京 GalOnly MakoQuiz 答题 偏好设置 语言 主题 代表同好会 Wiki 使用文档 江苏 3D 星图 AstrBot"
+      ],
+      "nextId": "updates/2026-08-13-display-language-preferences",
+      "sections": [
+        {
+          "title": "新增模块",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "新增独立论坛模块（Forum/），开放统一「论坛广场」：发帖、回复、点赞、收藏、分享、举报、标签、分类、搜索与分页；正文支持 Markdown 与图片附件，作者可展示「代表同好会」身份。",
+                "新增北京 GalOnly（第二届）高校摊位申请与 Staff 招募，配套活动 Logo 与独立投稿、审核流程。",
+                "新增 MakoQuiz 答题连携：战绩回传与查询端点（api/quiz.php）、跨站身份共享与 HMAC 绑定令牌（api/quiz_auth.php）。",
+                "新增「代表同好会」展示（includes/display_club.php）：账号可选一个正式活跃会籍公开展示，中日同编号隔离，用于论坛作者身份等场景。",
+                "新增 Wiki 使用文档系统（wiki/guide/）：分组导航、中日双语内容、站内检索与上一页/下一页，并提供使用文档管理编辑器（admin/wiki_guide_editor.html）。",
+                "新增 3D 星图观测台原型（star_map_3d.html）。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "偏好、语言与主题",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "语言、主题、地图反转操作统一收口到用户中心的「偏好设置」，其他正式页面不再重复提供相同入口。",
+                "新增共享语言运行时与静态日语目录，账号语言跨设备同步，未登录访客按浏览器语言显示，保留 ?lang= 临时覆盖。",
+                "新增共享主题运行时，支持浅色、深色、跟随系统三态，并兼容旧主题键自动迁移。",
+                "新增主题令牌样式（css/theme-tokens.css）与认证共享样式（css/auth-shared.css），统一登录页等认证界面设计。",
+                "首页与正式页面清理重复的语言、主题、地图开关，增加页面恢复时的界面合同清理，避免前进/后退缓存恢复废弃控件。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "GalOnly 与活动",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "上海 GalOnly 的 Staff 招募、摊位申请、活动列表、海报与 Staff 指南页面全面更新。",
+                "GalOnly 审核面板重构为 Booth／Staff 双模式，覆盖报名、投票、审核与排班的完整流程。",
+                "GalOnly 接口（api/galonly.php）扩展，补齐活动、报名与 Staff 申请相关能力。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "管理后台",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "评价/审核页重构为「超级管理控制台」，新增审核趋势、同好会地区分布 Top 12 等运营仪表盘。",
+                "新增操作日志接口（api/admin_logs.php），仅超级管理员可查询管理操作记录。",
+                "同好会管理、刊物管理、投稿审核与 Wiki 编辑等后台页面同步更新。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "账号、会籍与通知",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "认证系统增强（api/auth.php、login.html、css/auth-shared.css），登录、注册与第三方 OAuth 的体验与安全性提升。",
+                "会籍申请新增邮件通知，负责人可收到申请提醒（api/membership.php）。",
+                "站内通知同步逻辑更新（api/notifications.php）。",
+                "用户中心 React 应用更新：代表同好会选择、偏好设置与账户页布局优化。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Wiki 与资料",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "Wiki 内容与静态页面全量重生成，多所学校的百科条目更新（china-*、japan-1 等）。",
+                "资料公开库上传与管理页更新，wiki.css 样式增强。",
+                "Wiki 首页「最近更新」与资料公开库入口更新（wiki/index.json）。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "地图、赛事与工具",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "新增江苏 13 地级市子地图（js/jiangsu.js），自包含离线 SVG 路径，无需外部地图请求。",
+                "萌战、十二器与投票活动页面小步更新。",
+                "同好会广场、联合星图与企划枢纽的交互与筛选增强（club_square.html、star_map.html、js/project-hub.js）。",
+                "壁纸系统更新：访客默认壁纸、失败回退与用户中心入口（js/page-background.js）。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "机器人连携",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "AstrBot 插件升级到 beta0.5：新增 GalOnly 活动、报名与 Staff 申请查询/同步（api/bot.php，仅全站密钥）。",
+                "同好会管理 Bot 接入页新增插件下载按钮与使用说明，downloads/ 提供 astrbot_plugin_galgamemap_beta0.5.zip。"
+              ]
+            }
+          ]
+        },
+        {
+          "title": "工程质量",
+          "blocks": [
+            {
+              "type": "list",
+              "items": [
+                "新增约 16 个契约与浏览器测试脚本，覆盖语言运行时、i18n 目录、显示偏好、Wiki 使用文档、江苏城市、会籍申请邮件、通知同步、项目枢纽筛选、页面 i18n 性能与管理控制台等。",
+                "新增构建/同步脚本：build-jiangsu-js.mjs、sync-user-v2-assets.mjs、sync-wiki-guide-seed.php。",
+                "完善 .gitignore、.dockerignore 与 DEPLOY.md 等工程与部署配置。"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "updates/2026-08-13-display-language-preferences",
       "product": "VNFest 更新记录",
       "audience": "所有用户",
@@ -1589,6 +1727,7 @@
       "search": [
         "更新日志 偏好设置 语言 日语 主题 地图反转 壁纸 用户中心 性能"
       ],
+      "previousId": "updates/2-1-0",
       "nextId": "updates/2-0-0",
       "sections": [
         {

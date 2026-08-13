@@ -7,6 +7,7 @@ require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/../includes/moe.php';
 require_once __DIR__ . '/../includes/twelve.php';
+require_once __DIR__ . '/../Forum/includes/forum_schema.php';
 
 echo "开始创建数据库表... (驱动: " . (defined('DB_DRIVER') ? DB_DRIVER : 'sqlite') . ")\n";
 
@@ -32,6 +33,7 @@ if ($isMysql) {
             avatar_url    VARCHAR(500) DEFAULT '',
             role          VARCHAR(50) NOT NULL DEFAULT 'visitor',
             status        VARCHAR(50) NOT NULL DEFAULT 'active',
+            language_preference VARCHAR(5) NULL DEFAULT NULL,
             created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             last_login_at DATETIME
@@ -48,6 +50,10 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE users ADD COLUMN avatar_updated_at DATETIME");
     $tryAlter("ALTER TABLE users ADD COLUMN nickname VARCHAR(255) DEFAULT '' AFTER username");
     $tryAlter("ALTER TABLE users ADD COLUMN profile_bio VARCHAR(300) DEFAULT ''");
+    $tryAlter("ALTER TABLE users ADD COLUMN membership_application_email_enabled TINYINT(1) NOT NULL DEFAULT 1");
+    $tryAlter("ALTER TABLE users ADD COLUMN display_membership_id INT NULL");
+    $tryAlter("ALTER TABLE users ADD COLUMN language_preference VARCHAR(5) NULL DEFAULT NULL");
+    $tryIndex("CREATE INDEX idx_users_display_membership ON users(display_membership_id)");
 
     $db->exec("
         CREATE TABLE IF NOT EXISTS sessions (
@@ -140,6 +146,7 @@ if ($isMysql) {
             external_club_name VARCHAR(255) DEFAULT '',
             external_club_role VARCHAR(255) DEFAULT '',
             apply_reason TEXT,
+            application_email_enabled TINYINT(1) NOT NULL DEFAULT 1,
             joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
             left_at  DATETIME,
             UNIQUE(user_id, club_id, country),
@@ -266,6 +273,8 @@ if ($isMysql) {
             location          VARCHAR(255) NOT NULL DEFAULT '',
             date              DATE NOT NULL,
             registration_open TINYINT(1) NOT NULL DEFAULT 1,
+            staff_only        TINYINT(1) NOT NULL DEFAULT 0,
+            event_code        VARCHAR(32) NOT NULL DEFAULT '',
             description       TEXT,
             created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
@@ -342,6 +351,8 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_required_count INT NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_registration_open TINYINT(1) NOT NULL DEFAULT 1");
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_roster_finalized TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_only TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN event_code VARCHAR(32) NOT NULL DEFAULT ''");
     echo "[OK] galonly_events Staff 配置列已添加\n";
 
     $db->exec("
@@ -352,19 +363,28 @@ if ($isMysql) {
             cn_name VARCHAR(255) NOT NULL DEFAULT '',
             qq_number VARCHAR(32) NOT NULL DEFAULT '',
             phone_number VARCHAR(32) NOT NULL DEFAULT '',
+            email VARCHAR(255) NOT NULL DEFAULT '',
             club_id INT NOT NULL DEFAULT 0,
             club_country VARCHAR(50) NOT NULL DEFAULT 'china',
             positions TEXT NOT NULL,
             confirm_schedule TINYINT(1) NOT NULL DEFAULT 0,
             is_cosplay TINYINT(1) NOT NULL DEFAULT 0,
+            three_day_available TINYINT(1) NOT NULL DEFAULT 0,
             self_intro TEXT,
+            gender VARCHAR(20) NOT NULL DEFAULT '',
+            staff_experience TINYINT(1) NOT NULL DEFAULT 0,
+            skills TEXT,
             status VARCHAR(20) NOT NULL DEFAULT 'pending',
             voted_by INT DEFAULT NULL,
             vote VARCHAR(20) DEFAULT NULL,
             resubmitted TINYINT(1) NOT NULL DEFAULT 0,
             has_update TINYINT(1) NOT NULL DEFAULT 0,
+            active_key VARCHAR(64) GENERATED ALWAYS AS (
+                CASE WHEN status IN ('pending','pooled') THEN CONCAT(event_id, ':', user_id) ELSE NULL END
+            ) STORED,
             created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY idx_staff_app_active (active_key)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN event_id INT NOT NULL DEFAULT 0");
@@ -372,12 +392,17 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN cn_name VARCHAR(255) NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN qq_number VARCHAR(32) NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN phone_number VARCHAR(32) NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN email VARCHAR(255) NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_id INT NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_country VARCHAR(50) NOT NULL DEFAULT 'china'");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN positions TEXT NULL");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN confirm_schedule TINYINT(1) NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN is_cosplay TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN three_day_available TINYINT(1) NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN self_intro TEXT NULL");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN gender VARCHAR(20) NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN staff_experience TINYINT(1) NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN skills TEXT NULL");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'pending'");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN voted_by INT DEFAULT NULL");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN vote VARCHAR(20) DEFAULT NULL");
@@ -388,6 +413,8 @@ if ($isMysql) {
     $tryIndex("CREATE INDEX idx_staff_app_event ON galonly_staff_applications(event_id)");
     $tryIndex("CREATE INDEX idx_staff_app_user ON galonly_staff_applications(user_id)");
     $tryIndex("CREATE INDEX idx_staff_app_status ON galonly_staff_applications(status)");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN active_key VARCHAR(64) GENERATED ALWAYS AS (CASE WHEN status IN ('pending','pooled') THEN CONCAT(event_id, ':', user_id) ELSE NULL END) STORED");
+    $tryIndex("CREATE UNIQUE INDEX idx_staff_app_active ON galonly_staff_applications(active_key)");
     echo "[OK] galonly_staff_applications 表已创建\n";
 
     $db->exec("
@@ -459,6 +486,28 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url VARCHAR(500) NOT NULL DEFAULT '' AFTER description");
     echo "[OK] galonly_events.image_url 列已添加\n";
 
+    // ===== Makoquiz 答题游戏战绩 =====
+    // rank 是 MySQL 8 保留字，列名用 player_rank；
+    // UNIQUE(room_code, vnfest_user_id, ended_at) 让重试/重复提交在数据库层就去重
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS quiz_results (
+            id             INT AUTO_INCREMENT PRIMARY KEY,
+            vnfest_user_id INT NOT NULL,
+            room_code      VARCHAR(16) NOT NULL,
+            quiz_title     VARCHAR(255) NOT NULL DEFAULT '',
+            player_name    VARCHAR(64) NOT NULL DEFAULT '',
+            score          INT NOT NULL DEFAULT 0,
+            player_rank    INT NOT NULL DEFAULT 0,
+            players_count  INT NOT NULL DEFAULT 0,
+            ended_at       BIGINT NOT NULL,
+            created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_quiz_result (room_code, vnfest_user_id, ended_at),
+            FOREIGN KEY (vnfest_user_id) REFERENCES users(id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+    $tryIndex("CREATE INDEX idx_quiz_results_user ON quiz_results(vnfest_user_id)");
+    echo "[OK] quiz_results 表已创建\n";
+
 } else {
     // ==================== SQLite 建表 ====================
 
@@ -475,6 +524,7 @@ if ($isMysql) {
                           CHECK(role IN ('visitor','member','manager','representative','super_admin')),
             status        TEXT NOT NULL DEFAULT 'active'
                           CHECK(status IN ('active','disabled','banned')),
+            language_preference TEXT NULL,
             created_at    TEXT NOT NULL DEFAULT (datetime('now')),
             updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
             last_login_at TEXT
@@ -492,9 +542,13 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE users ADD COLUMN avatar_updated_at TEXT");
     $tryAlter("ALTER TABLE users ADD COLUMN nickname TEXT DEFAULT ''");
     $tryAlter("ALTER TABLE users ADD COLUMN profile_bio TEXT DEFAULT ''");
+    $tryAlter("ALTER TABLE users ADD COLUMN membership_application_email_enabled INTEGER NOT NULL DEFAULT 1");
+    $tryAlter("ALTER TABLE users ADD COLUMN display_membership_id INTEGER");
+    $tryAlter("ALTER TABLE users ADD COLUMN language_preference TEXT NULL");
 
     $db->exec("CREATE INDEX IF NOT EXISTS idx_users_qq ON users(qq_openid)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_users_discord ON users(discord_id)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_users_display_membership ON users(display_membership_id)");
     $db->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username)");
 
     $db->exec("
@@ -605,6 +659,7 @@ if ($isMysql) {
             external_club_name TEXT DEFAULT '',
             external_club_role TEXT DEFAULT '',
             apply_reason TEXT,
+            application_email_enabled INTEGER NOT NULL DEFAULT 1,
             joined_at   TEXT NOT NULL DEFAULT (datetime('now')),
             left_at     TEXT,
             UNIQUE(user_id, club_id, country)
@@ -724,6 +779,8 @@ if ($isMysql) {
             location          TEXT NOT NULL DEFAULT '',
             date              TEXT NOT NULL,
             registration_open INTEGER NOT NULL DEFAULT 1,
+            staff_only        INTEGER NOT NULL DEFAULT 0,
+            event_code        TEXT NOT NULL DEFAULT '',
             description       TEXT,
             created_at        TEXT NOT NULL DEFAULT (datetime('now'))
         )
@@ -796,6 +853,8 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_required_count INTEGER NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_registration_open INTEGER NOT NULL DEFAULT 1");
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_roster_finalized INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN staff_only INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_events ADD COLUMN event_code TEXT NOT NULL DEFAULT ''");
     echo "[OK] galonly_events Staff 配置列已添加\n";
 
     $db->exec("
@@ -804,14 +863,19 @@ if ($isMysql) {
             event_id INTEGER NOT NULL REFERENCES galonly_events(id),
             user_id INTEGER NOT NULL REFERENCES users(id),
             cn_name TEXT NOT NULL DEFAULT '',
-            qq_number TEXT NOT NULL DEFAULT '',
-            phone_number TEXT NOT NULL DEFAULT '',
-            club_id INTEGER NOT NULL DEFAULT 0,
+                qq_number TEXT NOT NULL DEFAULT '',
+                phone_number TEXT NOT NULL DEFAULT '',
+                email TEXT NOT NULL DEFAULT '',
+                club_id INTEGER NOT NULL DEFAULT 0,
             club_country TEXT NOT NULL DEFAULT 'china',
             positions TEXT NOT NULL DEFAULT '[]',
             confirm_schedule INTEGER NOT NULL DEFAULT 0,
             is_cosplay INTEGER NOT NULL DEFAULT 0,
+            three_day_available INTEGER NOT NULL DEFAULT 0,
             self_intro TEXT,
+            gender TEXT NOT NULL DEFAULT '',
+            staff_experience INTEGER NOT NULL DEFAULT 0,
+            skills TEXT,
             status TEXT NOT NULL DEFAULT 'pending'
                 CHECK(status IN ('pending','pooled','rejected','confirmed')),
             voted_by INTEGER DEFAULT NULL,
@@ -827,12 +891,17 @@ if ($isMysql) {
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN cn_name TEXT NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN qq_number TEXT NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN phone_number TEXT NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN email TEXT NOT NULL DEFAULT ''");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_id INTEGER NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN club_country TEXT NOT NULL DEFAULT 'china'");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN positions TEXT NOT NULL DEFAULT '[]'");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN confirm_schedule INTEGER NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN is_cosplay INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN three_day_available INTEGER NOT NULL DEFAULT 0");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN self_intro TEXT");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN gender TEXT NOT NULL DEFAULT ''");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN staff_experience INTEGER NOT NULL DEFAULT 0");
+    $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN skills TEXT");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN status TEXT NOT NULL DEFAULT 'pending'");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN voted_by INTEGER DEFAULT NULL");
     $tryAlter("ALTER TABLE galonly_staff_applications ADD COLUMN vote TEXT DEFAULT NULL");
@@ -897,6 +966,25 @@ if ($isMysql) {
 
     $tryAlter("ALTER TABLE galonly_events ADD COLUMN image_url TEXT NOT NULL DEFAULT ''");
     echo "[OK] galonly_events.image_url 列已添加\n";
+
+    // ===== Makoquiz 答题游戏战绩 =====
+    $db->exec("
+        CREATE TABLE IF NOT EXISTS quiz_results (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            vnfest_user_id INTEGER NOT NULL REFERENCES users(id),
+            room_code      TEXT NOT NULL,
+            quiz_title     TEXT NOT NULL DEFAULT '',
+            player_name    TEXT NOT NULL DEFAULT '',
+            score          INTEGER NOT NULL DEFAULT 0,
+            player_rank    INTEGER NOT NULL DEFAULT 0,
+            players_count  INTEGER NOT NULL DEFAULT 0,
+            ended_at       INTEGER NOT NULL,
+            created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(room_code, vnfest_user_id, ended_at)
+        )
+    ");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_quiz_results_user ON quiz_results(vnfest_user_id)");
+    echo "[OK] quiz_results 表已创建\n";
 }
 
 moeEnsureSchema($db);
@@ -904,5 +992,59 @@ echo "[OK] moe contest tables ready\n";
 
 twelveEnsureSchema($db);
 echo "[OK] twelve contest tables ready\n";
+
+forumEnsureSchema($db);
+echo "[OK] forum tables and search indexes ready\n";
+
+// ===== 北京视觉小说Only 第二届（摊位与 Staff 并行项目种子）=====
+$stmt = $db->prepare("SELECT id, location, staff_deadline, date, event_code, staff_only FROM galonly_events WHERE name = ?");
+$stmt->execute(['北京视觉小说Only 第二届']);
+$beijingEvent = $stmt->fetch();
+$beijingLocation = '北京市朝阳区 北投购物公园（北京市朝阳区安定路5号院20号楼）';
+$beijingStaffDeadline = '2026-10-01 23:59:59';
+$beijingEventDate = '2026-10-05';
+if (!$beijingEvent) {
+    $db->prepare("INSERT INTO galonly_events
+        (name, location, date, registration_open, description, staff_registration_open, staff_only, event_code, staff_deadline)
+        VALUES (?, ?, ?, 0, ?, 1, 0, 'beijing', ?)")
+        ->execute([
+            '北京视觉小说Only 第二届',
+            $beijingLocation,
+            $beijingEventDate,
+            '北京视觉小说Only第二届正在筹备中~！这是一场由我们视觉小说同好自发筹办的非营利交流活动，希望为北京及周边地区的同好提供一个轻松、友好的线下交流空间。如果你也希望参与一场属于同好的活动，并愿意和我们一起完善它，欢迎加入Staff团队~！',
+            $beijingStaffDeadline,
+        ]);
+    echo "[OK] 北京视觉小说Only 第二届 活动种子已添加\n";
+} else {
+    $updates = [];
+    $params = [];
+    $oldLocation = trim((string)($beijingEvent['location'] ?? ''));
+    if ($oldLocation === '' || $oldLocation === '北京市（场地待定）') {
+        $updates[] = 'location = ?';
+        $params[] = $beijingLocation;
+    }
+    if (empty($beijingEvent['staff_deadline'])) {
+        $updates[] = 'staff_deadline = ?';
+        $params[] = $beijingStaffDeadline;
+    }
+    if ((string)($beijingEvent['date'] ?? '') === '2026-09-19') {
+        $updates[] = 'date = ?';
+        $params[] = $beijingEventDate;
+    }
+    if (strtolower(trim((string)($beijingEvent['event_code'] ?? ''))) !== 'beijing') {
+        $updates[] = 'event_code = ?';
+        $params[] = 'beijing';
+    }
+    if ((int)($beijingEvent['staff_only'] ?? 0) !== 0) {
+        $updates[] = 'staff_only = 0';
+    }
+    if ($updates) {
+        $params[] = (int)$beijingEvent['id'];
+        $db->prepare("UPDATE galonly_events SET " . implode(', ', $updates) . " WHERE id = ?")->execute($params);
+        echo "[OK] 北京视觉小说Only 第二届 活动场地/截止时间已更新\n";
+    } else {
+        echo "[OK] 北京视觉小说Only 第二届 活动已存在，跳过种子\n";
+    }
+}
 
 echo "\n所有数据库表创建完成！\n";

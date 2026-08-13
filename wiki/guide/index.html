@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-account-language"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="VNFest 主站、MakoQuiz 与 GalgameMap AstrBot 插件的统一使用文档。">
+  <title>VNFest 使用文档</title>
+  <link rel="stylesheet" href="../wiki.css">
+  <link rel="stylesheet" href="./guide.css?v=20260813-history">
+</head>
+<body class="guide-body">
+  <header class="guide-header">
+    <div class="guide-header-brand">
+      <a href="../../index.html" class="guide-site-link">VNFest</a>
+      <span aria-hidden="true">/</span>
+      <a href="../index.html" class="guide-site-link" data-i18n="wikiHome">WIKI</a>
+      <span aria-hidden="true">/</span>
+      <strong data-i18n="guideName">使用文档</strong>
+    </div>
+    <div class="guide-header-tools">
+      <a href="../../index.html" data-i18n="backToMap">返回主站</a>
+      <button id="themeToggle" class="guide-icon-button" type="button" aria-label="切换主题" title="切换主题">◐</button>
+      <button id="menuToggle" class="guide-icon-button guide-mobile-only" type="button" aria-label="打开目录">☰</button>
+    </div>
+  </header>
+
+  <div class="guide-app">
+    <aside id="guideSidebar" class="guide-sidebar" aria-label="文档目录">
+      <div class="guide-sidebar-inner">
+        <a class="guide-overview-link" href="#/zh-CN/platform/getting-started">
+          <span class="guide-overview-kicker">VNFest</span>
+          <strong data-i18n="guideName">使用文档</strong>
+          <small data-i18n="guideSubtitle">主站、活动与工具的统一操作说明</small>
+        </a>
+        <label class="guide-search-label" for="guideSearch" data-i18n="searchLabel">搜索文档</label>
+        <input id="guideSearch" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder" placeholder="搜索功能、角色或关键词">
+        <div id="searchResults" class="guide-search-results" hidden></div>
+        <nav id="guideNav" class="guide-nav"></nav>
+      </div>
+    </aside>
+    <button id="sidebarBackdrop" class="guide-sidebar-backdrop" type="button" aria-label="关闭目录"></button>
+
+    <main id="guideMain" class="guide-main" tabindex="-1">
+      <div id="guideLoading" class="guide-state" aria-live="polite">正在加载文档…</div>
+      <article id="guideArticle" class="guide-article" hidden></article>
+      <section id="guideNotFound" class="guide-state" hidden></section>
+    </main>
+
+    <aside id="guideToc" class="guide-toc-wrap" aria-label="本页目录"></aside>
+  </div>
+
+  <div id="guideToast" class="guide-toast" role="status" aria-live="polite"></div>
+  <script src="./guide.js?v=20260813-history"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+:root {
+  --vn-primary: #e74c3c;
+  --vn-primary-strong: #c0392b;
+  --vn-primary-container: #ffebe9;
+  --vn-danger: #c73545;
+  --vn-success: #2d8f63;
+  --vn-warning: #b87d1e;
+  --vn-bg: #f5f5f5;
+  --vn-surface: #ffffff;
+  --vn-surface-raised: #f0f0f0;
+  --vn-surface-muted: #e8e8e8;
+  --vn-text: #1a1a1a;
+  --vn-text-strong: #000000;
+  --vn-text-muted: #666666;
+  --vn-text-soft: #999999;
+  --vn-border: rgba(0, 0, 0, 0.08);
+  --vn-border-strong: rgba(0, 0, 0, 0.14);
+  --vn-shadow: rgba(0, 0, 0, 0.10);
+  --vn-overlay: rgba(0, 0, 0, 0.03);
+  --vn-overlay-hover: rgba(0, 0, 0, 0.06);
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --vn-primary: #ff6b5c;
+  --vn-primary-strong: #e74c3c;
+  --vn-primary-container: #3a1a15;
+  --vn-danger: #f05a68;
+  --vn-success: #57c089;
+  --vn-warning: #e6ac52;
+  --vn-bg: #0f0f10;
+  --vn-surface: #1a1a1c;
+  --vn-surface-raised: #232325;
+  --vn-surface-muted: #2c2c2e;
+  --vn-text: #f0f0f0;
+  --vn-text-strong: #ffffff;
+  --vn-text-muted: #9a9a9a;
+  --vn-text-soft: #6b7280;
+  --vn-border: rgba(255, 255, 255, 0.08);
+  --vn-border-strong: rgba(255, 255, 255, 0.14);
+  --vn-shadow: rgba(0, 0, 0, 0.50);
+  --vn-overlay: rgba(255, 255, 255, 0.04);
+  --vn-overlay-hover: rgba(255, 255, 255, 0.08);
+  color-scheme: dark;
+}
+
+:root {
+  --md-surface: var(--vn-surface);
+  --md-surface-container: var(--vn-bg);
+  --md-surface-container-high: var(--vn-surface-raised);
+  --md-surface-variant: var(--vn-surface-muted);
+  --md-primary: var(--vn-primary);
+  --md-primary-container: var(--vn-primary-container);
+  --md-on-surface: var(--vn-text);
+  --md-on-surface-variant: var(--vn-text-muted);
+  --md-outline: var(--vn-border-strong);
+  --md-outline-variant: var(--vn-border);
+  --md-shadow: var(--vn-shadow);
+  --seed-primary: var(--vn-primary);
+  --seed-primary-dim: var(--vn-primary-strong);
+  --seed-bg: var(--vn-bg);
+  --seed-surface: var(--vn-surface);
+  --seed-surface-2: var(--vn-surface-raised);
+  --seed-surface-3: var(--vn-surface-muted);
+  --seed-text: var(--vn-text);
+  --seed-text-bright: var(--vn-text-strong);
+  --seed-muted: var(--vn-text-muted);
+  --seed-soft: var(--vn-text-soft);
+  --seed-border: var(--vn-border);
+  --seed-border-strong: var(--vn-border-strong);
+  --seed-danger: var(--vn-danger);
+  --seed-green: var(--vn-success);
+  --seed-amber: var(--vn-warning);
+}

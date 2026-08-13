@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ConfigProvider, Layout, Menu, Card, Avatar, Progress, Badge, Tag,
-  Statistic, Button, Input, Upload, Empty, Drawer, Switch,
-  Tooltip, Typography, message, Space, Spin, Alert, Divider,
+  Statistic, Button, Input, Upload, Empty, Drawer, Switch, Select,
+  Tooltip, Typography, message, Space, Spin, Alert, Divider, Segmented, Skeleton,
 } from 'antd';
 import {
   HomeOutlined, SafetyOutlined, TeamOutlined, BellOutlined,
-  MoonOutlined, SunOutlined, LogoutOutlined, EnvironmentOutlined,
+  LogoutOutlined, EnvironmentOutlined,
   CalendarOutlined, CheckOutlined, LockOutlined,
   MailOutlined, UploadOutlined, CameraOutlined,
   MenuOutlined, CopyOutlined, LinkOutlined,
@@ -14,6 +14,8 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons';
 import { buildTheme, darkTokens, lightTokens } from './theme-tokens';
+import zhCN from 'antd/locale/zh_CN';
+import jaJP from 'antd/locale/ja_JP';
 
 const { Sider } = Layout;
 const { Text, Title } = Typography;
@@ -25,6 +27,7 @@ const initialData = {
   user: null,
   memberships: [],
   clubs: [],
+  clubDirectoryAvailability: { china: false, japan: false },
   notifications: [],
   unread: 0,
   pending: [],
@@ -117,6 +120,17 @@ function countryLabel(country) {
   return country === 'japan' ? '日本' : '中国';
 }
 
+function DisplayClubTag({ club, className = '' }) {
+  if (!club?.name || !['china', 'japan'].includes(club.country)) return null;
+  const label = `${club.name} · ${roleLabel(club.role)}`;
+  const fullLabel = `${countryLabel(club.country)}代表同好会：${label}`;
+  return (
+    <Tag className={`vn-display-club-tag ${className}`.trim()} title={fullLabel} aria-label={fullLabel}>
+      {label}
+    </Tag>
+  );
+}
+
 function roleColor(role) {
   return {
     super_admin: '#ff6b5c',
@@ -177,9 +191,23 @@ const quickAccessItems = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [language, setLanguage] = useState(() => (
+    window.VNFLanguage?.getLanguage?.() === 'ja' ? 'ja' : 'zh'
+  ));
+  const [themePreference, setThemePreference] = useState(() => (
+    window.VNFTheme?.getPreference?.() || localStorage.getItem('themePreference') || 'system'
+  ));
   const [isDark, setIsDark] = useState(() => {
-    const saved = localStorage.getItem('vnfest-theme');
-    if (saved) return saved === 'dark';
+    if (window.VNFTheme && typeof window.VNFTheme.getEffectiveTheme === 'function') {
+      return window.VNFTheme.getEffectiveTheme() === 'dark';
+    }
+    const saved = localStorage.getItem('themePreference');
+    if (saved === 'light' || saved === 'dark') return saved === 'dark';
+    const legacy = localStorage.getItem('vnfest-theme');
+    if (legacy === 'light' || legacy === 'dark') {
+      localStorage.setItem('themePreference', legacy);
+      return legacy === 'dark';
+    }
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
   const [isMobile, setIsMobile] = useState(false);
@@ -191,6 +219,7 @@ export default function App() {
 
   const t = isDark ? darkTokens : lightTokens;
   const themeConfig = buildTheme(isDark);
+  const antdLocale = language === 'ja' ? jaJP : zhCN;
   const activeMemberships = data.memberships.filter((m) => m.status === 'active');
   const isManager = canManageClub(data.user, activeMemberships);
   const completion = completionScore(data.user, activeMemberships);
@@ -216,8 +245,8 @@ export default function App() {
         : authMemberships;
 
       const results = await Promise.all([
-        safeGet('./data/clubs.json', { data: [] }),
-        safeGet('./data/clubs_japan.json', { data: [] }),
+        safeGet('./api/clubs.php', { success: false, data: [] }),
+        safeGet('./api/clubs_japan.php', { success: false, data: [] }),
         safeGet('./api/notifications.php?action=count_unread', { success: false, count: 0 }),
         safeGet('./api/notifications.php?action=list&page=1&limit=100', { success: false, notifications: [] }),
         safeGet('./api/events.php?action=registrations', { success: false, registrations: [] }),
@@ -225,10 +254,15 @@ export default function App() {
       ]);
 
       const clubs = normalizeClubList(results[0], 'china').concat(normalizeClubList(results[1], 'japan'));
+      const clubDirectoryAvailability = {
+        china: results[0]?.success !== false && (Array.isArray(results[0]) || Array.isArray(results[0]?.data) || Array.isArray(results[0]?.clubs)),
+        japan: results[1]?.success !== false && (Array.isArray(results[1]) || Array.isArray(results[1]?.data) || Array.isArray(results[1]?.clubs)),
+      };
       const next = {
         user,
         memberships,
         clubs,
+        clubDirectoryAvailability,
         unread: results[2].success ? Number(results[2].count || 0) : 0,
         notifications: Array.isArray(results[3].notifications) ? results[3].notifications : [],
         eventRegistrations: Array.isArray(results[4].registrations) ? results[4].registrations : [],
@@ -264,10 +298,50 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+      return window.VNFTheme.subscribe((detail) => {
+        setIsDark(detail.theme === 'dark');
+        setThemePreference(detail.preference);
+      });
+    }
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    if (!window.VNFLanguage || typeof window.VNFLanguage.subscribe !== 'function') return undefined;
+    const unsubscribe = window.VNFLanguage.subscribe((detail) => {
+      setLanguage(detail?.language === 'ja' ? 'ja' : 'zh');
+    });
+    window.VNFLanguage.ready?.then?.(() => {
+      setLanguage(window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh');
+    });
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      window.PageI18n?.apply?.(document.body);
+      document.title = language === 'ja' ? 'ユーザーセンター - VNFest' : '用户中心 - VNFest';
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [language, activeTab]);
+
+  useEffect(() => {
+    if (window.VNFTheme && typeof window.VNFTheme.apply === 'function') return;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
     document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
-    localStorage.setItem('vnfest-theme', isDark ? 'dark' : 'light');
+    localStorage.setItem('themePreference', isDark ? 'dark' : 'light');
   }, [isDark]);
+
+  const setThemeMode = useCallback((next) => {
+    if (window.VNFTheme && typeof window.VNFTheme.setPreference === 'function') {
+      window.VNFTheme.setPreference(next);
+      return;
+    }
+    localStorage.setItem('themePreference', next);
+    setThemePreference(next);
+    setIsDark(next === 'dark');
+  }, []);
 
   useEffect(() => {
     reloadData();
@@ -297,7 +371,8 @@ export default function App() {
   const actions = useMemo(() => ({
     async logout() {
       await apiGet('./api/auth.php?action=logout').catch(() => null);
-      window.location.href = './index.html?guest=1';
+      // 登出后回到登录页；重新登录后仍返回用户中心
+      window.location.href = loginUrl;
     },
     saveProfile(nickname, profileBio) {
       return runAction(
@@ -319,6 +394,21 @@ export default function App() {
     },
     unbindEmail() {
       return runAction(() => apiPost('./api/auth.php?action=unbind_email'), '邮箱已解绑');
+    },
+    setMembershipApplicationEmailPreference(enabled) {
+      return runAction(
+        () => apiPost('./api/auth.php?action=update_membership_application_email_preference', { enabled }),
+        enabled ? '已开启同好会申请邮件提醒' : '已关闭同好会申请邮件提醒'
+      );
+    },
+    saveDisplayClub(membershipId) {
+      return runAction(
+        () => apiPost('./api/auth.php?action=update_display_club', { membership_id: membershipId }),
+        membershipId == null ? '已取消展示代表同好会' : '代表同好会已更新'
+      );
+    },
+    reload() {
+      return reloadData();
     },
     changePassword(currentPassword, newPassword) {
       return runAction(
@@ -405,6 +495,7 @@ export default function App() {
           items={[
             { key: 'overview', icon: <HomeOutlined />, label: '总览' },
             { key: 'account', icon: <SafetyOutlined />, label: '账户' },
+            { key: 'preferences', icon: <SettingOutlined />, label: '偏好设置' },
             { key: 'clubs', icon: <TeamOutlined />, label: '同好会' },
             {
               key: 'notifications',
@@ -433,7 +524,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <ConfigProvider theme={themeConfig}>
+      <ConfigProvider theme={themeConfig} locale={antdLocale}>
         <div className="vn-loading-screen">
           <Spin size="large" />
           <Text type="secondary">正在连接用户中心后端...</Text>
@@ -444,7 +535,7 @@ export default function App() {
 
   if (error) {
     return (
-      <ConfigProvider theme={themeConfig}>
+      <ConfigProvider theme={themeConfig} locale={antdLocale}>
         <div className="vn-loading-screen">
           <Alert
             type="error"
@@ -459,7 +550,7 @@ export default function App() {
   }
 
   return (
-    <ConfigProvider theme={themeConfig}>
+    <ConfigProvider theme={themeConfig} locale={antdLocale}>
       {contextHolder}
       <Layout style={{ display: 'flex', flexDirection: 'column', height: '100dvh' }}>
         <header className="vn-topbar">
@@ -481,13 +572,6 @@ export default function App() {
           <Space>
             <Tooltip title="刷新数据">
               <Button type="text" icon={<ReloadOutlined />} onClick={() => reloadData({ silent: true })} />
-            </Tooltip>
-            <Tooltip title={isDark ? '切换到浅色' : '切换到深色'}>
-              <Button
-                type="text"
-                icon={isDark ? <SunOutlined /> : <MoonOutlined />}
-                onClick={() => setIsDark((value) => !value)}
-              />
             </Tooltip>
           </Space>
         </header>
@@ -536,11 +620,24 @@ export default function App() {
                 <section className="vn-animate-in" data-component="账户设置" data-od-id="account">
                   <AccountTab
                     user={data.user}
-                    isDark={isDark}
+                    memberships={data.memberships}
+                    clubs={data.clubs}
+                    clubDirectoryAvailability={data.clubDirectoryAvailability}
                     themeTokens={t}
-                    toggleTheme={() => setIsDark((value) => !value)}
                     messageApi={messageApi}
                     actions={actions}
+                    onSwitchTab={handleTabChange}
+                  />
+                </section>
+              )}
+
+              {activeTab === 'preferences' && (
+                <section className="vn-animate-in" data-component="偏好设置" data-od-id="preferences">
+                  <PreferencesTab
+                    language={language}
+                    themePreference={themePreference}
+                    setThemeMode={setThemeMode}
+                    messageApi={messageApi}
                   />
                 </section>
               )}
@@ -614,6 +711,7 @@ function OverviewPage({ data, activeMemberships, isManager, completion, themeTok
                   <Tag>{user.email ? '邮箱已绑定' : '邮箱未绑定'}</Tag>
                   <Tag>{user.qq_bound ? 'QQ 已绑定' : 'QQ 未绑定'}</Tag>
                   <Tag>{user.discord_bound ? 'Discord 已绑定' : 'Discord 未绑定'}</Tag>
+                  <DisplayClubTag club={user.display_club} />
                 </div>
                 <div className="vn-completion">
                   <div className="vn-completion-top">
@@ -832,10 +930,216 @@ function OverviewTab({ memberships, clubs, notifications, eventRegs, events, use
   );
 }
 
-function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, actions }) {
+function PreferencesTab({ language, themePreference, setThemeMode, messageApi }) {
+  const displayPreferences = window.VNFDisplayPreferences;
+  const wallpaperRuntime = window.VNFWallpaper;
+  const [mapInvert, setMapInvert] = useState(() => displayPreferences?.getMapInvert?.() ?? true);
+  const [wallpaperState, setWallpaperState] = useState(() => wallpaperRuntime?.getState?.() || ({
+    status: 'loading', images: [], preference: '__random__', activeUrl: '',
+    authenticated: true, mobileDisabled: false, error: null,
+  }));
+  const [failedImages, setFailedImages] = useState(() => new Set());
+  const [selecting, setSelecting] = useState('');
+  const [languageSaving, setLanguageSaving] = useState(false);
+  const l = useCallback((key, params) => window.VNFLanguage?.t?.(key, params) || key, [language]);
+
+  useEffect(() => displayPreferences?.subscribe?.(setMapInvert), [displayPreferences]);
+  useEffect(() => wallpaperRuntime?.subscribe?.(setWallpaperState), [wallpaperRuntime]);
+
+  const chooseLanguage = async (next) => {
+    if (next === language || languageSaving || !window.VNFLanguage?.setPreference) return;
+    setLanguageSaving(true);
+    try {
+      const result = await window.VNFLanguage.setPreference(next);
+      if (result?.success) messageApi.success(l('preferences.language.saved'));
+      else messageApi.error(result?.error || l('preferences.language.saveFailed'));
+    } catch (error) {
+      messageApi.error(l('preferences.language.saveFailed'));
+    } finally {
+      setLanguageSaving(false);
+    }
+  };
+
+  const chooseWallpaper = async (value) => {
+    if (!wallpaperRuntime?.setPreference || selecting) return;
+    setSelecting(value);
+    try {
+      const result = await wallpaperRuntime.setPreference(value);
+      if (!result?.success) messageApi.error(result?.error || '壁纸应用失败，已恢复之前的设置。');
+    } catch (error) {
+      messageApi.error('壁纸应用失败，已恢复之前的设置。');
+    } finally {
+      setSelecting('');
+    }
+  };
+
+  const markImageFailed = (url) => {
+    setFailedImages((current) => {
+      const next = new Set(current);
+      next.add(url);
+      return next;
+    });
+  };
+
+  const renderGallery = () => {
+    if (!wallpaperRuntime) {
+      return <Alert type="error" showIcon message="壁纸运行时未加载" description="请刷新页面后重试。" />;
+    }
+    if (wallpaperState.status === 'loading') {
+      return (
+        <div className="vn-wallpaper-grid" aria-label="正在加载壁纸">
+          {Array.from({ length: 6 }, (_, index) => <Skeleton.Button key={index} active block className="vn-wallpaper-skeleton" />)}
+        </div>
+      );
+    }
+    if (wallpaperState.status === 'error') {
+      return (
+        <Alert
+          type="error"
+          showIcon
+          message="壁纸列表加载失败"
+          description={wallpaperState.error || '请检查网络后重新加载。'}
+          action={<Button icon={<ReloadOutlined />} onClick={() => wallpaperRuntime.reload()}>重新加载</Button>}
+        />
+      );
+    }
+    if (wallpaperState.status === 'empty') {
+      return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无可选壁纸" />;
+    }
+
+    const options = [
+      { name: '随机壁纸', url: '__random__', random: true },
+      ...wallpaperState.images,
+    ];
+    return (
+      <div className="vn-wallpaper-grid" role="list" aria-busy={!!selecting}>
+        {options.map((item) => {
+          const value = item.random ? '__random__' : item.url;
+          const selected = wallpaperState.preference === value;
+          const unavailable = !item.random && failedImages.has(item.url);
+          return (
+            <button
+              type="button"
+              role="listitem"
+              key={value}
+              className={`vn-wallpaper-option${selected ? ' is-selected' : ''}${unavailable ? ' is-unavailable' : ''}`}
+              aria-label={`${item.name}${selected ? '，当前已选择' : ''}${unavailable ? '，图片不可用' : ''}`}
+              aria-pressed={selected}
+              disabled={unavailable || !!selecting}
+              title={item.name}
+              onClick={() => chooseWallpaper(value)}
+            >
+              <span className="vn-wallpaper-preview">
+                {item.random ? (
+                  <span className="vn-wallpaper-random"><ReloadOutlined /><span>每次随机</span></span>
+                ) : (
+                  <img src={item.url} alt="" loading="lazy" onError={() => markImageFailed(item.url)} />
+                )}
+                {selected && <span className="vn-wallpaper-check" aria-hidden="true"><CheckOutlined /></span>}
+                {selecting === value && <Spin className="vn-wallpaper-spinner" size="small" />}
+              </span>
+              <span className="vn-wallpaper-name">{item.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="vn-preferences-page">
+      <header className="vn-preferences-header">
+        <Title level={2}>偏好设置</Title>
+        <Text type="secondary">{l('preferences.browserOnly')}</Text>
+      </header>
+
+      <div className="vn-preferences-stack">
+        <Card title={l('preferences.language.title')} size="small" bordered={false}>
+          <div className="vn-setting-row vn-setting-row-wide">
+            <div>
+              <strong>{l('preferences.language.title')}</strong>
+              <span>{l('preferences.language.description')}</span>
+            </div>
+            <div className="vn-language-control">
+              <Segmented
+                className="vn-language-segmented"
+                value={language}
+                disabled={languageSaving}
+                onChange={chooseLanguage}
+                aria-label={l('preferences.language.title')}
+                options={[
+                  { label: l('common.chinese'), value: 'zh' },
+                  { label: l('common.japanese'), value: 'ja' },
+                ]}
+              />
+              <Text type="secondary" aria-live="polite">
+                {languageSaving ? l('common.saving') : l('preferences.language.current', {
+                  language: language === 'ja' ? l('common.japanese') : l('common.chinese'),
+                })}
+              </Text>
+            </div>
+          </div>
+        </Card>
+
+        <Card title="外观" size="small" bordered={false}>
+          <div className="vn-setting-row vn-setting-row-wide">
+            <div>
+              <strong>颜色模式</strong>
+              <span>选择浅色、深色，或跟随设备的系统设置。</span>
+            </div>
+            <Segmented
+              className="vn-theme-segmented"
+              value={themePreference}
+              onChange={setThemeMode}
+              aria-label="颜色模式"
+              options={[
+                { label: '浅色', value: 'light' },
+                { label: '深色', value: 'dark' },
+                { label: '跟随系统', value: 'system' },
+              ]}
+            />
+          </div>
+        </Card>
+
+        <Card title="地图操作" size="small" bordered={false}>
+          <div className="vn-setting-row vn-setting-row-wide">
+            <div>
+              <strong>{mapInvert ? '普通点击进入详情' : '普通点击显示地图气泡'}</strong>
+              <span>
+                {mapInvert
+                  ? '已开启反转操作：普通点击进入详情，Ctrl + 点击显示地图气泡。'
+                  : '已关闭反转操作：普通点击显示地图气泡，Ctrl + 点击进入详情。'}
+              </span>
+            </div>
+            <Switch
+              checked={mapInvert}
+              aria-label="切换地图反转操作"
+              onChange={(enabled) => displayPreferences?.setMapInvert?.(enabled)}
+            />
+          </div>
+        </Card>
+
+        <Card title="壁纸" size="small" bordered={false}>
+          <div className="vn-wallpaper-heading">
+            <Text type="secondary">选择后立即应用到支持壁纸的页面。随机壁纸会在每次页面初始化时重新选择。</Text>
+            {wallpaperState.mobileDisabled && (
+              <Alert type="info" showIcon message="你可以在手机上修改选择；壁纸将在支持壁纸的桌面设备上生效。" />
+            )}
+          </div>
+          {renderGallery()}
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+function AccountTab({ user, memberships, clubs, clubDirectoryAvailability, themeTokens, messageApi, actions, onSwitchTab }) {
   const [nickname, setNickname] = useState(user?.nickname || user?.username || '');
   const [bio, setBio] = useState(user?.profile_bio || '');
   const [email, setEmail] = useState(user?.email || '');
+  const [applicationEmailEnabled, setApplicationEmailEnabled] = useState(user?.membership_application_email_enabled !== false);
+  const [displayMembershipId, setDisplayMembershipId] = useState(user?.display_membership_id || null);
+  const [displaySaving, setDisplaySaving] = useState(false);
   const [code, setCode] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -844,10 +1148,39 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
     setNickname(user?.nickname || user?.username || '');
     setBio(user?.profile_bio || '');
     setEmail(user?.email || '');
+    setApplicationEmailEnabled(user?.membership_application_email_enabled !== false);
+    setDisplayMembershipId(user?.display_membership_id || null);
   }, [user]);
+
+  const formalDisplayMemberships = (memberships || []).filter((membership) => (
+    membership.status === 'active'
+    && ['member', 'manager', 'representative'].includes(membership.role)
+  ));
+  const eligibleDisplayMemberships = formalDisplayMemberships.map((membership) => {
+    const club = (clubs || []).find((item) => (
+      Number(item.id) === Number(membership.club_id)
+      && (item.country || 'china') === (membership.country || 'china')
+    ));
+    return club ? { membership, club } : null;
+  }).filter(Boolean);
+  const selectedDisplayEntry = eligibleDisplayMemberships.find(({ membership }) => (
+    Number(membership.id) === Number(displayMembershipId)
+  ));
+  const savedDisplayMembershipId = user?.display_membership_id || null;
+  const effectiveDisplayMembershipId = selectedDisplayEntry ? displayMembershipId : null;
+  const displaySelectionChanged = Number(effectiveDisplayMembershipId || 0) !== Number(savedDisplayMembershipId || 0);
+  const hasUnresolvedDirectory = formalDisplayMemberships.some((membership) => {
+    const country = membership.country || 'china';
+    if (!clubDirectoryAvailability?.[country]) return true;
+    return !eligibleDisplayMemberships.some(({ membership: candidate }) => Number(candidate.id) === Number(membership.id));
+  });
+  const hasInvalidSavedSelection = savedDisplayMembershipId && !eligibleDisplayMemberships.some(({ membership }) => (
+    Number(membership.id) === Number(savedDisplayMembershipId)
+  ));
 
   return (
     <div className="vn-account-grid">
+      <div className="vn-account-primary">
       <Card title="个人资料" size="small" bordered={false} extra={<Text type="secondary" style={{ fontSize: 12 }}>公开展示信息</Text>}>
         <div style={{ display: 'grid', gap: 14 }}>
           <div>
@@ -889,6 +1222,60 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
             <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>签名</Text>
             <TextArea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={300} rows={3} placeholder="介绍一下自己" />
           </div>
+          <div className="vn-display-club-setting">
+            <div className="vn-display-club-heading">
+              <div>
+                <strong>代表同好会</strong>
+                <span>选择一个用于公开展示的正式隶属同好会；该信息会显示在账号总览和论坛作者信息中。</span>
+              </div>
+              <DisplayClubTag club={selectedDisplayEntry ? {
+                name: selectedDisplayEntry.club.display_name || selectedDisplayEntry.club.name || selectedDisplayEntry.club.school,
+                country: selectedDisplayEntry.membership.country || 'china',
+                role: selectedDisplayEntry.membership.role,
+              } : null} className="vn-display-club-preview" />
+            </div>
+            {hasInvalidSavedSelection && (
+              <Alert type="warning" showIcon message="原代表同好会会籍已失效，请重新选择。" />
+            )}
+            {hasUnresolvedDirectory && (
+              <Alert
+                type="warning"
+                showIcon
+                message="同好会资料暂不可用，当前设置不会被清除。"
+                action={<Button size="small" onClick={actions.reload}>重新加载</Button>}
+              />
+            )}
+            <Select
+              value={effectiveDisplayMembershipId || 0}
+              onChange={(value) => setDisplayMembershipId(Number(value) > 0 ? Number(value) : null)}
+              disabled={displaySaving || hasUnresolvedDirectory}
+              aria-label="选择代表同好会"
+              options={[
+                { value: 0, label: '不展示' },
+                ...eligibleDisplayMemberships.map(({ membership, club }) => ({
+                  value: Number(membership.id),
+                  label: `${countryLabel(membership.country || 'china')} · ${club.display_name || club.name || club.school} · ${roleLabel(membership.role)}`,
+                })),
+              ]}
+            />
+            {!hasUnresolvedDirectory && eligibleDisplayMemberships.length === 0 && (
+              <div className="vn-display-club-empty">
+                <span>暂无可展示的正式活跃会籍。</span>
+                <Button size="small" onClick={() => onSwitchTab('clubs')}>前往同好会管理</Button>
+              </div>
+            )}
+            <Button
+              onClick={async () => {
+                setDisplaySaving(true);
+                await actions.saveDisplayClub(effectiveDisplayMembershipId);
+                setDisplaySaving(false);
+              }}
+              loading={displaySaving}
+              disabled={!displaySelectionChanged || hasUnresolvedDirectory}
+            >
+              保存展示设置
+            </Button>
+          </div>
           <Button
             type="primary"
             icon={<CheckOutlined />}
@@ -904,7 +1291,9 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
           </Button>
         </div>
       </Card>
+      </div>
 
+      <div className="vn-account-secondary">
       <Card title="账户安全" size="small" bordered={false} extra={<Text type="secondary" style={{ fontSize: 12 }}>邮箱与密码</Text>}>
         <div style={{ display: 'grid', gap: 14 }}>
           <div className="vn-list-item">
@@ -914,12 +1303,31 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
             </div>
             {user?.email && <Button size="small" danger onClick={actions.unbindEmail}>解绑</Button>}
           </div>
+          <div className="vn-list-item">
+            <div className="vn-list-body" style={{ flex: 1 }}>
+              <strong>同好会申请邮件提醒</strong>
+              <span>仅影响负责人和管理员的申请审批提醒；验证码和账号安全邮件不受影响。</span>
+            </div>
+            <Switch
+              checked={applicationEmailEnabled}
+              onChange={async (enabled) => {
+                const previous = applicationEmailEnabled;
+                setApplicationEmailEnabled(enabled);
+                const ok = await actions.setMembershipApplicationEmailPreference(enabled);
+                if (!ok) setApplicationEmailEnabled(previous);
+              }}
+            />
+          </div>
           <div>
             <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>绑定 / 更换邮箱</Text>
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
+              <Text className="vn-field-label">邮箱地址</Text>
               <Input prefix={<MailOutlined />} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" />
               <Space wrap>
-                <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="验证码" maxLength={6} style={{ width: 120 }} />
+                <label className="vn-inline-field">
+                  <span className="vn-field-label">验证码</span>
+                  <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="6 位验证码" maxLength={6} style={{ width: 132 }} />
+                </label>
                 <Button onClick={() => actions.sendEmailCode(email)}>发送验证码</Button>
                 <Button type="primary" onClick={() => actions.bindEmail(email, code)}>绑定邮箱</Button>
               </Space>
@@ -928,7 +1336,9 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
           <div className="vn-account-divider" style={{ paddingTop: 14 }}>
             <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6 }}>修改密码</Text>
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
+              <Text className="vn-field-label">当前密码</Text>
               <Input.Password value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} prefix={<LockOutlined />} placeholder="当前密码" />
+              <Text className="vn-field-label">新密码</Text>
               <Input.Password value={newPassword} onChange={(e) => setNewPassword(e.target.value)} prefix={<LockOutlined />} placeholder="新密码" />
               <Button
                 type="primary"
@@ -963,18 +1373,7 @@ function AccountTab({ user, isDark, themeTokens, toggleTheme, messageApi, action
           />
         </div>
       </Card>
-
-      <Card title="显示与壁纸" size="small" bordered={false} extra={<Text type="secondary" style={{ fontSize: 12 }}>本机偏好</Text>}>
-        <div style={{ display: 'grid', gap: 10 }}>
-          <div className="vn-setting-row">
-            <div>
-              <strong>颜色模式</strong>
-              <span>深色 / 浅色会保存在当前浏览器</span>
-            </div>
-            <Switch checked={isDark} onChange={toggleTheme} checkedChildren={<MoonOutlined />} unCheckedChildren={<SunOutlined />} />
-          </div>
-        </div>
-      </Card>
+      </div>
     </div>
   );
 }
@@ -1090,7 +1489,7 @@ function NotificationsTab({ notifications, actions }) {
         notifications.map((n) => (
           <button
             key={n.id}
-            className="vn-notice-button"
+            className={`vn-notice-button${Number(n.is_read) ? '' : ' vn-notice-unread'}`}
             type="button"
             onClick={() => !Number(n.is_read) && actions.markNoticeRead(n.id)}
           >

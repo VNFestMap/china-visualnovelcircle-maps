@@ -1,0 +1,370 @@
+/* ============================================================
+   VNFest 统一认证表单层
+   适用: login.html 独立登录页 + index.html 账号弹窗
+   风格参考: Galgame_events/galo_poster.html
+   规则: 不改动各页面现有配色；组件形状/层级/动效统一。
+   ============================================================ */
+
+/* ── 组件令牌（默认 = 站点 --vn-* 语义值；页面可覆盖保持原配色） ── */
+:root {
+  --auth-radius-sm: 8px;
+  --auth-radius-md: 12px;
+  --auth-radius-lg: 16px;
+  --auth-radius-full: 100px;
+
+  --auth-primary: #e74c3c;
+  --auth-primary-strong: #c0392b;
+  --auth-danger: #c73545;
+  --auth-success: #2d8f63;
+  --auth-surface: #ffffff;
+  --auth-surface-raised: #f0f0f0;
+  --auth-surface-muted: #e8e8e8;
+  --auth-text: #1a1a1a;
+  --auth-text-muted: #666666;
+  --auth-text-soft: #999999;
+  --auth-border: rgba(0, 0, 0, 0.08);
+  --auth-border-strong: rgba(0, 0, 0, 0.14);
+  --auth-input-bg: rgba(69, 42, 32, 0.045);
+  --auth-input-bg-focus: rgba(69, 42, 32, 0.07);
+  --auth-shadow: rgba(0, 0, 0, 0.10);
+  --auth-focus-ring: 0 0 0 3px rgba(231, 76, 60, 0.16);
+  --auth-shadow-primary: 0 12px 28px rgba(231, 76, 60, 0.22);
+  --auth-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.10);
+
+  --auth-ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --auth-ease-out: cubic-bezier(0.2, 0, 0, 1);
+  --transition-theme: background 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+}
+
+:root[data-theme='dark'] {
+  --auth-primary: #ff6b5c;
+  --auth-primary-strong: #e74c3c;
+  --auth-danger: #f05a68;
+  --auth-success: #57c089;
+  --auth-surface: #1a1a1c;
+  --auth-surface-raised: #232325;
+  --auth-surface-muted: #2c2c2e;
+  --auth-text: #f0f0f0;
+  --auth-text-muted: #9a9a9a;
+  --auth-text-soft: #6b7280;
+  --auth-border: rgba(255, 255, 255, 0.08);
+  --auth-border-strong: rgba(255, 255, 255, 0.14);
+  --auth-input-bg: rgba(255, 255, 255, 0.055);
+  --auth-input-bg-focus: rgba(255, 255, 255, 0.09);
+  --auth-shadow: rgba(0, 0, 0, 0.50);
+  --auth-focus-ring: 0 0 0 3px rgba(255, 107, 92, 0.18);
+  --auth-shadow-primary: 0 12px 28px rgba(231, 76, 60, 0.26);
+  --auth-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+/* ── 表单视图（登录/注册/找回 面板切换） ── */
+.auth-view {
+  animation: auth-view-in 0.38s var(--auth-ease-out) both;
+}
+.auth-view.inactive {
+  display: none;
+}
+@keyframes auth-view-in {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+/* ── 标题 ── */
+.auth-title h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--auth-text);
+  text-wrap: pretty;
+  transition: var(--transition-theme);
+}
+.auth-title p {
+  margin-top: 8px;
+  color: var(--auth-text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+  text-wrap: pretty;
+  transition: var(--transition-theme);
+}
+
+/* ── 字段 ── */
+.auth-field {
+  margin-bottom: 14px;
+}
+.auth-field > label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--auth-text-muted);
+  margin-bottom: 7px;
+  letter-spacing: 0.01em;
+  transition: var(--transition-theme);
+}
+.auth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+.auth-stack .auth-field {
+  margin-bottom: 0;
+}
+.auth-input-row {
+  display: flex;
+  gap: 8px;
+}
+.auth-input-row .auth-input {
+  flex: 1;
+  min-width: 0;
+}
+.auth-code-btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 12px;
+  min-height: 46px;
+  padding-inline: 16px;
+}
+
+/* ── 输入框 ── */
+.auth-input {
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 14px;
+  background: var(--auth-input-bg);
+  border: 1px solid var(--auth-border-strong);
+  border-radius: var(--auth-radius-md);
+  color: var(--auth-text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: var(--transition-theme), box-shadow 0.25s ease;
+}
+.auth-input:hover {
+  background: color-mix(in srgb, var(--auth-input-bg) 82%, var(--auth-surface));
+}
+.auth-input:focus {
+  border-color: var(--auth-primary);
+  background: var(--auth-input-bg-focus);
+  box-shadow: var(--auth-focus-ring);
+}
+.auth-input::placeholder {
+  color: var(--auth-text-soft);
+}
+
+/* ── 按钮（胶囊，参考 galo_poster） ── */
+.auth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 10px 22px;
+  border: 1px solid var(--auth-border-strong);
+  border-radius: var(--auth-radius-full);
+  background: var(--auth-surface-raised);
+  color: var(--auth-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition: var(--transition-theme), transform 0.2s var(--auth-ease-out);
+}
+.auth-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--auth-text-soft);
+  box-shadow: var(--auth-shadow-soft);
+}
+.auth-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+.auth-btn:focus-visible {
+  outline: 2px solid var(--auth-primary);
+  outline-offset: 3px;
+}
+.auth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.auth-btn-primary {
+  width: 100%;
+  margin-top: 2px;
+  background: var(--auth-primary);
+  border-color: var(--auth-primary);
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: 2px;
+  box-shadow: var(--auth-shadow-primary);
+}
+.auth-btn-primary:hover {
+  background: var(--auth-primary-strong);
+  border-color: var(--auth-primary-strong);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--auth-primary) 30%, transparent);
+}
+
+.auth-btn-qq {
+  border-color: rgba(18, 183, 245, 0.45);
+  color: #12b7f5;
+  background: color-mix(in srgb, #12b7f5 8%, var(--auth-surface-raised));
+}
+.auth-btn-qq:hover {
+  background: rgba(18, 183, 245, 0.12);
+  border-color: #12b7f5;
+  box-shadow: 0 8px 20px rgba(18, 183, 245, 0.18);
+}
+.auth-btn-discord {
+  border-color: rgba(88, 101, 242, 0.45);
+  color: #7f8aff;
+  background: color-mix(in srgb, #5865f2 8%, var(--auth-surface-raised));
+}
+.auth-btn-discord:hover {
+  background: rgba(88, 101, 242, 0.12);
+  border-color: #5865f2;
+  box-shadow: 0 8px 20px rgba(88, 101, 242, 0.18);
+}
+
+/* ── 消息 ── */
+.auth-msg {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: var(--auth-radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.auth-msg.error {
+  background: color-mix(in srgb, var(--auth-danger) 12%, transparent);
+  color: var(--auth-danger);
+  border: 1px solid color-mix(in srgb, var(--auth-danger) 24%, transparent);
+}
+.auth-msg.success {
+  background: color-mix(in srgb, var(--auth-success) 14%, transparent);
+  color: var(--auth-success);
+  border: 1px solid color-mix(in srgb, var(--auth-success) 30%, transparent);
+}
+
+/* ── 分隔线与社交登录 ── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 14px;
+  color: var(--auth-text-soft);
+  font-size: 12px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--auth-border);
+}
+.auth-social-row {
+  display: flex;
+  gap: 10px;
+}
+.auth-social-row .auth-btn {
+  flex: 1;
+  font-size: 13px;
+}
+
+/* ── 底部切换 / 辅助链接 ── */
+.auth-switch {
+  text-align: center;
+  margin-top: 18px;
+  font-size: 13px;
+  color: var(--auth-text-muted);
+}
+.auth-switch a {
+  color: var(--auth-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+.auth-link-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 12px;
+  font-size: 12px;
+}
+.auth-link-row a {
+  color: var(--auth-text-muted);
+  cursor: pointer;
+  font-weight: 700;
+}
+.auth-link-row a:hover {
+  color: var(--auth-primary);
+}
+
+/* ============================================================
+   index.html 账号弹窗：与登录页同构
+   ============================================================ */
+#accountModal {
+  --auth-primary: var(--vn-primary);
+  --auth-primary-strong: var(--vn-primary-strong);
+  --auth-danger: var(--vn-danger);
+  --auth-success: var(--vn-success);
+  --auth-surface: var(--vn-surface);
+  --auth-surface-raised: var(--vn-surface-raised);
+  --auth-surface-muted: var(--vn-surface-muted);
+  --auth-text: var(--vn-text);
+  --auth-text-muted: var(--vn-text-muted);
+  --auth-text-soft: var(--vn-text-soft);
+  --auth-border: var(--vn-border);
+  --auth-border-strong: var(--vn-border-strong);
+  --auth-bg: var(--vn-bg);
+  --auth-shadow: var(--vn-shadow);
+  --auth-input-bg: rgba(127, 127, 127, 0.06);
+  --auth-input-bg-focus: rgba(127, 127, 127, 0.10);
+  --auth-focus-ring: 0 0 0 3px color-mix(in srgb, var(--vn-primary) 16%, transparent);
+  --auth-shadow-primary: 0 12px 28px color-mix(in srgb, var(--vn-primary) 22%, transparent);
+  --auth-shadow-soft: 0 8px 24px var(--vn-shadow);
+}
+
+#accountModal .calendar-modal-card {
+  padding: 24px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--vn-primary-container) 42%, var(--vn-surface)), var(--vn-surface));
+}
+#accountModal .calendar-modal-scroll {
+  border-radius: 16px;
+}
+#accountModal .auth-title {
+  margin-top: 8px;
+}
+#accountModal .auth-title h2 {
+  font-size: 22px;
+}
+
+/* 弹窗打开时内容错峰入场 */
+#accountModal.open .auth-view > * {
+  animation: auth-fade-up 0.5s ease both;
+}
+#accountModal.open .auth-view > *:nth-child(1) { animation-delay: 0.03s; }
+#accountModal.open .auth-view > *:nth-child(2) { animation-delay: 0.07s; }
+#accountModal.open .auth-view > *:nth-child(3) { animation-delay: 0.11s; }
+#accountModal.open .auth-view > *:nth-child(4) { animation-delay: 0.15s; }
+#accountModal.open .auth-view > *:nth-child(5) { animation-delay: 0.19s; }
+#accountModal.open .auth-view > *:nth-child(6) { animation-delay: 0.23s; }
+#accountModal.open .auth-view > *:nth-child(7) { animation-delay: 0.27s; }
+#accountModal.open .auth-view > *:nth-child(8) { animation-delay: 0.31s; }
+#accountModal.open .auth-view > *:nth-child(9) { animation-delay: 0.35s; }
+
+@keyframes auth-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+}
+
+/* ── 动效降级 ── */
+@media (prefers-reduced-motion: reduce) {
+  .auth-view,
+  #accountModal.open .auth-view > * {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -14,7 +14,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/audit.php';
+require_once __DIR__ . '/../includes/mailer.php';
 require_once __DIR__ . '/../includes/notifications.php';
+require_once __DIR__ . '/../includes/display_club.php';
 
 $action = $_GET['action'] ?? '';
 
@@ -36,6 +38,119 @@ function getClubName($clubId, $country = 'china') {
     return '同好会#' . $clubId;
 }
 
+function membershipApplicationLabel(string $value, array $labels): string {
+    return $labels[$value] ?? $value;
+}
+
+function membershipApplicationMailText(string $value): string {
+    $value = trim(preg_replace('/[\r\n]+/', ' ', $value));
+    return $value === '' ? '用户' : $value;
+}
+
+/**
+ * 向目标同好会的有效负责人/管理员发送待审批申请提醒。
+ * 邮件属于附加通知，所有异常均不得影响已经提交的申请。
+ *
+ * @return array{eligible:int,sent:int,failed:int}
+ */
+function notifyMembershipApplicationApprovers(
+    PDO $db,
+    array $applicant,
+    int $clubId,
+    string $country,
+    string $applyRole,
+    string $joinMethod,
+    int $membershipId
+): array {
+    $result = ['eligible' => 0, 'sent' => 0, 'failed' => 0];
+    $clubName = membershipApplicationMailText((string)getClubName($clubId, $country));
+    $applicantName = membershipApplicationMailText((string)(
+        !empty($applicant['nickname']) ? $applicant['nickname'] : ($applicant['username'] ?? '用户')
+    ));
+    $roleLabel = membershipApplicationLabel($applyRole, [
+        'member' => '成员',
+        'manager' => '管理员',
+        'representative' => '负责人',
+        'external' => '外交成员（IEM）',
+    ]);
+    $methodLabel = membershipApplicationLabel($joinMethod, [
+        'school_no_code' => '校内申请',
+        'external_exchange' => '校际交流申请',
+    ]);
+    $approvalUrl = (defined('SITE_URL') ? rtrim((string)SITE_URL, '/') : '') . '/index.html';
+    $subject = '【VNFest】同好会「' . $clubName . '」有新的加入申请';
+    $body = "您好：\n\n";
+    $body .= '用户「' . $applicantName . '」提交了加入同好会「' . $clubName . "」的申请。\n";
+    $body .= '申请身份：' . $roleLabel . "\n";
+    $body .= '申请方式：' . $methodLabel . "\n\n";
+    $body .= "请登录 VNFest 审批中心处理：\n" . $approvalUrl . "\n";
+
+    try {
+        $stmt = $db->prepare(
+            "SELECT DISTINCT u.id, u.email
+             FROM club_memberships cm
+             JOIN users u ON u.id = cm.user_id
+             WHERE cm.club_id = ?
+               AND cm.country = ?
+               AND cm.role IN ('representative', 'manager')
+               AND cm.status = 'active'
+               AND COALESCE(cm.application_email_enabled, 1) = 1
+               AND u.status = 'active'
+               AND COALESCE(u.membership_application_email_enabled, 1) = 1
+               AND u.email IS NOT NULL
+               AND TRIM(u.email) <> ''
+               AND u.email_verified_at IS NOT NULL
+               AND TRIM(u.email_verified_at) <> ''"
+        );
+        $stmt->execute([$clubId, $country]);
+        $approvers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Throwable $e) {
+        error_log('membership application email recipient lookup failed: ' . $e->getMessage());
+        $result['failed'] = 1;
+        membershipApplicationMailAudit($membershipId, $clubId, $country, $result);
+        return $result;
+    }
+
+    $sentAddresses = [];
+    foreach ($approvers as $approver) {
+        $email = trim((string)($approver['email'] ?? ''));
+        $emailKey = strtolower($email);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) || isset($sentAddresses[$emailKey])) {
+            continue;
+        }
+        $sentAddresses[$emailKey] = true;
+        $result['eligible']++;
+        try {
+            if (sendMail($email, $subject, $body)) {
+                $result['sent']++;
+            } else {
+                $result['failed']++;
+                error_log('membership application email send failed for membership_id=' . $membershipId);
+            }
+        } catch (Throwable $e) {
+            $result['failed']++;
+            error_log('membership application email send failed for membership_id=' . $membershipId . ': ' . $e->getMessage());
+        }
+    }
+
+    membershipApplicationMailAudit($membershipId, $clubId, $country, $result);
+    return $result;
+}
+
+function membershipApplicationMailAudit(int $membershipId, int $clubId, string $country, array $result): void {
+    try {
+        logAction('membership.application_email_notification', 'club_membership', $membershipId, [
+            'club_id' => $clubId,
+            'country' => $country,
+            'eligible_recipients' => (int)($result['eligible'] ?? 0),
+            'sent_count' => (int)($result['sent'] ?? 0),
+            'failed_count' => (int)($result['failed'] ?? 0),
+        ]);
+    } catch (Throwable $e) {
+        error_log('membership application email audit failed: ' . $e->getMessage());
+    }
+}
+
 function ensureMembershipApplicationColumns(PDO $db): void {
     ensureColumnExists($db, 'club_memberships', 'qq_account', "VARCHAR(255) DEFAULT ''");
     ensureColumnExists($db, 'club_memberships', 'apply_role', "VARCHAR(50) DEFAULT 'member'");
@@ -47,6 +162,8 @@ function ensureMembershipApplicationColumns(PDO $db): void {
     ensureColumnExists($db, 'club_memberships', 'external_club_name', "VARCHAR(255) DEFAULT ''");
     ensureColumnExists($db, 'club_memberships', 'external_club_role', "VARCHAR(255) DEFAULT ''");
     ensureColumnExists($db, 'club_memberships', 'apply_reason', "TEXT");
+    ensureColumnExists($db, 'club_memberships', 'application_email_enabled', "TINYINT(1) NOT NULL DEFAULT 1");
+    ensureColumnExists($db, 'users', 'membership_application_email_enabled', "TINYINT(1) NOT NULL DEFAULT 1");
 }
 
 switch ($action) {
@@ -148,6 +265,7 @@ switch ($action) {
                         $applyRole, $qqAccount, $contactAccount, $applyRole, $isStudent, $country,
                         $joinMethod, $externalClubName, $externalClubRole, $applyReason, $existing['id']
                     ]);
+                    displayClubClearSelection($db, (int)$existing['id']);
 
                     logAction('membership.reapply', 'club_membership', $existing['id'], [
                         'club_id' => $clubId,
@@ -163,6 +281,10 @@ switch ($action) {
                     echo json_encode(['success' => false, 'message' => '操作失败：' . $e->getMessage()]);
                     exit();
                 }
+
+                notifyMembershipApplicationApprovers(
+                    $db, $user, $clubId, $country, $applyRole, $joinMethod, (int)$existing['id']
+                );
 
                 echo json_encode([
                     'success' => true,
@@ -201,6 +323,10 @@ switch ($action) {
             exit();
         }
 
+        notifyMembershipApplicationApprovers(
+            $db, $user, $clubId, $country, $applyRole, $joinMethod, (int)$membershipId
+        );
+
         echo json_encode([
             'success' => true,
             'message' => '绑定申请已提交，等待管理员审核',
@@ -208,6 +334,78 @@ switch ($action) {
                 'id' => (int)$membershipId,
                 'status' => 'pending'
             ]
+        ]);
+        exit();
+
+    case 'set_application_email_recipient':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => '仅支持 POST 请求']);
+            exit();
+        }
+        $currentUser = requireLogin();
+        $input = json_decode(file_get_contents('php://input'), true);
+        $membershipId = (int)($input['membership_id'] ?? 0);
+        $enabled = filter_var($input['enabled'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($membershipId <= 0 || $enabled === null) {
+            echo json_encode(['success' => false, 'message' => '邮件提醒设置无效']);
+            exit();
+        }
+
+        $db = getDB();
+        ensureMembershipApplicationColumns($db);
+        $stmt = $db->prepare(
+            "SELECT id, user_id, club_id, country, role, status
+             FROM club_memberships
+             WHERE id = ?"
+        );
+        $stmt->execute([$membershipId]);
+        $targetMembership = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$targetMembership
+            || $targetMembership['status'] !== 'active'
+            || !in_array($targetMembership['role'], ['representative', 'manager'], true)) {
+            http_response_code(404);
+            echo json_encode(['success' => false, 'message' => '未找到可配置邮件提醒的负责人或管理员']);
+            exit();
+        }
+
+        if (($currentUser['role'] ?? '') !== 'super_admin') {
+            $stmt = $db->prepare(
+                "SELECT role FROM club_memberships
+                 WHERE user_id = ? AND club_id = ? AND country = ? AND status = 'active'
+                 LIMIT 1"
+            );
+            $stmt->execute([$currentUser['id'], $targetMembership['club_id'], $targetMembership['country']]);
+            if ($stmt->fetchColumn() !== 'representative') {
+                http_response_code(403);
+                echo json_encode(['success' => false, 'message' => '只有本同好会负责人可以配置申请邮件收件人']);
+                exit();
+            }
+        }
+
+        try {
+            $stmt = $db->prepare(
+                "UPDATE club_memberships
+                 SET application_email_enabled = ?
+                 WHERE id = ? AND status = 'active' AND role IN ('representative', 'manager')"
+            );
+            $stmt->execute([$enabled ? 1 : 0, $membershipId]);
+            logAction('membership.update_application_email_recipient', 'club_membership', $membershipId, [
+                'club_id' => (int)$targetMembership['club_id'],
+                'country' => $targetMembership['country'],
+                'recipient_user_id' => (int)$targetMembership['user_id'],
+                'enabled' => $enabled,
+            ]);
+        } catch (Throwable $e) {
+            error_log('Unable to update membership application email recipient: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => '邮件提醒设置保存失败']);
+            exit();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $enabled ? '已开启本会申请邮件提醒' : '已关闭本会申请邮件提醒',
+            'membership_id' => $membershipId,
+            'enabled' => $enabled,
         ]);
         exit();
 
@@ -234,7 +432,7 @@ switch ($action) {
         // 兼容 country 列尚未创建的情况
         try {
             $stmt = $db->prepare(
-                "SELECT cm.id, cm.user_id, cm.role, cm.status, cm.joined_at,
+                "SELECT cm.id, cm.user_id, cm.role, cm.status, cm.joined_at, cm.application_email_enabled,
                         cm.qq_account, cm.contact_account, cm.apply_role, cm.is_student,
                         cm.join_method, cm.external_club_name, cm.external_club_role, cm.apply_reason,
                         u.username, u.nickname, u.email, u.avatar_url
@@ -275,12 +473,42 @@ switch ($action) {
             $m['id'] = (int)$m['id'];
             $m['user_id'] = (int)$m['user_id'];
             $m['is_student'] = isset($m['is_student']) ? (int)$m['is_student'] : 0;
+            $m['application_email_enabled'] = isset($m['application_email_enabled']) ? (int)$m['application_email_enabled'] : 1;
             if ($currentUser['role'] !== 'super_admin') {
                 unset($m['qq_account'], $m['contact_account'], $m['apply_role'], $m['is_student'], $m['email'], $m['apply_reason']);
             }
         }
 
         echo json_encode(['success' => true, 'members' => $members]);
+        exit();
+
+    case 'club_member_counts':
+        // 各同好会活跃成员数（供后台同好会总览展示成员数）
+        $currentUser = requireLogin();
+        $roleOk = in_array($currentUser['role'] ?? '', ['super_admin', 'representative', 'manager'], true)
+            || hasAuditPermission($currentUser);
+        if (!$roleOk) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => '权限不足']);
+            exit();
+        }
+
+        $db = getDB();
+        try {
+            $stmt = $db->query(
+                "SELECT club_id, COALESCE(country, 'china') AS country, COUNT(*) AS cnt
+                 FROM club_memberships
+                 WHERE status = 'active'
+                 GROUP BY club_id, country"
+            );
+            $counts = [];
+            foreach ($stmt->fetchAll() as $row) {
+                $counts[$row['club_id'] . ':' . $row['country']] = (int)$row['cnt'];
+            }
+            echo json_encode(['success' => true, 'counts' => $counts]);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => '查询失败', 'error' => $e->getMessage()]);
+        }
         exit();
 
     case 'pending':
@@ -524,13 +752,24 @@ switch ($action) {
             exit();
         }
 
-        $db->prepare(
-            "UPDATE club_memberships SET status = 'left', left_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'active'"
-        )->execute([$membershipId]);
-
-        logAction('membership.leave', 'club_membership', $membershipId, [
-            'club_id' => $membership['club_id'],
-        ]);
+        $db->beginTransaction();
+        try {
+            $db->prepare(
+                "UPDATE club_memberships SET status = 'left', left_at = CURRENT_TIMESTAMP WHERE id = ? AND status = 'active'"
+            )->execute([$membershipId]);
+            displayClubClearSelection($db, $membershipId);
+            logAction('membership.leave', 'club_membership', $membershipId, [
+                'club_id' => $membership['club_id'],
+                'country' => $membership['country'] ?? 'china',
+            ]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            error_log('Unable to leave club: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => '退出同好会失败']);
+            exit();
+        }
         echo json_encode(['success' => true, 'message' => '已退出同好会']);
         exit();
 
@@ -591,13 +830,24 @@ switch ($action) {
             }
         }
 
-        $db->prepare("UPDATE club_memberships SET status = 'kicked', left_at = CURRENT_TIMESTAMP WHERE id = ?")
-            ->execute([$membershipId]);
-
-        logAction('membership.kick', 'club_membership', $membershipId, [
-            'club_id' => $membership['club_id'],
-            'target_user_id' => $membership['user_id'],
-        ]);
+        $db->beginTransaction();
+        try {
+            $db->prepare("UPDATE club_memberships SET status = 'kicked', left_at = CURRENT_TIMESTAMP WHERE id = ?")
+                ->execute([$membershipId]);
+            displayClubClearSelection($db, $membershipId);
+            logAction('membership.kick', 'club_membership', $membershipId, [
+                'club_id' => $membership['club_id'],
+                'country' => $membership['country'] ?? 'china',
+                'target_user_id' => $membership['user_id'],
+            ]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            error_log('Unable to kick club member: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => '移出成员失败']);
+            exit();
+        }
 
         // 发送通知
         createNotification(
@@ -682,14 +932,27 @@ switch ($action) {
         }
 
         $oldRole = $membership['role'];
-        $db->prepare("UPDATE club_memberships SET role = ? WHERE id = ?")
-            ->execute([$newRole, $membershipId]);
-
-        logAction('membership.change_role', 'club_membership', $membershipId, [
-            'club_id' => $membership['club_id'],
-            'old_role' => $oldRole,
-            'new_role' => $newRole,
-        ]);
+        $db->beginTransaction();
+        try {
+            $db->prepare("UPDATE club_memberships SET role = ? WHERE id = ?")
+                ->execute([$newRole, $membershipId]);
+            if (!in_array($newRole, DISPLAY_CLUB_ROLES, true)) {
+                displayClubClearSelection($db, $membershipId);
+            }
+            logAction('membership.change_role', 'club_membership', $membershipId, [
+                'club_id' => $membership['club_id'],
+                'country' => $membership['country'] ?? 'china',
+                'old_role' => $oldRole,
+                'new_role' => $newRole,
+            ]);
+            $db->commit();
+        } catch (Throwable $e) {
+            if ($db->inTransaction()) $db->rollBack();
+            error_log('Unable to change club member role: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['success' => false, 'message' => '角色更新失败']);
+            exit();
+        }
 
         // 发送通知
         $roleNames = ['member' => '成员', 'manager' => '管理员', 'representative' => '负责人'];
@@ -781,7 +1044,8 @@ switch ($action) {
 
     default:
         echo json_encode(['success' => false, 'message' => '未知动作', 'available_actions' => [
-            'my', 'apply', 'approve', 'reject', 'pending', 'members', 'leave', 'kick', 'change_role', 'transfer'
+            'my', 'apply', 'approve', 'reject', 'pending', 'members', 'set_application_email_recipient',
+            'leave', 'kick', 'change_role', 'transfer'
         ]]);
         exit();
 }

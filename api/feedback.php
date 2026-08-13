@@ -3,7 +3,7 @@
 
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, PUT, OPTIONS');
+header('Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, X-Admin-Token');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -28,6 +28,15 @@ function writeFeedback(string $file, array $rows): bool {
 
 function textLength(string $value): int {
     return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+}
+
+// GET + action=read — 管理员读取反馈数据
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'read') {
+    require_once __DIR__ . '/../includes/auth.php';
+    requireAdmin();
+
+    echo json_encode(readFeedback($feedbackFile), JSON_UNESCAPED_UNICODE);
+    exit();
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'PUT' && ($_GET['action'] ?? '') === 'save') {

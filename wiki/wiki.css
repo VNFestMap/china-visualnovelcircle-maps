@@ -46,6 +46,14 @@ body {
   color: var(--wiki-muted);
 }
 
+.wiki-guide-entry {
+  margin-left: auto;
+  padding: 4px 9px;
+  border: 1px solid var(--wiki-border-soft);
+  background: var(--wiki-bg);
+  font-weight: 700;
+}
+
 .wiki-page {
   max-width: 1120px;
   margin: 0 auto;
@@ -96,6 +104,12 @@ body {
   gap: 8px;
 }
 
+.wiki-index-hero-actions {
+  display: grid;
+  gap: 8px;
+  min-width: 218px;
+}
+
 .wiki-index-stats div {
   padding: 12px;
   border: 1px solid var(--wiki-border-soft);
@@ -112,6 +126,38 @@ body {
 .wiki-index-card-meta {
   color: var(--wiki-muted);
   font-size: 12px;
+}
+
+.wiki-index-guide-cta {
+  display: grid;
+  gap: 2px;
+  padding: 12px;
+  border: 1px solid var(--wiki-border);
+  background: var(--wiki-surface);
+  color: var(--wiki-link);
+  text-decoration: none;
+  text-wrap: pretty;
+}
+
+.wiki-index-guide-cta:hover {
+  border-color: var(--wiki-link);
+  text-decoration: none;
+}
+
+.wiki-index-guide-cta:focus-visible,
+.wiki-guide-entry:focus-visible {
+  outline: 2px solid var(--wiki-link);
+  outline-offset: 2px;
+}
+
+.wiki-index-guide-cta-label {
+  font-weight: 700;
+}
+
+.wiki-index-guide-cta span:last-child {
+  color: var(--wiki-muted);
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .wiki-index-tools {
@@ -446,30 +492,6 @@ body {
   text-decoration: underline;
 }
 
-.wiki-language-switch {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.wiki-language-switch a {
-  border: 1px solid var(--wiki-border);
-  border-radius: 999px;
-  padding: 6px 12px;
-  color: var(--wiki-text);
-  text-decoration: none;
-  background: #fff;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.wiki-language-switch a.active {
-  border-color: var(--wiki-link);
-  background: #eaf2ff;
-  color: var(--wiki-link);
-}
-
 .wiki-section p {
   margin: 10px 0;
 }
@@ -493,10 +515,6 @@ body {
   position: sticky;
   top: 0;
   z-index: 20;
-}
-
-.wiki-site-header .wiki-language-switch {
-  margin-left: auto;
 }
 
 .wiki-encyclopedia-layout {
@@ -783,9 +801,8 @@ body {
     flex-wrap: wrap;
   }
 
-  .wiki-site-header .wiki-language-switch {
+  .wiki-guide-entry {
     margin-left: 0;
-    width: 100%;
   }
 
   .wiki-encyclopedia-layout {

@@ -13,6 +13,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $submissions_file = __DIR__ . '/../data/submissions_event.json';
 
+// GET + action=read — 管理员读取活动提交数据
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'read') {
+    require_once __DIR__ . '/../includes/auth.php';
+    requireAdmin();
+
+    $submissions = [];
+    if (file_exists($submissions_file)) {
+        $content = file_get_contents($submissions_file);
+        $submissions = json_decode($content, true);
+        if (!is_array($submissions)) $submissions = [];
+    }
+    echo json_encode($submissions, JSON_UNESCAPED_UNICODE);
+    exit();
+}
+
 // 保存提交记录（管理员）
 if ($_SERVER['REQUEST_METHOD'] === 'PUT' || ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'save')) {
     require_once __DIR__ . '/../includes/auth.php';

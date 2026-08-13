@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://www.map.vnfest.top"><img alt="Website" src="https://img.shields.io/badge/🌐_オンラインアクセス-map.vnfest.top-2ecc71?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-2ecc71?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.1.0-2ecc71?style=flat-square">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=flat-square&logo=php&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white">
   <img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=flat-square&logo=d3.js&logoColor=white">
@@ -129,20 +129,20 @@ Cinematic Frontend v2 デザインを採用——放射状グラデーション�
 
 ---
 
-## v2.0 アップデートハイライト
+## v2.1 アップデートハイライト
 
-> v1.7.1 から v2.0 にかけて、VNFest はビジュアル面とアーキテクチャ面の両方で包括的なアップグレードを経験しました。
+> v2.0 から v2.1 にかけて、VNFest はコミュニティ交流と運営ガバナンスの全チェーンを完成させました。
 
 | ハイライト | 説明 |
 |------|------|
-| **ユーザーセンター SPA 化** | 2,500 行のインライン HTML から React 18 SPA へ移行、インタラクション体験が飛躍的に向上 |
-| **GalOnly Staff 募集** | スタッフ申請、投票、審査、シフト管理の全プロセスを新規実装 |
-| **資料公開ライブラリ** | 出版物 PDF/画像のアップロード、メタデータ管理、オンライン 3D ページめくりプレビュー |
-| **トーナメント可視化** | 萌戦と十二器専用の対戦図コンポーネント、ズーム・ドラッグ・リアルタイムステータス対応 |
-| **星図ビジュアルアップグレード** | Cinematic Frontend v2 — 放射状グラデーション + レーダースキャン + 没入モード |
-| **広場リライト** | 深遠な宇宙テーマ + 5色カード + 日中バイリンガル切り替え |
-| **パフォーマンス最適化** | バッチレンダリング、イベント委譲、検索デバウンスにより大量データでも滑らか |
-| **デザインシステム統一** | oklch カラースペース + Playfair Display / Jost / Noto Serif SC フォント組み合わせ |
+| **独立フォーラム** | 新フォーラム広場：投稿、返信、いいね、お気に入り、Markdown と画像添付 |
+| **スーパー管理コンソール** | 審査トレンド、サークル地域分布 Top 12、操作ログなどの運営ダッシュボード |
+| **北京 GalOnly 第2回** | ブース申請と Staff 募集の二重フロー、専用審査とイベントロゴ |
+| **MakoQuiz 連携** | クイズ戦績送信 + HMAC バインドトークンで安全にアカウントを共有 |
+| **設定集約** | 言語・テーマ・マップ操作を一箇所に集約、アカウント言語を端末間で同期 |
+| **Wiki 利用ガイド** | 中日バイリンガル、グループナビ、サイト内検索を備えた利用ドキュメント |
+| **江蘇サブマップ** | 13 地級市を自己完結のオフライン SVG で提供、外部地図リクエスト不要 |
+| **AstrBot beta0.5** | ボット照会・同期プラグインをリリース、プラグインダウンロード入口も追加 |
 
 ---
 
@@ -233,7 +233,7 @@ Cinematic Frontend v2 デザインを採用——放射状グラデーション�
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git
+git clone https://github.com/VNFestMap/china-visualnovelcircle-maps.git
 cd china-visualnovelcircle-maps
 
 # 2. 安装依赖
@@ -260,7 +260,7 @@ php -S 127.0.0.1:8000
 npm run check
 ```
 
-このコマンドは全 39+ のコントラクトテストを実行し、フロントエンドインタラクション、Wiki 生成、アップロード契約、サークル編集、バックエンドプライバシー、成長システム、ユーザーページ、国際化、パフォーマンス最適化、投票フロー、プロジェクト全体の健全性をカバーします。
+このコマンドは全 40+ のコントラクトテストを実行し、フロントエンドインタラクション、Wiki 生成、アップロード契約、サークル編集、バックエンドプライバシー、成長システム、ユーザーページ、国際化、パフォーマンス最適化、投票フロー、ボット同期、プロジェクト全体の健全性をカバーします。
 
 ---
 
@@ -284,6 +284,7 @@ bash scripts/deploy.sh
 
 | バージョン | コアテーマ |
 |------|---------|
+| **v2.1.0** | 独立フォーラム、スーパー管理コンソール、北京 GalOnly、MakoQuiz 連携、設定集約、Wiki 利用ガイド |
 | **v2.0.0** | ユーザーセンター SPA 化、Staff 募集、資料公開ライブラリ、トーナメント可視化、デザインシステム統一 |
 | v1.7.x | 企画ハブ、十二器、萌戦エンジン、投票イベント、サークル広場、Docker CI/CD |
 | v1.6.x | Wiki サブシステム、サークルバインディングコード、通知、マルチプラットフォームリリース（デスクトップ / Android） |

@@ -10,7 +10,7 @@
 # ============================================================
 
 # ---- 仓库设置 ----
-REMOTE_REPO="https://github.com/kokubunshu/china-visualnovelcircle-maps.git"
+REMOTE_REPO="https://github.com/VNFestMap/china-visualnovelcircle-maps.git"
 DEPLOY_BRANCH="main"
 
 # ---- 服务器路径 ----

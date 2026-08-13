@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../js/page-i18n.js?v=20260813-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../js/theme-runtime.js?v=20260702-theme"></script>
 <title>Staff 招募须知 - GalOnly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -209,6 +214,46 @@ a{color:var(--accent);text-decoration:none}
   animation: slideInLeft 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .back-link:hover{color:var(--accent)}
+
+/* ============================================================
+   Footer logo strip
+   ============================================================ */
+.footer-logo-strip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:28px;
+  padding:36px 24px 48px;
+  flex-wrap:wrap;
+  opacity:0.55;
+  transition:opacity 0.3s;
+}
+.footer-logo-strip:hover{
+  opacity:0.8;
+}
+.footer-logo-strip img{
+  height:40px;
+  width:auto;
+  object-fit:contain;
+  filter:grayscale(40%);
+  transition:filter 0.3s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.footer-logo-strip img:hover{
+  filter:grayscale(0%);
+  transform:scale(1.08);
+}
+[data-theme="light"] .footer-logo-strip img{
+  filter:grayscale(30%) brightness(0.85);
+}
+[data-theme="light"] .footer-logo-strip img:hover{
+  filter:grayscale(0%) brightness(1);
+}
+.footer-logo-divider{
+  width:1px;
+  height:28px;
+  background:var(--border);
+  flex-shrink:0;
+}
 
 /* ============================================================
    Hero section (compact)
@@ -542,9 +587,18 @@ html,
     min-height: 44px;
     display: inline-flex;
     align-items: center;
-    padding: 8px 0;
-    font-size: 14px;
-    margin-bottom: 16px;
+  }
+
+  /* Footer logo — smaller on mobile */
+  .footer-logo-strip {
+    gap: 16px;
+    padding: 24px 16px 36px;
+  }
+  .footer-logo-strip img {
+    height: 32px;
+  }
+  .footer-logo-divider {
+    height: 22px;
   }
 
   /* Hero */
@@ -589,38 +643,72 @@ html,
     margin-top: 10px;
   }
 
-  /* Table — horizontal scroll with visible fade hint */
+  /* Table — card layout on tablets and phones */
   .table-wrapper {
     position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: visible;
     margin-top: 2px;
+    border: 0;
   }
   .table-wrapper::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    width: 28px;
-    background: linear-gradient(to left, var(--surface), transparent);
-    pointer-events: none;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    z-index: 1;
+    display: none;
   }
   .position-table {
-    font-size: 12.5px;
-    min-width: 480px;
+    display: block;
+    min-width: 0;
+    font-size: 13px;
   }
-  .position-table thead th {
-    padding: 10px 12px;
-    font-size: 10px;
+  .position-table thead {
+    display: none;
+  }
+  .position-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .position-table tbody tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px 10px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+  }
+  .position-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .position-table tbody tr:hover {
+    background: var(--surface-raised);
   }
   .position-table tbody td {
-    padding: 9px 12px;
+    padding: 0;
+    border-bottom: 0;
+    font-size: 13px;
+  }
+  .position-table .col-idx {
+    width: auto;
+    min-width: 28px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: var(--accent-ghost);
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .position-table .col-name {
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.45;
+    align-self: center;
   }
   .position-table .col-desc {
-    min-width: 150px;
+    grid-column: 1 / -1;
+    min-width: 0;
+    line-height: 1.65;
   }
 
   /* Contact grid — single column */
@@ -752,25 +840,28 @@ html,
     border-radius: 6px;
   }
 
-  /* Table — tighter cells */
+  /* Table cards */
   .position-table {
-    font-size: 12px;
-    min-width: 440px;
+    font-size: 12.5px;
   }
-  .position-table thead th {
-    padding: 8px 10px;
-    font-size: 10px;
-    letter-spacing: 0.04em;
+  .position-table tbody {
+    gap: 9px;
   }
-  .position-table tbody td {
-    padding: 8px 10px;
-    font-size: 12px;
+  .position-table tbody tr {
+    padding: 11px;
+    gap: 7px 9px;
   }
   .position-table .col-idx {
-    width: 36px;
+    min-width: 26px;
+    height: 23px;
+    font-size: 11.5px;
+  }
+  .position-table .col-name {
+    font-size: 13px;
   }
   .position-table .col-desc {
-    min-width: 130px;
+    font-size: 12.5px;
+    line-height: 1.6;
   }
 
   /* Contact */
@@ -865,19 +956,24 @@ html,
 
   /* Table */
   .position-table {
-    min-width: 400px;
-    font-size: 11.5px;
+    font-size: 12px;
   }
-  .position-table thead th {
-    padding: 7px 8px;
-    font-size: 9px;
+  .position-table tbody {
+    gap: 8px;
   }
-  .position-table tbody td {
-    padding: 7px 8px;
-    font-size: 11.5px;
+  .position-table tbody tr {
+    padding: 10px;
   }
   .position-table .col-idx {
-    width: 32px;
+    min-width: 24px;
+    height: 22px;
+    font-size: 11px;
+  }
+  .position-table .col-name {
+    font-size: 12.5px;
+  }
+  .position-table .col-desc {
+    font-size: 12px;
   }
 
   /* Contact */
@@ -946,6 +1042,11 @@ html,
       <li>年龄原则上要求18周岁及以上</li>
       <li>大学生及vnf会员优先</li>
     </ul>
+    <div class="info-highlight">
+      <strong>总则：</strong><br>
+      招募岗位分为票务组、物料与后勤组、搭建与机动组，组长由主办人员担任，负责与场内志愿者的沟通。<br>
+      无论是什么岗位，必要时候需要接受组织方的指挥完成提出的职责，当所在的岗位暂时空闲的时候，可以正常游玩参展，具体依据后续排班表划分，以及现场负责人指挥。
+    </div>
   </div>
 
   <!-- Section 2: 岗位一览 -->
@@ -974,8 +1075,9 @@ html,
     <ul>
       <li>地点：上海浦东新区AMP美达商业广场宴会厅</li>
       <li>布展日：7月24日，14:00 - 18:00</li>
-      <li>开展日：7月25-26日，08:00 - 18:00（同一批人轮岗，分早/午/晚班）</li>
+      <li>开展日：7月25-26日，09:00 - 18:00（同一批人轮岗，分早/午/晚班）</li>
       <li>两天全天服务，岗位为两天同一批人</li>
+      <li>布展日除了搭建工作，也会对人员进行培训，要求全员尽可能到场</li>
     </ul>
   </div>
 
@@ -986,10 +1088,10 @@ html,
     <ul>
       <li>午餐补贴</li>
       <li>公共交通费用补贴 + 高温补贴（室外岗）</li>
-      <li>统一工作痛衣 + 工牌</li>
+      <li>免费提供统一的工作痛衣和工牌</li>
       <li>饮用水及零食补给</li>
       <li>活动纪念品/周边一份</li>
-      <li>免费双日联票（工作半天自由游玩半天）</li>
+      <li>免费双日联票（工作半天自由游玩半天），优先招募三日都参与的报名者</li>
     </ul>
   </div>
 
@@ -1002,10 +1104,9 @@ html,
       <li>录用后须按时参加岗前培训及线上会议</li>
       <li>工作期间严格遵守主办方规定</li>
       <li>报名截止：2026年7月15日</li>
-      <li>强制熔断：50份</li>
     </ul>
     <div class="info-highlight">
-      <strong>提醒：</strong>报名截止后不再接受新的申请，请确保在规定时间内完成报名。强制熔断上限为50份申请，额满即止。
+      <strong>提醒：</strong>报名截止后不再接受新的申请，请确保在规定时间内完成报名。
     </div>
   </div>
 
@@ -1016,7 +1117,7 @@ html,
     <div class="contact-grid">
       <div class="contact-item">
         <div class="contact-label">咨询QQ群</div>
-        <div class="contact-value">996163137</div>
+        <div class="contact-value">1097885812</div>
       </div>
       <div class="contact-item">
         <div class="contact-label">联系人</div>
@@ -1027,6 +1128,14 @@ html,
         <div class="contact-value">1178526797</div>
       </div>
     </div>
+  </div>
+
+  <div class="footer-logo-strip">
+    <img src="logo_lingxia.png" alt="铃夏学园">
+    <span class="footer-logo-divider"></span>
+    <img src="logo_shanghai_only.png" alt="上海视觉小说 Only">
+    <span class="footer-logo-divider"></span>
+    <img src="logo_vnfest.png" alt="VNFest">
   </div>
 
 </main>
@@ -1040,39 +1149,29 @@ html,
   <a class="cta-btn disabled" id="ctaBtn" href="#" aria-disabled="true">我已阅读，前往报名</a>
 </div>
 
-<script src="../js/page-background.js" data-picker="compact"></script>
+<script src="../js/page-background.js?v=20260812-centralized-preferences"></script>
 <script>
 (function() {
   'use strict';
 
-  /* ========== THEME ========== */
-  var THEME_KEY = 'galonly-theme';
-
-  function getStoredTheme() {
-    try { return localStorage.getItem(THEME_KEY); } catch(e) { return null; }
-  }
-  function setTheme(theme) {
-    document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem(THEME_KEY, theme); } catch(e) {}
-    updateToggleIcon(theme);
-  }
+  /* ========== THEME（与主站 themePreference 同步） ========== */
   function updateToggleIcon(theme) {
     var btn = document.getElementById('themeToggle');
     if (!btn) return;
     btn.textContent = theme === 'dark' ? '\u263E' : '\u2600';
     btn.setAttribute('aria-label', theme === 'dark' ? '切换到亮色模式' : '切换到暗色模式');
   }
-
-  // Initialize theme
-  var saved = getStoredTheme();
-  setTheme(saved || 'dark');
-
-  // Toggle handler
   var toggleBtn = document.getElementById('themeToggle');
   if (toggleBtn) {
     toggleBtn.addEventListener('click', function() {
-      var current = document.documentElement.getAttribute('data-theme') || 'dark';
-      setTheme(current === 'dark' ? 'light' : 'dark');
+      if (window.VNFTheme && typeof window.VNFTheme.toggle === 'function') {
+        window.VNFTheme.toggle();
+      }
+    });
+  }
+  if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+    window.VNFTheme.subscribe(function(detail) {
+      updateToggleIcon(detail.theme);
     });
   }
 
@@ -1112,21 +1211,22 @@ html,
 
   /* ========== TABLE DATA ========== */
   var positions = [
-    { idx: 1,  name: '检票发票人员 (布展日)',           desc: '证件核验与发放，维持入口秩序' },
-    { idx: 2,  name: '检票发票人员 (开展日)',           desc: '门票核验、手环发放、引导入场' },
-    { idx: 3,  name: '场馆搭建搬货人员 (布展日)',       desc: '搬运展品物资、场地布置' },
-    { idx: 4,  name: '搭建协助人员 (开展当天)',         desc: '展位收尾、突发搭建需求' },
-    { idx: 5,  name: '物料发放人员 (游客)',             desc: '发放手册、纪念品、抽奖券' },
-    { idx: 6,  name: '物料发放人员 (摊主)',             desc: '配送物料至各摊位' },
-    { idx: 7,  name: '食品发放与看管人员',              desc: '食品发放补充、防止浪费' },
-    { idx: 8,  name: '巡场人员 (安保/应急)',            desc: '巡逻维护秩序、处理突发' },
-    { idx: 9,  name: '巡场检查人员 (内容合规)',         desc: 'R18/AI制品巡查' },
-    { idx: 10, name: '舞台管理人员',                   desc: '舞台流程把控、演员引导' },
-    { idx: 11, name: '问询处人员',                     desc: '解答观众咨询' },
-    { idx: 12, name: '线上社群管理与解答',              desc: 'QQ群/微信群管理' },
-    { idx: 13, name: '痛车区域管理人员',                desc: '痛车展示区秩序维护' },
-    { idx: 14, name: 'VIP室服务人员',                  desc: 'VIP接待、饮品服务' },
-    { idx: 15, name: '交通指引人员',                   desc: '地铁站/大巴点指引' }
+    { idx: 1,  name: '检票发票人员 (布展日)',           desc: '负责布展期间各类证件（普票、V票、千岛早鸟票、社团票、参观证、摊主证）的核验与发放；维持入口秩序。' },
+    { idx: 2,  name: '检票发票人员 (开展日)',           desc: '负责开展期间各类门票的核验、发票开具（如需）、手环/贴纸发放；引导观众入场；处理票务相关问题。' },
+    { idx: 3,  name: '场馆搭建搬货人员 (布展日)',       desc: '协助参展商搬运展品、物资；配合搭建团队进行场地布置、展架组装等工作。备注：优先选三日都到齐的人' },
+    { idx: 4,  name: '搭建协助人员 (开展当天)',         desc: '开展首日协助未完成搭建的展位进行收尾工作；应对突发搭建需求。' },
+    { idx: 5,  name: '物料发放人员 (游客)',             desc: '负责向观众发放活动手册、纪念品、抽奖券等物料；解答观众关于物料的咨询。' },
+    { idx: 6,  name: '物料发放人员 (摊主)',             desc: '负责将特定物料（如宣传单、合作赠品等）逐一配送至各参展摊位，并与摊主确认签收。' },
+    { idx: 7,  name: '食品发放与看管人员',              desc: '负责指定区域（如休息区、VIP区）食品的发放、补充；看管食品，防止浪费或非授权取用。' },
+    { idx: 8,  name: '巡场人员 (安保/应急)',            desc: '全场巡逻，维护现场秩序；及时发现并处理安全隐患、突发状况（如纠纷、物品遗失、医疗小状况等）；协助引导人流。可能需要特别培训，如中暑对策等。' },
+    { idx: 9,  name: '巡场检查人员 (内容合规)',         desc: '重点巡查展区，对R18内容、AI制品等进行警示和制止，确保内容符合展会规定及法律法规。' },
+    { idx: 10, name: '舞台管理人员',                   desc: '负责舞台区域的流程把控、演员上下场引导、道具管理、音响灯光协调（或与技术人员配合）、观众互动环节组织。最好有舞台经验' },
+    { idx: 11, name: '问询处人员',                     desc: '在咨询台负责解答观众关于展会日程、活动安排、场馆设施、周边交通等方面的咨询。' },
+    { idx: 12, name: '痛车区域管理人员',                desc: '负责痛车展示区域的车辆引导、秩序维护、观众参观引导、安全提示。室外岗，会提供高温补贴和防暑物资。' },
+    { idx: 13, name: '交通指引人员 (地铁站/大巴下车点)', desc: '在指定地铁站出口、大巴下车点设置指引点，引导参展商和观众前往展馆。室外岗，会提供高温补贴和防暑物资。' },
+    { idx: 14, name: 'VIP室服务人员 (二楼)',            desc: '负责VIP室的使用和监管，在有人使用该房间的时候需要进行监督和引导。' },
+    { idx: 15, name: '活动摊位负责人员',                desc: '包括官方活动摊位，b站活动摊位物料发放，自由活动摊位，集章奖品兑换处等' },
+    { idx: 16, name: '副屏幕控制',                     desc: '在副屏开放时间协助使用，与电脑控制。' }
   ];
 
   var tbody = document.getElementById('positionTableBody');

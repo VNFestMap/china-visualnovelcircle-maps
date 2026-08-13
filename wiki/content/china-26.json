@@ -1,38 +1,76 @@
 {
-    "club_key": "china-26",
-    "title": "西北民族大学_民大Galgame同好会",
-    "summary": "University of the Highlands and Islands, Perth College\n由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用\n\n官方网站：xbmu.mygalgame.top\n总会邮件:yyddtj@yyddtj.top\n英国高地与群岛大学分会电话：+1 4028821169",
-    "infobox": {
+  "club_key": "china-26",
+  "title": "西北民族大学_民大Galgame同好会",
+  "summary": "University of the Highlands and Islands, Perth College\n由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用\n\n官方网站：xbmu.mygalgame.top\n总会邮件:yyddtj@yyddtj.top\n英国高地与群岛大学分会电话：+1 4028821169",
+  "infobox": {
+    "学校": "西北民族大学",
+    "地区": "甘肃省",
+    "类型": "高校同好会",
+    "成立时间": "2023-09-21 00:00:00",
+    "状态": "已认证"
+  },
+  "sections": [
+    {
+      "heading": "概要",
+      "body": [
+        "University of the Highlands and Islands, Perth College",
+        "由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用",
+        "官方网站：xbmu.mygalgame.top",
+        "总会邮件:yyddtj@yyddtj.top",
+        "英国高地与群岛大学分会电话：+1 4028821169"
+      ]
+    }
+  ],
+  "images": [
+    {
+      "url": "../uploads/china-26/20260515003742_6832af7d.png?t=1778776662",
+      "caption": "",
+      "alt": "2F0ACACA4EE96E3B26A0C3392205A38F"
+    }
+  ],
+  "references": [
+    {
+      "label": "Galgame 同好会地图登记资料",
+      "url": "../../index.html"
+    }
+  ],
+  "updated_at": "2026-05-15",
+  "i18n": {
+    "ja": {
+      "title": "西北民族大学 Galgame同好会",
+      "summary": "英国ハイランド・アンド・アイランズ大学との連携により設立された、西北民族大学のGalgame愛好者団体です。本学の在学生および卒業生の日常的な交流を目的としています。",
+      "infobox": {
         "学校": "西北民族大学",
-        "地区": "甘肃省",
-        "类型": "高校同好会",
-        "成立时间": "2023-09-21 00:00:00",
-        "状态": "已认证"
-    },
-    "sections": [
+        "地域": "中国・甘粛省",
+        "種別": "大学同好会",
+        "設立日": "2023-09-21",
+        "状態": "認証済み"
+      },
+      "sections": [
         {
-            "heading": "概要",
-            "body": [
-                "University of the Highlands and Islands, Perth College",
-                "由英国高地与群岛大学联合创建的西北民大Galgame爱好者协会，仅供本校毕业或者在校学生作为日常兴趣交流使用",
-                "官方网站：xbmu.mygalgame.top",
-                "总会邮件:yyddtj@yyddtj.top",
-                "英国高地与群岛大学分会电话：+1 4028821169"
-            ]
+          "heading": "概要",
+          "body": [
+            "University of the Highlands and Islands, Perth College",
+            "英国ハイランド・アンド・アイランズ大学との連携により設立された、西北民族大学のGalgame愛好者団体です。本学の在学生および卒業生の日常的な交流を目的としています。",
+            "公式サイト：xbmu.mygalgame.top",
+            "本部メール：yyddtj@yyddtj.top",
+            "英国ハイランド・アンド・アイランズ大学支部電話：+1 4028821169"
+          ]
         }
-    ],
-    "images": [
+      ],
+      "images": [
         {
-            "url": "..\/uploads\/china-26\/20260515003742_6832af7d.png?t=1778776662",
-            "caption": "",
-            "alt": "2F0ACACA4EE96E3B26A0C3392205A38F"
+          "url": "../uploads/china-26/20260515003742_6832af7d.png?t=1778776662",
+          "caption": "",
+          "alt": "同好会公開画像"
         }
-    ],
-    "references": [
+      ],
+      "references": [
         {
-            "label": "Galgame 同好会地图登记资料",
-            "url": "..\/..\/index.html"
+          "label": "Galgame同好会マップ登録情報",
+          "url": "../../index.html"
         }
-    ],
-    "updated_at": "2026-05-15"
+      ]
+    }
+  }
 }

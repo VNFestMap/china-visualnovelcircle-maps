@@ -65,10 +65,12 @@
         };
         
         // 使用 id 获取名称
-        let displayName = nameMap[d.id];
+        const data = d || {};
+        let displayName = nameMap[data.id];
         if (!displayName) {
-            displayName = d.name || d.tw_name || d.en_name || d.id;
+            displayName = data.name || data.tw_name || data.en_name || data.id || '';
         }
+        if (displayName == null || displayName === 'undefined') displayName = '';
         
         return '<div class="tooltip-name">' + displayName + '</div>';
     };
@@ -88,16 +90,18 @@
         // 提取颜色获取逻辑
         const getColor = (d) => d.color || (d.type === "lake" ? colorLake : colorDefault);
 
-        const mouseOver = (d) => {
+        const mouseOver = (event, datum) => {
             d3.select("#tooltip").transition().duration(200).style("opacity", 0.9);
             
-            // 兼容 D3 老版本(d3.event)和新版本/原生事件
-            const e = d3.event || window.event;
+            // D3 v7 的监听器参数为 (event, datum)；兼容旧版单参数 datum。
+            const legacyDatum = !datum && event && (event.id || event.name || event.tw_name || event.en_name) ? event : null;
+            const data = datum || legacyDatum || {};
+            const e = (datum ? event : null) || d3.event || window.event || {};
             
             d3.select("#tooltip")
-                .html(tooltipHtml(d))
-                .style("left", `${e.pageX}px`)
-                .style("top", `${e.pageY}px`);
+                .html(tooltipHtml(data))
+                .style("left", `${Number.isFinite(e.pageX) ? e.pageX : 0}px`)
+                .style("top", `${Number.isFinite(e.pageY) ? e.pageY : 0}px`);
         };
 
         const mouseOut = () => {

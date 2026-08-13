@@ -1,10 +1,15 @@
 <!doctype html>
 <html lang="zh-CN" data-theme="dark">
 <head>
+  <script src="./js/language-runtime.js?v=20260813-language"></script>
+  <script src="./js/language-catalog.js?v=20260813-language"></script>
+  <script src="./js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="./js/page-i18n.js?v=20260813-language"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="referrer" content="no-referrer" />
   <title>同好会广场 — VNFest</title>
+  <script src="./js/theme-runtime.js?v=20260702-theme"></script>
   <script src="./js/vote-common.js"></script>
   <style>
     /* ============================================================
@@ -20,8 +25,7 @@
       --twelve-color:   #6898d0;
       --radar-color:    #4ea89e;
       --sim-color:      #d48c6a;
-      --board-color:    #c44a4a;
-      --board-gold:     #c9a454;
+      --quiz-color:     #8b6fc0;
     }
 
     /* ---- 暗色主题（默认） ---- */
@@ -43,7 +47,7 @@
       --status-running-fg: #78c898;
       --tag-moe-bg:     rgba(192, 122, 184, 0.15);
       --tag-twelve-bg:  rgba(104, 152, 208, 0.15);
-      --tag-board-bg:   rgba(196, 74, 74, 0.15);
+      --tag-quiz-bg:    rgba(139, 111, 192, 0.15);
     }
 
     /* ---- 亮色主题 ---- */
@@ -65,7 +69,7 @@
       --status-running-fg: #408860;
       --tag-moe-bg:     rgba(192, 122, 184, 0.1);
       --tag-twelve-bg:  rgba(104, 152, 208, 0.1);
-      --tag-board-bg:   rgba(196, 74, 74, 0.08);
+      --tag-quiz-bg:    rgba(139, 111, 192, 0.08);
     }
 
     /* ============================================================
@@ -104,7 +108,7 @@
     .card-twelve:focus-visible  { outline-color: var(--twelve-color); }
     .card-radar:focus-visible   { outline-color: var(--radar-color); }
     .card-sim:focus-visible     { outline-color: var(--sim-color); }
-    .card-board:focus-visible   { outline-color: var(--board-color); }
+    .card-quiz:focus-visible    { outline-color: var(--quiz-color); }
 
     /* ============================================================
        主容器
@@ -254,7 +258,7 @@
     .card-twelve .gateway-icon { background: linear-gradient(135deg, rgba(104,152,208,0.16), rgba(60,110,170,0.06)); color: var(--twelve-color); }
     .card-radar .gateway-icon { background: linear-gradient(135deg, rgba(78,168,158,0.16), rgba(40,120,110,0.06)); color: var(--radar-color); }
     .card-sim   .gateway-icon { background: linear-gradient(135deg, rgba(212,140,106,0.16), rgba(160,100,70,0.06)); color: var(--sim-color); }
-    .card-board .gateway-icon { background: linear-gradient(135deg, rgba(196,74,74,0.16), rgba(180,130,60,0.07)); color: var(--board-color); }
+    .card-quiz .gateway-icon { background: linear-gradient(135deg, rgba(139,111,192,0.16), rgba(100,70,170,0.06)); color: var(--quiz-color); }
 
     /* 内容区 */
     .gateway-body {
@@ -272,7 +276,7 @@
     .card-twelve .gateway-body h2 { color: var(--twelve-color); }
     .card-radar .gateway-body h2 { color: var(--radar-color); }
     .card-sim   .gateway-body h2 { color: var(--sim-color); }
-    .card-board .gateway-body h2 { color: var(--board-color); }
+    .card-quiz .gateway-body h2 { color: var(--quiz-color); }
 
     .gateway-desc {
       font-size: 13px;
@@ -289,7 +293,7 @@
     .card-twelve .gateway-stats { color: color-mix(in srgb, var(--twelve-color) 75%, var(--fg-secondary)); }
     .card-radar .gateway-stats { color: color-mix(in srgb, var(--radar-color) 75%, var(--fg-secondary)); }
     .card-sim   .gateway-stats { color: color-mix(in srgb, var(--sim-color) 75%, var(--fg-secondary)); }
-    .card-board .gateway-stats { color: color-mix(in srgb, var(--board-color) 75%, var(--fg-secondary)); }
+    .card-quiz .gateway-stats { color: color-mix(in srgb, var(--quiz-color) 75%, var(--fg-secondary)); }
 
     /* 进入按钮 */
     .gateway-enter {
@@ -311,13 +315,13 @@
     .card-twelve .gateway-enter { background: rgba(104,152,208,0.1); color: var(--twelve-color); border: 1px solid rgba(104,152,208,0.18); }
     .card-radar .gateway-enter { background: rgba(78,168,158,0.1); color: var(--radar-color); border: 1px solid rgba(78,168,158,0.2); }
     .card-sim   .gateway-enter { background: rgba(212,140,106,0.1); color: var(--sim-color); border: 1px solid rgba(212,140,106,0.2); }
-    .card-board .gateway-enter { background: rgba(196,74,74,0.1); color: var(--board-color); border: 1px solid rgba(196,74,74,0.2); }
+    .card-quiz .gateway-enter { background: rgba(139,111,192,0.1); color: var(--quiz-color); border: 1px solid rgba(139,111,192,0.2); }
 
     .card-moe  .gateway-enter:hover { background: rgba(192,122,184,0.16); }
     .card-twelve .gateway-enter:hover { background: rgba(104,152,208,0.16); }
     .card-radar .gateway-enter:hover { background: rgba(78,168,158,0.16); }
     .card-sim   .gateway-enter:hover { background: rgba(212,140,106,0.16); }
-    .card-board .gateway-enter:hover { background: rgba(196,74,74,0.16); }
+    .card-quiz .gateway-enter:hover { background: rgba(139,111,192,0.16); }
 
     /* ============================================================
        进行中活动
@@ -417,7 +421,7 @@
     }
     .ongoing-item.moe  .ongoing-tag { background: var(--tag-moe-bg); color: var(--moe-color); }
     .ongoing-item.twelve .ongoing-tag { background: var(--tag-twelve-bg); color: var(--twelve-color); }
-    .ongoing-item.board .ongoing-tag { background: var(--tag-board-bg); color: var(--board-color); }
+    .ongoing-item.quiz .ongoing-tag { background: var(--tag-quiz-bg); color: var(--quiz-color); }
     .ongoing-info {
       flex: 1; min-width: 0;
       display: flex; flex-direction: column; gap: 3px;
@@ -595,28 +599,23 @@
         <span class="gateway-enter">进入活动</span>
       </a>
 
-      <!-- 棋盘推理（新增） -->
-      <a class="gateway-card card-board" href="https://narrative.map.vnfest.top" aria-label="棋盘推理 — 多人叙事推理博弈">
+      <!-- 答题互动（MakoQuiz） -->
+      <a class="gateway-card card-quiz" href="https://makoquiz.vnfest.top/" aria-label="答题互动 — 在线答题互动平台">
         <div class="gateway-icon">
           <svg width="48" height="48" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <rect x="6" y="6" width="36" height="36" rx="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
-            <line x1="24" y1="6" x2="24" y2="42" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
-            <line x1="6" y1="24" x2="42" y2="24" stroke="currentColor" stroke-width="0.6" opacity="0.3"/>
-            <line x1="6" y1="6" x2="42" y2="42" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
-            <line x1="42" y1="6" x2="6" y2="42" stroke="currentColor" stroke-width="0.5" opacity="0.2"/>
-            <circle cx="24" cy="24" r="2.5" fill="currentColor" opacity="0.9"/>
-            <circle cx="24" cy="12" r="1.5" fill="currentColor" opacity="0.5"/>
-            <circle cx="36" cy="24" r="1.5" fill="currentColor" opacity="0.4"/>
-            <circle cx="12" cy="24" r="1.5" fill="currentColor" opacity="0.4"/>
-            <circle cx="24" cy="36" r="1.5" fill="currentColor" opacity="0.5"/>
+            <rect x="9" y="5" width="30" height="38" rx="4" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <line x1="15" y1="11.5" x2="33" y2="11.5" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
+            <path d="M20 21a4 4 0 1 1 5.6 3.7c-1.1.4-1.6 1.2-1.6 2.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <circle cx="24" cy="31.5" r="1.7" fill="currentColor" opacity="0.9"/>
+            <path d="M27.5 36.5l3 3 5-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.55"/>
           </svg>
         </div>
         <div class="gateway-body">
-          <h2>棋盘推理</h2>
-          <p class="gateway-desc">多人叙事推理博弈 — 红蓝字对抗，在棋盘上拼凑隐藏的真相</p>
-          <div class="gateway-stats">红蓝对抗 · 身份推理 · GM 主持</div>
+          <h2>答题互动</h2>
+          <p class="gateway-desc">在线答题互动平台 — 接入 MakoQuiz，参与知识竞答与趣味挑战</p>
+          <div class="gateway-stats">知识竞答 · 趣味挑战 · 实时排行</div>
         </div>
-        <span class="gateway-enter">进入推理</span>
+        <span class="gateway-enter">开始答题</span>
       </a>
 
       <!-- 运行画像 -->
@@ -729,16 +728,18 @@
       showSkeleton();
       loadFailed = false;
       Promise.all([
+        ensureClubNamesLoaded(),
         apiFetch('./api/vote_projects.php?action=list&project_type=moe&status=running').catch(function () { return { success: false, data: [] }; }),
         apiFetch('./api/vote_projects.php?action=list&project_type=twelve&status=running').catch(function () { return { success: false, data: [] }; })
       ]).then(function (results) {
         var allRunning = [];
-        results.forEach(function (r) {
-          if (!r.success || !r.data) { loadFailed = true; return; }
+        for (var i = 1; i < results.length; i++) {
+          var r = results[i];
+          if (!r.success || !r.data) { loadFailed = true; continue; }
           r.data.forEach(function (p) {
             if (p.status === 'running') allRunning.push(p);
           });
-        });
+        }
         runningProjects = allRunning;
         updateStats();
         renderOngoing();
@@ -784,7 +785,7 @@
         var label = type === 'moe' ? '萌战' : '十二器';
         var href = type === 'moe' ? './moe/index.html' : './twelve/index.html';
         var title = esc(p.title || '未命名企划');
-        var club = p.club_id ? '同好会 #' + Number(p.club_id) : '';
+        var club = p.club_id ? esc(resolveClubName(p.club_id, p.country)) : '';
         return '<a class="ongoing-item ' + type + '" href="' + href + '" aria-label="' + esc(title) + ' — ' + label + '">' +
           '<span class="ongoing-tag">' + label + '</span>' +
           '<span class="ongoing-info">' +

@@ -57,20 +57,22 @@
 
   function loadHubProjects(append) {
     if (!append) document.getElementById('twCardList').innerHTML = '<div class="tw-loading">加载中...</div>';
-    var params = '?action=list&project_type=twelve&status=' + HUB_STATE.filter + '&page=' + HUB_STATE.page;
-    api('../api/twelve_contests.php' + params).then(function (data) {
-      var projects = (data && data.data) || [];
-      if (!projects.length) {
-        if (!append) document.getElementById('twCardList').innerHTML = '<div class="tw-empty">暂无活动</div>';
-        return;
-      }
-      HUB_STATE.total = data.total || projects.length;
-      HUB_STATE.projects = append ? HUB_STATE.projects.concat(projects) : projects;
-      renderHubCards(projects, append);
-      document.getElementById('twLoadMore').style.display = (projects.length >= 20) ? '' : 'none';
-      updateHubStats();
-    }).catch(function () {
-      document.getElementById('twCardList').innerHTML = '<div class="tw-empty">加载失败，请刷新重试</div>';
+    ensureClubNamesLoaded().then(function () {
+      var params = '?action=list&project_type=twelve&status=' + HUB_STATE.filter + '&page=' + HUB_STATE.page;
+      api('../api/twelve_contests.php' + params).then(function (data) {
+        var projects = (data && data.data) || [];
+        if (!projects.length) {
+          if (!append) document.getElementById('twCardList').innerHTML = '<div class="tw-empty">暂无活动</div>';
+          return;
+        }
+        HUB_STATE.total = data.total || projects.length;
+        HUB_STATE.projects = append ? HUB_STATE.projects.concat(projects) : projects;
+        renderHubCards(projects, append);
+        document.getElementById('twLoadMore').style.display = (projects.length >= 20) ? '' : 'none';
+        updateHubStats();
+      }).catch(function () {
+        document.getElementById('twCardList').innerHTML = '<div class="tw-empty">加载失败，请刷新重试</div>';
+      });
     });
   }
 
@@ -93,7 +95,7 @@
         '<div class="tw-card-body">' +
           '<div class="tw-card-row">' +
             '<span class="tw-card-tag">十二器</span>' +
-            '<span class="tw-card-club">同好会 #' + esc(p.club_id) + '</span>' +
+            '<span class="tw-card-club">' + esc(resolveClubName(p.club_id, p.country)) + '</span>' +
             '<span class="tw-card-stage ' + meta.color + '">' + meta.label + '</span>' +
           '</div>' +
           '<div class="tw-card-title">' + esc(p.title) + '</div>' +

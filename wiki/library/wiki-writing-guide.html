@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="../../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../../js/page-i18n.js?v=20260813-language"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VNFest WIKI 编写说明</title>
@@ -13,7 +17,7 @@
     <span>文档库</span>
   </header>
   <main class="wiki-page">
-    <article class="wiki-article">
+    <article class="wiki-article" data-wiki-lang="zh">
       <h1>VNFest WIKI 编写说明</h1>
       <p class="wiki-summary">本文档用于给后续学校 Wiki 和文档库内容提供基础编写规范。后续可以继续扩展为更完整的贡献指南。</p>
 
@@ -52,6 +56,61 @@
 
       <footer class="wiki-footer">最后更新：2026-05-15</footer>
     </article>
+    <article class="wiki-article" data-wiki-lang="ja" hidden>
+      <h1>VNFest WIKI 執筆ガイド</h1>
+      <p class="wiki-summary">本書は、大学Wikiおよび文書ライブラリーの記事を作成する際の基本基準をまとめたものです。今後、投稿者向けの詳細ガイドとして順次拡充します。</p>
+
+      <nav class="wiki-toc" aria-label="目次">
+        <div class="wiki-toc-title">目次</div>
+        <ol>
+          <li><a href="#scope-ja">掲載対象</a></li>
+          <li><a href="#structure-ja">推奨構成</a></li>
+          <li><a href="#media-ja">画像と参考資料</a></li>
+          <li><a href="#future-ja">今後の拡張</a></li>
+        </ol>
+      </nav>
+
+      <section class="wiki-section" id="scope-ja">
+        <h2>掲載対象</h2>
+        <p>大学Wikiでは、同好会の公開情報、沿革、定例活動、運営体制、公開リンク、引用可能な資料を整理します。</p>
+        <p>個人の連絡先、許可を得ていない会員情報、内部チャット、公開に適さない資料は掲載しません。</p>
+      </section>
+
+      <section class="wiki-section" id="structure-ja">
+        <h2>推奨構成</h2>
+        <p>基本記事には、概要、沿革、主な活動、組織、関連リンク、参考資料を設けます。</p>
+        <p>資料が少ない場合は概要と関連リンクから公開し、確認済みの情報を順次追加します。</p>
+      </section>
+
+      <section class="wiki-section" id="media-ja">
+        <h2>画像と参考資料</h2>
+        <p>画像には、同好会ロゴ、活動写真、公開ポスター、その他利用許諾を得た素材を使用します。内容を伝える代替テキストも必ず記入します。</p>
+        <p>参考資料には可能な限り公開リンクを使用し、本文または参考資料欄に出典を明記します。</p>
+      </section>
+
+      <section class="wiki-section" id="future-ja">
+        <h2>今後の拡張</h2>
+        <p>文書ライブラリーには、活動記事テンプレート、審査基準、画像基準、投稿者ガイド、地域特集、運用保守資料などを追加できます。</p>
+      </section>
+
+      <footer class="wiki-footer">最終更新：2026-08-13</footer>
+    </article>
   </main>
+  <script>
+    (function () {
+      function applyLanguage() {
+        var lang = window.VNFLanguage && window.VNFLanguage.getLanguage() === 'ja' ? 'ja' : 'zh';
+        document.querySelectorAll('[data-wiki-lang]').forEach(function (article) {
+          article.hidden = article.getAttribute('data-wiki-lang') !== lang;
+        });
+        document.title = lang === 'ja' ? 'VNFest WIKI 執筆ガイド' : 'VNFest WIKI 编写说明';
+      }
+      applyLanguage();
+      if (window.VNFLanguage) {
+        window.VNFLanguage.subscribe(applyLanguage);
+        window.VNFLanguage.ready.then(applyLanguage);
+      }
+    }());
+  </script>
 </body>
 </html>

@@ -9,6 +9,9 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
+// 禁止 PHP 警告以 HTML 形式输出污染 JSON 响应
+ini_set('display_errors', '0');
+
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -104,7 +107,15 @@ $scopeDirs = [
 $dir = $scopeDirs[$scope] ?? __DIR__ . '/../data/club_avatars';
 
 if (!is_dir($dir)) {
-    mkdir($dir, 0755, true);
+    if (!mkdir($dir, 0755, true)) {
+        echo json_encode(['success' => false, 'message' => '无法创建目录: ' . basename($dir)]);
+        exit();
+    }
+}
+
+if (!is_writable($dir)) {
+    echo json_encode(['success' => false, 'message' => '目录无写入权限: ' . basename($dir)]);
+    exit();
 }
 
 $fileBase = $scope === 'club' ? $country . '_' . $id : $id;
@@ -118,7 +129,7 @@ foreach (['jpg', 'jpeg', 'png', 'gif', 'webp'] as $oldExt) {
 
 $destPath = $dir . '/' . $fileBase . '.' . $ext;
 if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-    echo json_encode(['success' => false, 'message' => '文件保存失败']);
+    echo json_encode(['success' => false, 'message' => '文件保存失败，请检查服务器目录权限: ' . basename($dir)]);
     exit();
 }
 

@@ -36,7 +36,8 @@ assert(!growthLib.includes('HTTP_USER_AGENT'), 'growth analytics does not store 
 
 assert(sharePage.includes('api/growth.php?action=club_summary'), 'club share page loads growth summary');
 assert(sharePage.includes('club_share_copy'), 'club share page records copy intent');
-assert(sharePage.includes('data-i18n-lang'), 'club share page keeps language controls');
+assert(sharePage.includes('js/language-runtime.js'), 'club share page uses the shared account-aware language runtime');
+assert(!sharePage.includes('data-i18n-lang'), 'club share page does not expose a local language control');
 
 assert(userPage.includes('ownerGrowthPanel') || userPage.includes('负责人工作台'), 'user center has owner growth panel');
 assert(userPage.includes('ownerGrowthList') || userPage.includes('ownerDashboard.clubs'), 'user center has owner growth list');

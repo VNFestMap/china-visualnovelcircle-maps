@@ -4,18 +4,27 @@
 
   var rootUrl = new URL('../', script.src);
   var apiUrl = new URL('api/backgrounds.php', rootUrl);
+  var authUrl = new URL('api/auth.php?action=me', rootUrl);
   var storageKey = 'vnfestWallpaperPreference';
   var layerId = 'vnfestWallpaperLayer';
-  var pickerId = 'vnfestWallpaperPicker';
   var styleId = 'vnfestWallpaperStyle';
-  var pickerMode = script.getAttribute('data-picker') || '';
-  var pickerAnchorId = script.getAttribute('data-anchor') || '';
+  var guestDefaultFile = 'Defaultwallpaper.jpg';
   var waitForMap = script.hasAttribute('data-after-map');
   var mobileWallpaperQuery = window.matchMedia ? window.matchMedia('(max-width: 720px), (pointer: coarse)') : null;
   var initStarted = false;
-  var fallbackImages = [
-    { name: '默认壁纸', file: 'fd912ee18f271bb0cb042bda8ca85d8c.jpeg', url: 'images/fd912ee18f271bb0cb042bda8ca85d8c.jpeg' }
-  ];
+  var subscribers = [];
+  var readyResolve;
+  var readySettled = false;
+  var ready = new Promise(function (resolve) { readyResolve = resolve; });
+  var state = {
+    status: 'loading',
+    images: [],
+    preference: '__random__',
+    activeUrl: '',
+    authenticated: false,
+    mobileDisabled: false,
+    error: null
+  };
 
   function isMobileWallpaperDisabled() {
     return !!(mobileWallpaperQuery && mobileWallpaperQuery.matches);
@@ -25,8 +34,6 @@
     document.documentElement.classList.remove('has-vnfest-wallpaper');
     var layer = document.getElementById(layerId);
     if (layer) layer.remove();
-    var picker = document.getElementById(pickerId);
-    if (picker) picker.remove();
   }
 
   function injectStyle() {
@@ -84,13 +91,7 @@
       'html.has-vnfest-wallpaper:not([data-theme="light"]) .md3-card,html.has-vnfest-wallpaper[data-theme="dark"] .md3-card,html.has-vnfest-wallpaper:not([data-theme="light"]) .user-info-card,html.has-vnfest-wallpaper[data-theme="dark"] .user-info-card,html.has-vnfest-wallpaper:not([data-theme="light"]) .mobile-drawer-content,html.has-vnfest-wallpaper[data-theme="dark"] .mobile-drawer-content,html.has-vnfest-wallpaper:not([data-theme="light"]) .calendar-modal-card,html.has-vnfest-wallpaper[data-theme="dark"] .calendar-modal-card,html.has-vnfest-wallpaper:not([data-theme="light"]) .event-poster-card,html.has-vnfest-wallpaper[data-theme="dark"] .event-poster-card,html.has-vnfest-wallpaper:not([data-theme="light"]) .notif-center-modal,html.has-vnfest-wallpaper[data-theme="dark"] .notif-center-modal,html.has-vnfest-wallpaper:not([data-theme="light"]) .notif-panel,html.has-vnfest-wallpaper[data-theme="dark"] .notif-panel{border-color:rgba(255,255,255,.12);background:linear-gradient(135deg,rgba(18,17,16,.86),rgba(31,29,28,.64));box-shadow:0 28px 80px rgba(0,0,0,.42),0 10px 28px rgba(231,76,60,.10);}',
       'html.has-vnfest-wallpaper:not([data-theme="light"]) .group-item,html.has-vnfest-wallpaper[data-theme="dark"] .group-item{background:rgba(26,25,24,.64);border-color:rgba(255,255,255,.10);}',
       'html.has-vnfest-wallpaper:not([data-theme="light"]) .group-item:hover,html.has-vnfest-wallpaper[data-theme="dark"] .group-item:hover{background:rgba(32,31,30,.82);}',
-      '.vnfest-wallpaper-picker{position:fixed;right:14px;bottom:14px;z-index:9999;max-width:min(220px,calc(100vw - 28px));min-height:32px;padding:5px 30px 5px 10px;border:1px solid rgba(255,255,255,.16);border-radius:7px;background:rgba(18,17,16,.84);color:#f4f1ec;backdrop-filter:blur(18px) saturate(1.18);font:700 12px "Noto Sans SC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;box-shadow:0 16px 36px rgba(0,0,0,.22);outline:none;}',
-      '.vnfest-wallpaper-picker.is-anchored{position:static;z-index:auto;width:100%;max-width:none;min-height:34px;margin:0 0 10px;background:rgba(255,255,255,.10);color:var(--md-on-surface,#f4f1ec);box-shadow:none;}',
-      '.vnfest-wallpaper-picker:focus{border-color:rgba(231,76,60,.68);box-shadow:0 0 0 3px rgba(231,76,60,.16),0 12px 34px rgba(0,0,0,.22);}',
-      '.vnfest-wallpaper-picker.is-anchored:focus{box-shadow:0 0 0 3px rgba(231,76,60,.16);}',
-      'html[data-theme="light"] .vnfest-wallpaper-picker{background:rgba(255,255,255,.88);color:#2d1e18;border-color:rgba(69,42,32,.12);}',
-      'html[data-theme="light"] .vnfest-wallpaper-picker.is-anchored{background:rgba(255,255,255,.50);}',
-      '@media(max-width:700px){.vnfest-wallpaper-picker{right:10px;bottom:10px;max-width:170px;}}'
+      '@media(max-width:700px){#vnfestWallpaperLayer{display:none;}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -109,16 +110,67 @@
     return new URL(item.url, rootUrl).toString();
   }
 
-  function applyWallpaper(url) {
-    if (isMobileWallpaperDisabled()) {
-      removeWallpaperUi();
-      return;
+  function snapshot() {
+    return {
+      status: state.status,
+      images: state.images.slice(),
+      preference: state.preference,
+      activeUrl: state.activeUrl,
+      authenticated: state.authenticated,
+      mobileDisabled: state.mobileDisabled,
+      error: state.error
+    };
+  }
+
+  function emit() {
+    var detail = snapshot();
+    subscribers.slice().forEach(function (callback) {
+      try { callback(detail); } catch (error) {}
+    });
+    try { window.dispatchEvent(new CustomEvent('vn-wallpaper-change', { detail: detail })); } catch (error) {}
+    if (!readySettled && state.status !== 'loading') {
+      readySettled = true;
+      readyResolve(detail);
     }
-    if (!url) return;
+    return detail;
+  }
+
+  function clearWallpaper() {
+    removeWallpaperUi();
+    state.activeUrl = '';
+  }
+
+  function preloadWallpaper(url) {
+    return new Promise(function (resolve) {
+      if (!url) { resolve(false); return; }
+      var image = new Image();
+      image.onload = function () { resolve(true); };
+      image.onerror = function () { resolve(false); };
+      image.src = url;
+    });
+  }
+
+  async function applyWallpaper(url) {
+    state.mobileDisabled = isMobileWallpaperDisabled();
+    if (state.mobileDisabled) {
+      removeWallpaperUi();
+      state.activeUrl = url || '';
+      return !!url;
+    }
+    if (!url) {
+      clearWallpaper();
+      return false;
+    }
+    if (!await preloadWallpaper(url)) {
+      clearWallpaper();
+      return false;
+    }
     injectStyle();
     var layer = ensureLayer();
     layer.style.backgroundImage = 'url("' + String(url).replace(/"/g, '\\"') + '")';
     document.documentElement.classList.add('has-vnfest-wallpaper');
+    state.activeUrl = url;
+    return true;
   }
 
   function pickRandom(images) {
@@ -128,7 +180,7 @@
 
   function findByUrl(images, url) {
     return images.find(function (item) {
-      return toAbsoluteImageUrl(item) === url || item.url === url;
+      return item.url === url || item.sourceUrl === url;
     });
   }
 
@@ -143,47 +195,16 @@
     } catch (e) {}
   }
 
-  function installPicker(images, activeUrl) {
-    if (isMobileWallpaperDisabled()) return;
-    if (!pickerMode || document.getElementById(pickerId)) return;
-    var select = document.createElement('select');
-    select.id = pickerId;
-    select.className = 'vnfest-wallpaper-picker';
-    select.setAttribute('aria-label', '选择页面壁纸');
-    select.title = '选择页面壁纸';
-
-    var randomOption = document.createElement('option');
-    randomOption.value = '__random__';
-    randomOption.textContent = '随机壁纸';
-    select.appendChild(randomOption);
-
-    images.forEach(function (item) {
-      var option = document.createElement('option');
-      option.value = toAbsoluteImageUrl(item);
-      option.textContent = item.name || item.file || '壁纸';
-      select.appendChild(option);
+  function normalizeImages(images) {
+    return (images || []).map(function (item) {
+      return {
+        name: item.name || item.file || '壁纸',
+        file: item.file || '',
+        url: toAbsoluteImageUrl(item),
+        sourceUrl: item.url || '',
+        mtime: Number(item.mtime || 0)
+      };
     });
-
-    select.value = findByUrl(images, activeUrl) ? activeUrl : '__random__';
-    select.addEventListener('change', function () {
-      if (select.value === '__random__') {
-        writePreference('__random__');
-        var random = pickRandom(images);
-        if (random) applyWallpaper(toAbsoluteImageUrl(random));
-        return;
-      }
-      writePreference(select.value);
-      applyWallpaper(select.value);
-    });
-
-    var anchor = pickerAnchorId ? document.getElementById(pickerAnchorId) : null;
-    if (anchor) {
-      select.classList.add('is-anchored');
-      var firstSwitch = anchor.querySelector('.md3-switch');
-      anchor.insertBefore(select, firstSwitch || anchor.firstChild);
-    } else {
-      document.body.appendChild(select);
-    }
   }
 
   function isMapRendered() {
@@ -212,53 +233,110 @@
     });
   }
 
+  async function fetchJson(url) {
+    var response = await fetch(url.toString(), { credentials: 'same-origin' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    return response.json();
+  }
+
   async function init() {
     if (initStarted) return;
-    if (isMobileWallpaperDisabled()) {
-      removeWallpaperUi();
-      return;
-    }
     initStarted = true;
+    state.status = 'loading';
+    state.error = null;
+    state.mobileDisabled = isMobileWallpaperDisabled();
+    emit();
     await waitForMapReady();
-    if (isMobileWallpaperDisabled()) {
-      removeWallpaperUi();
-      initStarted = false;
-      return;
-    }
-    var images = fallbackImages.slice();
-    try {
-      var resp = await fetch(apiUrl.toString(), { credentials: 'same-origin' });
-      var data = await resp.json();
-      if (data && Array.isArray(data.images) && data.images.length) {
-        images = data.images;
-      }
-    } catch (e) {}
 
-    if (!images.length) {
-      initStarted = false;
-      return;
-    }
-    var saved = readPreference();
-    var selected = saved ? findByUrl(images, saved) : null;
-    var item = selected || pickRandom(images);
-    if (!item) {
-      initStarted = false;
-      return;
+    var results = await Promise.allSettled([fetchJson(apiUrl), fetchJson(authUrl)]);
+    var catalogResult = results[0];
+    var authResult = results[1];
+    state.authenticated = !!(
+      authResult.status === 'fulfilled'
+      && authResult.value
+      && authResult.value.logged_in
+    );
+    state.images = catalogResult.status === 'fulfilled'
+      && catalogResult.value
+      && Array.isArray(catalogResult.value.images)
+      ? normalizeImages(catalogResult.value.images)
+      : [];
+
+    var saved = state.authenticated ? readPreference() : '';
+    state.preference = saved || '__random__';
+    var target = null;
+    if (state.authenticated) {
+      target = saved ? findByUrl(state.images, saved) : pickRandom(state.images);
+      if (!target && saved) target = { url: saved };
+    } else {
+      target = state.images.find(function (item) { return item.file === guestDefaultFile; }) || null;
     }
 
-    var url = toAbsoluteImageUrl(item);
-    applyWallpaper(url);
-    installPicker(images, selected ? url : '');
+    var applied = await applyWallpaper(target ? target.url : '');
+    if (!applied && target && state.authenticated && saved) {
+      state.error = '壁纸加载失败，已恢复为主题背景。';
+    }
+    if (catalogResult.status === 'rejected') {
+      state.status = 'error';
+      state.error = state.error || '壁纸列表加载失败，请稍后重试。';
+    } else {
+      state.status = state.images.length ? 'ready' : 'empty';
+    }
     initStarted = false;
+    emit();
   }
+
+  async function setPreference(value) {
+    if (!state.authenticated) {
+      return { success: false, state: snapshot(), error: '请登录后在用户中心修改壁纸。' };
+    }
+    var previous = snapshot();
+    var next = value === '__random__' ? '__random__' : String(value || '');
+    var target = next === '__random__' ? pickRandom(state.images) : findByUrl(state.images, next);
+    if (!target && next !== '__random__') target = { url: next };
+    if (!target) return { success: false, state: snapshot(), error: '暂无可用壁纸。' };
+
+    var applied = await applyWallpaper(target.url);
+    if (!applied) {
+      state = previous;
+      await applyWallpaper(previous.activeUrl);
+      emit();
+      return { success: false, state: snapshot(), error: '壁纸加载失败，已恢复之前的设置。' };
+    }
+
+    writePreference(next);
+    state.preference = next;
+    state.error = null;
+    emit();
+    return { success: true, state: snapshot() };
+  }
+
+  function subscribe(callback) {
+    if (typeof callback !== 'function') return function () {};
+    subscribers.push(callback);
+    callback(snapshot());
+    return function () {
+      subscribers = subscribers.filter(function (item) { return item !== callback; });
+    };
+  }
+
+  window.VNFWallpaper = {
+    ready: ready,
+    getState: snapshot,
+    setPreference: setPreference,
+    subscribe: subscribe,
+    reload: init
+  };
 
   function installMobileWallpaperGuard() {
     if (!mobileWallpaperQuery) return;
     var handleChange = function () {
       if (isMobileWallpaperDisabled()) {
         removeWallpaperUi();
-        initStarted = false;
+        state.mobileDisabled = true;
+        emit();
       } else {
+        state.mobileDisabled = false;
         init();
       }
     };

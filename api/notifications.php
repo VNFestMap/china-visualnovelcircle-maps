@@ -2,7 +2,11 @@
 // api/notifications.php - 通知系统 API
 // 动作: list, count_unread, mark_read, mark_all_read
 
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=utf-8');
+// 通知未读数会被主站定期拉取；禁止客户端和中间缓存复用旧响应。
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -17,6 +21,12 @@ require_once __DIR__ . '/../includes/auth.php';
 $action = $_GET['action'] ?? '';
 
 $nowExpr = DB_DRIVER === 'mysql' ? 'NOW()' : "datetime('now')";
+
+function getUnreadNotificationCount(PDO $db, int $userId): int {
+    $stmt = $db->prepare('SELECT COUNT(*) FROM notifications WHERE user_id = :uid AND is_read = 0');
+    $stmt->execute([':uid' => $userId]);
+    return (int)$stmt->fetchColumn();
+}
 
 switch ($action) {
     case 'list':
@@ -38,9 +48,7 @@ switch ($action) {
         $total = intval($countStmt->fetchColumn());
 
         // 未读数
-        $unreadStmt = $db->prepare("SELECT COUNT(*) AS cnt FROM notifications WHERE user_id = :uid AND is_read = 0");
-        $unreadStmt->execute([':uid' => $user['id']]);
-        $unreadCount = intval($unreadStmt->fetchColumn());
+        $unreadCount = getUnreadNotificationCount($db, (int)$user['id']);
 
         // 列表
         $stmt = $db->prepare("
@@ -80,9 +88,7 @@ switch ($action) {
         }
         $user = requireLogin();
         $db = getDB();
-        $stmt = $db->prepare("SELECT COUNT(*) FROM notifications WHERE user_id = :uid AND is_read = 0");
-        $stmt->execute([':uid' => $user['id']]);
-        $count = intval($stmt->fetchColumn());
+        $count = getUnreadNotificationCount($db, (int)$user['id']);
 
         echo json_encode(['success' => true, 'count' => $count]);
         break;
@@ -105,8 +111,9 @@ switch ($action) {
         $db = getDB();
         $stmt = $db->prepare("UPDATE notifications SET is_read = 1, read_at = {$nowExpr} WHERE id = :id AND user_id = :uid");
         $stmt->execute([':id' => $notifId, ':uid' => $user['id']]);
+        $unreadCount = getUnreadNotificationCount($db, (int)$user['id']);
 
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'unread_count' => $unreadCount]);
         break;
 
     case 'mark_all_read':
@@ -119,8 +126,9 @@ switch ($action) {
         $db = getDB();
         $stmt = $db->prepare("UPDATE notifications SET is_read = 1, read_at = {$nowExpr} WHERE user_id = :uid AND is_read = 0");
         $stmt->execute([':uid' => $user['id']]);
+        $unreadCount = getUnreadNotificationCount($db, (int)$user['id']);
 
-        echo json_encode(['success' => true]);
+        echo json_encode(['success' => true, 'unread_count' => $unreadCount]);
         break;
 
     default:

@@ -1,11 +1,32 @@
 {
   "docs": [
     {
+      "title": "VNFest 使用文档",
+      "url": "./guide/",
+      "category": "使用指南",
+      "description": "VNFest 主站、MakoQuiz 与 GalgameMap AstrBot 插件的中日双语操作、运营与维护文档。",
+      "updated_at": "2026-08-08",
+      "i18n": {
+        "ja": {
+          "title": "VNFest 利用ガイド",
+          "category": "利用ガイド",
+          "description": "VNFest メインサイト、MakoQuiz、GalgameMap AstrBot プラグインの中国語・日本語対応ガイドです。"
+        }
+      }
+    },
+    {
       "title": "VNFest WIKI 编写说明",
       "url": "./library/wiki-writing-guide.html",
       "category": "编写规范",
       "description": "用于说明学校 Wiki 页面适合填写哪些内容、如何组织资料、如何处理图片与参考资料。",
-      "updated_at": "2026-05-15"
+      "updated_at": "2026-08-13",
+      "i18n": {
+        "ja": {
+          "title": "VNFest WIKI 執筆ガイド",
+          "category": "執筆基準",
+          "description": "大学Wikiに掲載する情報、資料の構成、画像と参考文献の取扱いを説明します。"
+        }
+      }
     }
   ]
 }

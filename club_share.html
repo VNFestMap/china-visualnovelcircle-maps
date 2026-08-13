@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="./js/language-runtime.js?v=20260813-language"></script>
+  <script src="./js/language-catalog.js?v=20260813-language"></script>
+  <script src="./js/language-static-ja.js?v=20260813-account-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111318">
@@ -36,7 +39,6 @@ a { color: inherit; text-decoration: none; }
 .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
 .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
 .brand-mark { width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--primary); color: #fff; }
-.langbar { display: flex; gap: 8px; flex-wrap: wrap; }
 .hero {
   min-height: 330px;
   display: grid;
@@ -93,10 +95,6 @@ a { color: inherit; text-decoration: none; }
 <main class="shell">
   <header class="topbar">
     <a class="brand" href="./index.html?guest=1"><span class="brand-mark">VN</span><span>VNFest</span></a>
-    <div class="langbar" aria-label="Language">
-      <button class="btn" type="button" data-i18n-lang="zh-CN">中文</button>
-      <button class="btn" type="button" data-i18n-lang="ja">日本語</button>
-    </div>
   </header>
 
   <section class="hero" id="hero">

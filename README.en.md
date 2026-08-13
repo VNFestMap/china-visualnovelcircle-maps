@@ -12,7 +12,7 @@
 
 <p align="center">
   <a href="https://www.map.vnfest.top"><img alt="Website" src="https://img.shields.io/badge/🌐_Visit-map.vnfest.top-2ecc71?style=flat-square"></a>
-  <img alt="Version" src="https://img.shields.io/badge/version-2.0.0-2ecc71?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-2.1.0-2ecc71?style=flat-square">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-8.x-777bb4?style=flat-square&logo=php&logoColor=white">
   <img alt="React" src="https://img.shields.io/badge/React-18-61dafb?style=flat-square&logo=react&logoColor=white">
   <img alt="D3.js" src="https://img.shields.io/badge/D3.js-7.9-f9a03c?style=flat-square&logo=d3.js&logoColor=white">
@@ -129,20 +129,20 @@ The page adopts a Cinematic Frontend v2 design — radial gradient backgrounds, 
 
 ---
 
-## v2.0 Highlights
+## v2.1 Highlights
 
-> From v1.7.1 to v2.0, VNFest underwent a comprehensive upgrade spanning both visual design and architecture.
+> From v2.0 to v2.1, VNFest completed a full-chain upgrade of community interaction and operations governance.
 
 | Highlight | Description |
 |-----------|-------------|
-| **User Center SPA** | Migrated from 2,500 lines of inline HTML to a React 18 SPA — a qualitative leap in interactive experience |
-| **GalOnly Staff Recruitment** | Brand-new end-to-end workflow for staff applications, voting, review, and scheduling |
-| **Public Archives** | Publication PDF/image uploads, metadata management, and online 3D page-turning preview |
-| **Bracket Visualization** | Dedicated bracket components for Moe Contest and Twelve, with zoom, drag, and real-time status |
-| **Star Map Visual Upgrade** | Cinematic Frontend v2 — radial gradients + radar sweep + immersive mode |
-| **Square Rewrite** | Deep-space theme + five-color cards + Chinese/Japanese bilingual switching |
-| **Performance Optimization** | Batched rendering, event delegation, search debouncing — smooth even with large datasets |
-| **Unified Design System** | oklch color space + Playfair Display / Jost / Noto Serif SC font pairing |
+| **Standalone Forum** | A brand-new forum plaza: posts, replies, likes, favorites, Markdown and image attachments |
+| **Super Admin Console** | Operations dashboards: review trends, top-12 circle regions, operation logs |
+| **Beijing GalOnly 2nd** | Dual flows for booth applications and staff recruitment, with dedicated review and event logos |
+| **MakoQuiz Integration** | Quiz score reporting + HMAC bind tokens for secure cross-site account sharing |
+| **Centralized Preferences** | Language, theme and map controls unified in one place; account language synced across devices |
+| **Wiki Guide** | Bilingual (ZH/JA) usage documentation with grouped navigation and in-site search |
+| **Jiangsu Sub-map** | 13 prefecture-level cities as a self-contained offline SVG — no external map requests |
+| **AstrBot beta0.5** | Bot query/sync plugin release with a plugin download entry |
 
 ---
 
@@ -233,7 +233,7 @@ The page adopts a Cinematic Frontend v2 design — radial gradient backgrounds, 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/kokubunshu/china-visualnovelcircle-maps.git
+git clone https://github.com/VNFestMap/china-visualnovelcircle-maps.git
 cd china-visualnovelcircle-maps
 
 # 2. Install dependencies
@@ -260,7 +260,7 @@ Open your browser and visit:
 npm run check
 ```
 
-This command runs all 39+ contract tests, covering frontend interactions, Wiki generation, upload contracts, circle editing, backend privacy, growth system, user pages, internationalization, performance optimization, voting flows, and overall project health.
+This command runs all 40+ contract tests, covering frontend interactions, Wiki generation, upload contracts, circle editing, backend privacy, growth system, user pages, internationalization, performance optimization, voting flows, bot sync, and overall project health.
 
 ---
 
@@ -284,6 +284,7 @@ For detailed deployment configuration, environment variable documentation, and o
 
 | Version | Key Theme |
 |---------|-----------|
+| **v2.1.0** | Standalone forum, Super Admin Console, Beijing GalOnly, MakoQuiz integration, centralized preferences, Wiki guide |
 | **v2.0.0** | User Center SPA, Staff recruitment, Public Archives, bracket visualization, unified design system |
 | v1.7.x | Project Hub, Twelve, Moe Contest engine, voting events, Circle Square, Docker CI/CD |
 | v1.6.x | Wiki subsystem, circle binding codes, notification system, multi-platform publishing (desktop / Android) |

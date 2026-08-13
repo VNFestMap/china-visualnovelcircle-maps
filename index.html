@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <script src="./js/language-runtime.js?v=20260813-language"></script>
+  <script src="./js/language-catalog.js?v=20260813-language"></script>
+  <script src="./js/language-static-ja.js?v=20260815-jiangsu-v4"></script>
+  <script defer src="./js/page-i18n.js?v=20260813-account-language"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <meta name="referrer" content="no-referrer" />
@@ -9,6 +13,64 @@
     <meta name="keywords" content="全国Galgame同好会地图,视觉小说,Galgame,同好会,高校社团,地图导航,同好社群" />
     <meta name="author" content="全国Galgame同好会地图" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
+    <script src="./js/theme-runtime.js?v=20260702-theme"></script>
+    <script src="./js/display-preferences.js?v=20260812-preferences"></script>
+    <script>
+    (function() {
+        var legacySwitchIds = [
+            'invertCtrlSwitch', 'themeSwitch',
+            'listInvertCtrl', 'listThemeSwitch',
+            'invertCtrlSwitchDrawer', 'themeSwitchDrawer'
+        ];
+        var legacyLanguageIds = [
+            'langZhBtn', 'langJaBtn',
+            'listLangZhBtn', 'listLangJaBtn',
+            'langZhBtnDrawer', 'langJaBtnDrawer'
+        ];
+
+        function removeLegacyPreferenceControls() {
+            if (!document.body) return 0;
+            var removed = 0;
+            legacySwitchIds.forEach(function(id) {
+                document.querySelectorAll('[id="' + id + '"]').forEach(function(control) {
+                    var wrapper = control.closest('label');
+                    (wrapper || control).remove();
+                    removed += 1;
+                });
+            });
+            legacyLanguageIds.forEach(function(id) {
+                document.querySelectorAll('[id="' + id + '"]').forEach(function(control) {
+                    var wrapper = control.closest('.lang-switch-group');
+                    (wrapper || control).remove();
+                    removed += 1;
+                });
+            });
+            var listLanguageGroup = document.getElementById('listLangSwitchGroup');
+            if (listLanguageGroup) {
+                listLanguageGroup.remove();
+                removed += 1;
+            }
+            return removed;
+        }
+
+        function enforceCentralizedPreferences() {
+            removeLegacyPreferenceControls();
+            window.requestAnimationFrame(removeLegacyPreferenceControls);
+            window.setTimeout(removeLegacyPreferenceControls, 250);
+        }
+
+        window.VNFIndexUIContract = Object.freeze({
+            version: '20260813-centralized-preferences-2',
+            enforceCentralizedPreferences: enforceCentralizedPreferences
+        });
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', enforceCentralizedPreferences, { once: true });
+        } else {
+            enforceCentralizedPreferences();
+        }
+        window.addEventListener('pageshow', enforceCentralizedPreferences);
+    })();
+    </script>
     <script>
     (function() {
         var params = new URLSearchParams(window.location.search);
@@ -23,23 +85,6 @@
             .catch(function() {
                 window.location.replace('login.html');
             });
-    })();
-    </script>
-    <script>
-    (function() {
-        var root = document.documentElement;
-        var saved = null;
-        try { saved = localStorage.getItem('themePreference'); } catch (e) {}
-        var systemDark = false;
-        try {
-            systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        } catch (e) {}
-        var resolved = systemDark ? 'dark' : 'light';
-        if (saved === 'light' || saved === 'dark') {
-            resolved = saved;
-        }
-        root.setAttribute('data-theme', resolved);
-        root.style.colorScheme = resolved;
     })();
     </script>
     <!-- Cropper.js -->
@@ -58,16 +103,617 @@
     
     <!-- 预加载关键资源 -->
     <link rel="preload" href="https://cdn.jsdmirror.com/npm/d3@7.9.0/dist/d3.min.js" as="script" fetchpriority="high" />
-    <link rel="preload" href="./css/styles.css" as="style" />
+    <link rel="preload" href="./css/styles.css?v=20260814-jiangsu-v7" as="style" />
+    <link rel="preload" href="./css/theme-tokens.css?v=20260702-theme" as="style" />
     
     <!-- 字体 -->
     
     <!-- 样式表 -->
-    <link rel="stylesheet" href="./css/styles.css" />
+    <link rel="stylesheet" href="./css/styles.css?v=20260814-jiangsu-v7" />
+    <link rel="stylesheet" href="./css/theme-tokens.css?v=20260702-theme" />
+    <link rel="stylesheet" href="./css/auth-shared.css?v=20260803-auth" />
     <style>
+    /* QQ群反馈引导链接 - 底部小字区突出 */
+    .qq-group-link {
+        background: color-mix(in srgb, var(--md-primary, #9b59b6) 10%, transparent);
+        border: 1px solid color-mix(in srgb, var(--md-primary, #9b59b6) 25%, transparent);
+        padding: 2px 10px;
+        margin: 0;
+        font: inherit;
+        font-weight: 500;
+        color: var(--md-primary, #9b59b6);
+        cursor: pointer;
+        text-decoration: none;
+        letter-spacing: .3px;
+        border-radius: 20px;
+        transition: background .2s, border-color .2s;
+    }
+    .qq-group-link:hover {
+        background: color-mix(in srgb, var(--md-primary, #9b59b6) 20%, transparent);
+        border-color: color-mix(in srgb, var(--md-primary, #9b59b6) 40%, transparent);
+    }
+    /* QQ群二维码二级弹窗 */
+    .qq-group-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .55);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity .25s ease;
+        pointer-events: none;
+    }
+    .qq-group-overlay.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .qq-group-card {
+        background: var(--md-surface-container, #fff);
+        border-radius: 16px;
+        border: 1px solid var(--md-outline-variant, #e0e0e0);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, .2);
+        width: 100%;
+        max-width: 360px;
+        text-align: center;
+        padding: 24px 20px 20px;
+        position: relative;
+        transform: scale(.9);
+        transition: transform .3s cubic-bezier(.34, 1.56, .64, 1);
+    }
+    .qq-group-overlay.visible .qq-group-card {
+        transform: scale(1);
+    }
+    .qq-group-card-close {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: var(--md-on-surface-variant, #999);
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background .2s;
+    }
+    .qq-group-card-close:hover {
+        background: var(--md-surface-container-high, #f0f0f0);
+        color: var(--md-on-surface, #333);
+    }
+    .qq-group-card-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--md-on-surface, #333);
+        margin: 0 0 16px;
+    }
+    .qq-group-card-qr {
+        width: 280px;
+        height: auto;
+        aspect-ratio: 1284 / 2283;
+        object-fit: contain;
+        border-radius: 8px;
+        display: block;
+        margin: 0 auto;
+    }
+    .qq-group-card-hint {
+        margin: 12px 0 0;
+        font-size: 12px;
+        color: var(--md-on-surface-variant, #666);
+    }
+    .qq-group-card-id {
+        margin: 4px 0 0;
+        font-size: 11px;
+        color: var(--md-on-surface-variant, #999);
+    }
+    .qq-group-join-btn {
+        display: block;
+        margin: 16px auto 0;
+        padding: 10px 0;
+        width: 100%;
+        background: var(--md-primary, #9b59b6);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 24px;
+        letter-spacing: .5px;
+        transition: opacity .2s;
+    }
+    .qq-group-join-btn:hover {
+        opacity: .88;
+    }
+
+    /* ===== 通知中心改版：左右分栏邮件客户端式 ===== */
+    .notif-center-modal {
+        width: 860px !important;
+        max-width: calc(100vw - 40px) !important;
+        height: 85vh !important;
+        max-height: calc(100vh - 40px) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        background: var(--md-surface, #fff) !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border-top: 3px solid var(--md-primary, #9b59b6) !important;
+    }
+    .notif-center-header {
+        padding: 14px 20px;
+    }
+    .notif-center-header h2 {
+        font-size: 17px;
+        color: var(--md-primary, #9b59b6);
+    }
+    .notif-center-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 16px;
+        border-bottom: 1px solid var(--md-outline-variant);
+        flex-shrink: 0;
+        gap: 12px;
+    }
+    .notif-center-toolbar .notif-center-tabs {
+        display: flex;
+        gap: 4px;
+        padding: 0;
+        border-bottom: none;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+    }
+    .notif-center-toolbar .notif-center-tab {
+        padding: 5px 12px;
+        border-radius: 16px;
+        border: none;
+        background: transparent;
+        color: var(--md-on-surface-variant);
+        font-size: 12px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .notif-center-toolbar .notif-center-tab:hover {
+        background: var(--md-surface-container-high);
+    }
+    .notif-center-toolbar .notif-center-tab.active {
+        background: var(--md-primary-container, rgba(155, 89, 182, 0.12));
+        color: var(--md-primary, #9b59b6);
+    }
+    .notif-center-toolbar .notif-center-batch {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0;
+        flex-shrink: 0;
+    }
+    .notif-center-toolbar .batch-action-btn {
+        padding: 4px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--md-outline-variant);
+        background: transparent;
+        color: var(--md-on-surface-variant);
+        font-size: 11px;
+        font-family: inherit;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .notif-center-toolbar .batch-action-btn:hover {
+        background: var(--md-surface-container-high);
+        color: var(--md-on-surface);
+    }
+    .notif-center-body {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+    .notif-center-list-pane {
+        width: 320px;
+        min-width: 280px;
+        flex-shrink: 0;
+        overflow-y: auto;
+        border-right: 1px solid var(--md-outline-variant);
+    }
+    .notif-center-list-pane .notif-center-list {
+        padding: 0;
+    }
+    .notif-center-list-pane .notif-item {
+        padding: 12px 14px;
+        gap: 10px;
+        cursor: pointer;
+        transition: background 0.15s;
+        border-bottom: 1px solid var(--md-outline-variant);
+        display: flex;
+        align-items: flex-start;
+    }
+    .notif-center-list-pane .notif-item:hover {
+        background: var(--md-surface-container);
+    }
+    .notif-center-list-pane .notif-item.active {
+        background: var(--md-primary-container, rgba(155, 89, 182, 0.08));
+    }
+    .notif-center-list-pane .notif-item .notif-message {
+        -webkit-line-clamp: 2;
+    }
+    .notif-center-list-pane .notif-item .notif-time {
+        font-size: 10px;
+    }
+    .notif-center-detail {
+        flex: 1;
+        min-width: 0;
+        overflow-y: auto;
+        padding: 24px 28px;
+        display: flex;
+        flex-direction: column;
+    }
+    .notif-center-detail-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 12px;
+        color: var(--md-on-surface-variant);
+        opacity: 0.5;
+        font-size: 14px;
+    }
+    .notif-center-detail-empty svg {
+        opacity: 0.3;
+    }
+    .notif-detail-view {
+        animation: notifDetailFadeIn 0.25s ease;
+    }
+    @keyframes notifDetailFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .notif-detail-view .nd-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--md-outline-variant);
+    }
+    .notif-detail-view .nd-icon {
+        width: 44px;
+        height: 44px;
+        min-width: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    .notif-detail-view .nd-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--md-on-surface);
+        line-height: 1.4;
+        margin: 0;
+    }
+    .notif-detail-view .nd-meta {
+        display: flex;
+        gap: 12px;
+        margin-top: 4px;
+        font-size: 12px;
+        color: var(--md-on-surface-variant);
+    }
+    .notif-detail-view .nd-body {
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--md-on-surface);
+        word-break: break-word;
+    }
+    .notif-detail-view .nd-body h3,
+    .notif-detail-view .nd-body h4,
+    .notif-detail-view .nd-body h5 {
+        margin: 16px 0 8px;
+        color: var(--md-on-surface);
+        line-height: 1.4;
+    }
+    .notif-detail-view .nd-body h3 { font-size: 18px; }
+    .notif-detail-view .nd-body h4 { font-size: 16px; }
+    .notif-detail-view .nd-body h5 { font-size: 14px; font-weight: 600; }
+    .notif-detail-view .nd-body p {
+        margin: 4px 0;
+    }
+    .notif-detail-view .nd-body ul,
+    .notif-detail-view .nd-body ol {
+        margin: 6px 0;
+        padding-left: 22px;
+    }
+    .notif-detail-view .nd-body li {
+        margin: 3px 0;
+    }
+    .notif-detail-view .nd-body strong {
+        font-weight: 700;
+        color: var(--md-on-surface);
+    }
+    .notif-detail-view .nd-body em {
+        font-style: italic;
+    }
+    .notif-detail-view .nd-body code {
+        background: var(--md-surface-container-high);
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: 'Consolas', 'Monaco', monospace;
+    }
+    .notif-detail-view .nd-body a {
+        color: var(--md-primary, #9b59b6);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+    }
+    .notif-detail-view .nd-body a:hover {
+        opacity: 0.8;
+    }
+    .notif-detail-view .nd-body hr {
+        border: none;
+        border-top: 1px solid var(--md-outline-variant);
+        margin: 12px 0;
+    }
+    .notif-detail-view .nd-body br {
+        display: block;
+        content: '';
+        margin: 4px 0;
+    }
+    .notif-detail-view .nd-footer {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid var(--md-outline-variant);
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    .notif-detail-view .nd-footer button {
+        padding: 8px 20px;
+        border-radius: 8px;
+        border: none;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: opacity 0.15s;
+    }
+    .notif-detail-view .nd-footer button:hover {
+        opacity: 0.85;
+    }
+    .notif-detail-view .nd-btn-ghost {
+        background: var(--md-surface-container-high);
+        color: var(--md-on-surface-variant);
+    }
+    .notif-detail-view .nd-btn-primary {
+        background: var(--md-primary, #9b59b6);
+        color: #fff;
+    }
+    .notif-center-footer {
+        border-top: 1px solid var(--md-outline-variant);
+        padding: 8px 16px;
+        flex-shrink: 0;
+    }
+    .notif-center-footer .notif-center-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+    }
+    /* 下拉面板通知详情弹窗 Markdown 内容样式 */
+    .notif-detail-message.notif-md-content {
+        white-space: normal;
+        -webkit-line-clamp: unset;
+        overflow: visible;
+        display: block;
+    }
+    .notif-md-content h3, .notif-md-content h4, .notif-md-content h5 {
+        margin: 12px 0 6px; line-height: 1.4;
+    }
+    .notif-md-content h3 { font-size: 16px; }
+    .notif-md-content h4 { font-size: 15px; }
+    .notif-md-content h5 { font-size: 14px; font-weight: 600; }
+    .notif-md-content p { margin: 4px 0; }
+    .notif-md-content ul, .notif-md-content ol {
+        margin: 4px 0; padding-left: 20px;
+    }
+    .notif-md-content li { margin: 2px 0; }
+    .notif-md-content strong { font-weight: 700; }
+    .notif-md-content code {
+        background: var(--md-surface-container-high, #f0f0f0);
+        padding: 1px 4px; border-radius: 3px; font-size: 13px;
+    }
+    .notif-md-content a {
+        color: var(--md-primary, #9b59b6); text-decoration: underline;
+    }
+    .notif-md-content hr {
+        border: none; border-top: 1px solid var(--md-outline-variant);
+        margin: 10px 0;
+    }
+    .notif-md-content br { display: block; margin: 3px 0; }
+    /* ===== 通知中心颜色增强 ===== */
+    .notif-center-toolbar .notif-center-tab.active {
+        background: var(--md-primary, #9b59b6);
+        color: #fff;
+        font-weight: 600;
+    }
+    .notif-center-toolbar .notif-center-tab.active .notif-center-tab-count {
+        background: rgba(255,255,255,0.25);
+        padding: 0 6px;
+        border-radius: 8px;
+        font-size: 10px;
+    }
+    .notif-center-list-pane .notif-item:not(.read) {
+        border-left: 3px solid var(--md-primary, #9b59b6);
+        padding-left: 11px;
+    }
+    .notif-center-list-pane .notif-item:not(.read) .notif-title {
+        color: var(--md-on-surface);
+        font-weight: 700;
+    }
+    .notif-center-list-pane .notif-item.active {
+        background: color-mix(in srgb, var(--md-primary, #9b59b6) 8%, transparent);
+        border-left-color: var(--md-primary, #9b59b6);
+    }
+    .notif-center-list-pane .notif-item .notif-dot {
+        width: 8px; height: 8px;
+        background: var(--md-primary, #9b59b6);
+    }
+    .notif-center-list-pane .notif-item.read .notif-dot {
+        background: var(--md-outline-variant, #ddd);
+    }
+    .notif-detail-view .nd-icon {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .notif-detail-view .nd-title {
+        color: var(--md-on-surface);
+    }
+    .notif-detail-view .nd-meta span:first-child {
+        background: var(--md-primary-container, rgba(155, 89, 182, 0.1));
+        color: var(--md-primary, #9b59b6);
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+    .notif-center-toolbar .batch-action-btn:hover {
+        border-color: var(--md-primary, #9b59b6);
+        color: var(--md-primary, #9b59b6);
+    }
+    @media (max-width: 640px) {
+        /* 二级弹窗（非全屏） */
+        .notif-center-overlay {
+            padding: 16px;
+        }
+        .notif-center-modal {
+            width: 100% !important;
+            max-width: calc(100vw - 32px) !important;
+            height: 85vh !important;
+            max-height: calc(100vh - 32px) !important;
+            border-radius: 16px !important;
+            border-top: 3px solid var(--md-primary, #9b59b6) !important;
+        }
+        /* 紧凑 header */
+        .notif-center-header {
+            padding: 10px 14px;
+        }
+        .notif-center-header h2 {
+            font-size: 15px;
+        }
+        /* toolbar 两行：tabs 横滚 + batch */
+        .notif-center-toolbar {
+            flex-wrap: wrap;
+            padding: 6px 12px;
+            gap: 6px;
+        }
+        .notif-center-toolbar .notif-center-tabs {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            width: 100%;
+        }
+        .notif-center-toolbar .notif-center-tabs::-webkit-scrollbar {
+            display: none;
+        }
+        .notif-center-toolbar .notif-center-tab {
+            padding: 4px 10px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .notif-center-toolbar .notif-center-batch {
+            width: 100%;
+            justify-content: flex-end;
+        }
+        .notif-center-toolbar .batch-action-btn {
+            font-size: 10px;
+            padding: 3px 8px;
+        }
+        /* 列表/详情切换：默认显示列表，showing-detail 时显示详情 */
+        .notif-center-body {
+            position: relative;
+        }
+        .notif-center-list-pane {
+            width: 100%;
+            border-right: none;
+        }
+        .notif-center-detail {
+            position: absolute;
+            inset: 0;
+            background: var(--md-surface, #fff);
+            z-index: 2;
+            padding: 16px;
+            transform: translateX(100%);
+            transition: transform 0.25s ease;
+            overflow-y: auto;
+        }
+        .notif-center-modal.showing-detail .notif-center-detail {
+            transform: translateX(0);
+        }
+        .notif-center-modal.showing-detail .notif-center-list-pane {
+            visibility: hidden;
+        }
+        /* 移动端详情返回按钮 */
+        .notif-detail-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: var(--md-primary, #9b59b6);
+            font-size: 13px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+        /* footer 紧凑 */
+        .notif-center-footer {
+            padding: 6px 12px;
+        }
+        .notif-center-footer .notif-page-btn {
+            padding: 0 10px;
+            font-size: 11px;
+        }
+    }
     </style>
 </head>
 <body>
+    <div class="vn-svg-sprite" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" focusable="false">
+            <symbol id="vn-icon-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
+            <symbol id="vn-icon-map" viewBox="0 0 24 24"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2V6Z"/><path d="M8 4v13"/><path d="M16 7v13"/></symbol>
+            <symbol id="vn-icon-list" viewBox="0 0 24 24"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></symbol>
+            <symbol id="vn-icon-box" viewBox="0 0 24 24"><path d="m21 8-9-5-9 5 9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></symbol>
+            <symbol id="vn-icon-pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></symbol>
+            <symbol id="vn-icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15Z"/></symbol>
+            <symbol id="vn-icon-zh" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 9h8"/><path d="M12 6v12"/><path d="M7 14h10"/></symbol>
+            <symbol id="vn-icon-ja" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 8h8"/><path d="M12 8c0 5-1.5 8-4 8"/><path d="M12 12c2.5 0 4 1.3 4 4"/></symbol>
+            <symbol id="vn-icon-chevron-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+            <symbol id="vn-icon-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+            <symbol id="vn-icon-menu" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></symbol>
+            <symbol id="vn-icon-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></symbol>
+            <symbol id="vn-icon-spark" viewBox="0 0 24 24"><path d="M12 3 9.8 9.8 3 12l6.8 2.2L12 21l2.2-6.8L21 12l-6.8-2.2L12 3Z"/></symbol>
+            <symbol id="vn-icon-megaphone" viewBox="0 0 24 24"><path d="M3 11v2a2 2 0 0 0 2 2h3l8 4V5l-8 4H5a2 2 0 0 0-2 2Z"/><path d="M19 9a4 4 0 0 1 0 6"/></symbol>
+            <symbol id="vn-icon-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+            <symbol id="vn-icon-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+            <symbol id="vn-icon-camera" viewBox="0 0 24 24"><path d="M4 8h4l2-3h4l2 3h4v11H4V8Z"/><circle cx="12" cy="13.5" r="3"/></symbol>
+            <symbol id="vn-icon-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1.15 1.15"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2A5 5 0 0 0 12 20.07l1.15-1.15"/></symbol>
+            <symbol id="vn-icon-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+            <symbol id="vn-icon-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m19 6-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></symbol>
+            <symbol id="vn-icon-trophy" viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5a3 3 0 0 0 3 4"/><path d="M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v5"/><path d="M8 20h8"/></symbol>
+            <symbol id="vn-icon-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.03.03-2 3.46-.04-.01a1.7 1.7 0 0 0-1.86-.36 1.7 1.7 0 0 0-1 1.5V22h-4v-.05a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.86.36l-.04.01-2-3.46.03-.03A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.5-1H3v-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.34-1.88l-.03-.03 2-3.46.04.01a1.7 1.7 0 0 0 1.86.36 1.7 1.7 0 0 0 1-1.5V2h4v.05a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.86-.36l.04-.01 2 3.46-.03.03A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 1.5 1h.1v4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></symbol>
+            <symbol id="vn-icon-refresh" viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v6h-6"/></symbol>
+        </svg>
+    </div>
     <!-- SEO 隐藏标题 -->
     <header class="seo-header">
         <h1>全国Galgame同好会地图</h1>
@@ -85,7 +731,7 @@
         <div class="user-name" id="topUserName">访客</div>
         <span class="user-role-badge" id="topUserRoleBadge" style="display:none;"></span>
 
-        <!-- 🔔 通知铃铛 + 下拉面板 -->
+        <!-- 通知铃铛 + 下拉面板 -->
         <div class="notif-bell-wrap" id="notifBellWrap" style="display:none;">
             <button class="notif-bell" id="notifBell" aria-label="通知">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -97,7 +743,7 @@
             <div class="notif-panel" id="notifPanel">
                 <div class="notif-panel-arrow"></div>
                 <div class="notif-panel-header">
-                    <div class="notif-panel-title"><span class="icon">🔔</span> 通知</div>
+                    <div class="notif-panel-title"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-bell"></use></svg></span> 通知</div>
                     <button class="mark-all-read" id="notifMarkAllRead">全部已读 →</button>
                 </div>
                 <div class="notif-list" id="notifPanelList"></div>
@@ -114,16 +760,16 @@
         <div class="display-switch-container">
           <div class="mode-switch" id="modeSwitch" role="tablist" aria-label="视图模式">
             <button class="mode-tab active" data-mode="map" role="tab" aria-selected="true" title="地图模式">
-              <span class="mode-tab-icon">🗺️</span>
+              <span class="mode-tab-icon vn-icon" aria-hidden="true"><svg><use href="#vn-icon-map"></use></svg></span>
               <span class="mode-tab-label">地图</span>
             </button>
             <button class="mode-tab" data-mode="list" role="tab" aria-selected="false" title="列表模式">
-              <span class="mode-tab-icon">📋</span>
+              <span class="mode-tab-icon vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span>
               <span class="mode-tab-label">列表</span>
             </button>
           </div>
         </div>
-        <button class="mobile-expand-arrow" id="mobileExpandArrow">▼</button>
+        <button class="mobile-expand-arrow" id="mobileExpandArrow" type="button" aria-label="展开导航"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-chevron-down"></use></svg></span></button>
       </div>
       <div class="user-nav-row" id="userNavRow">
         <button class="user-nav-btn" data-action="china">中国同好会</button>
@@ -131,49 +777,41 @@
         <button class="user-nav-btn" data-action="overseas">海外同好会</button>
         <button class="user-nav-btn" data-action="calendar">活动日历</button>
         <button class="user-nav-btn" data-action="project-hub">企划枢纽</button>
-        <button class="user-nav-btn" data-action="starmap">星图</button>
+        <button class="user-nav-btn" data-action="forum">论坛（beta）</button>
       </div>
     </div>
 
     <!-- 移动端汉堡菜单按钮 -->
-    <button id="hamburgerBtn" class="hamburger-btn" aria-label="菜单">☰</button>
+    <button id="hamburgerBtn" class="hamburger-btn galonly-glow-mobile" aria-label="菜单"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-menu"></use></svg></span></button>
 
     <!-- 移动端左侧抽屉 -->
     <div id="mobileDrawer" class="mobile-drawer" aria-hidden="true">
       <div class="mobile-drawer-backdrop" id="mobileDrawerBackdrop"></div>
       <div class="mobile-drawer-content">
-        <button class="mobile-drawer-close" id="mobileDrawerClose">✕</button>
+        <button class="mobile-drawer-close" id="mobileDrawerClose" type="button" aria-label="关闭菜单"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-close"></use></svg></span></button>
         <h2 id="drawerTitle" class="card-title">全国Galgame同好会地图</h2>
         <img class="drawer-logo" src="./images/VNF.png" alt="VNFest 视觉小说高校学园祭" width="640" height="196" />
         <p id="drawerDesc1" class="card-body">本网站用于聚合展示全国各省、高校及海外地区的 Galgame / 视觉小说同好组织信息，支持地图缩放、拖拽、分省查看、切换分类与一键复制联系方式，帮助同好快速找到组织。</p>
         <p class="card-body">数据来自各高校同好会及公开信息，欢迎提交新的同好会资料。</p>
-        <label class="md3-switch" for="invertCtrlSwitchDrawer">
-          <input id="invertCtrlSwitchDrawer" type="checkbox" />
-          <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-          <span class="md3-switch-label">反转操作（默认关）</span>
-        </label>
-        <label class="md3-switch" for="themeSwitchDrawer">
-          <input id="themeSwitchDrawer" type="checkbox" />
-          <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-          <span class="md3-switch-label">暗黑模式（跟随系统）</span>
-        </label>
         <div class="intro-links">
           <div class="submit-buttons">
-            <a class="submit-btn" href="https://github.com/kokubunshu/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">开源仓库</a>
+            <a class="submit-btn" href="https://github.com/VNFestMap/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">开源仓库</a>
             <button class="submit-btn" id="submitClubBtnDrawer" type="button">提交同好会信息</button>
             <button class="submit-btn" id="submitEventBtnDrawer" type="button">企划枢纽</button>
             <button class="submit-btn" id="submitPublicationBtnDrawer" type="button" style="display:none;">企划枢纽</button>
             <button class="submit-btn" id="submitGalonlyBtnDrawer" type="button">GalOnly 高校专属通道</button>
-            <div class="lang-switch-group">
-              <button class="lang-btn" id="langZhBtnDrawer"><span class="lang-text">中文</span></button>
-              <button class="lang-btn" id="langJaBtnDrawer"><span class="lang-text">日本語</span></button>
-            </div>
           </div>
-          <p class="card-body gpl-text" style="margin-top: 8px; font-size: 11px; text-align: center;">
+          <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
             基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a>
           </p>
-          <p class="card-body gpl-text" style="margin-top: 4px; font-size: 11px; text-align: center;">
+          <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
             <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
+          </p>
+          <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
+            <span style="opacity:0.7;">友情链接：</span><a href="https://www.cngal.org/" target="_blank" rel="noopener noreferrer">CnGal</a>
+          </p>
+          <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
+            <button class="qq-group-link" onclick="document.getElementById('qqGroupOverlay').style.display='flex';requestAnimationFrame(function(){document.getElementById('qqGroupOverlay').classList.add('visible')});document.getElementById('qqGroupOverlay').setAttribute('aria-hidden','false');">反馈交流群 185057101</button>
           </p>
         </div>
       </div>
@@ -188,52 +826,36 @@
             <p class="card-body">本网站用于聚合展示全国各省、高校及海外地区的 Galgame / 视觉小说同好组织信息，支持地图缩放、拖拽、分省查看、切换分类与一键复制联系方式，帮助同好快速找到组织。</p>
             <p class="card-body">数据来自各高校同好会及公开信息，欢迎提交新的同好会资料。</p>
             
-            <!-- 开关控制区 -->
-            <label class="md3-switch" for="invertCtrlSwitch">
-                <input id="invertCtrlSwitch" type="checkbox" />
-                <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-                <span id="invertCtrlLabel" class="md3-switch-label">反转操作（默认关）</span>
-            </label>
-            <label class="md3-switch" for="themeSwitch">
-                <input id="themeSwitch" type="checkbox" />
-                <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-                <span id="themeSwitchLabel" class="md3-switch-label">暗黑模式（跟随系统）</span>
-            </label>
-
             <!-- 链接区 -->
             <div class="intro-links">
                 <div class="submit-buttons">
-                    <a class="submit-btn" href="https://github.com/kokubunshu/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">
-                        <span>📦</span> 开源仓库
+                    <a class="submit-btn" href="https://github.com/VNFestMap/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">
+                        <span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-box"></use></svg></span> 开源仓库
                     </a>
                     <button id="submitClubBtn" class="submit-btn" type="button">
-                        📝 提交同好会信息
+                        <span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-pen"></use></svg></span> 提交同好会信息
                     </button>
                     <button id="submitEventBtn" class="submit-btn" type="button">
                         企划枢纽
                     </button>
                     <button id="submitPublicationBtn" class="submit-btn" type="button" style="display:none;">
-                        📖 投稿刊物征集
+                        <span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-book"></use></svg></span> 投稿刊物征集
                     </button>
                     <button id="submitGalonlyBtn" class="submit-btn" type="button">
                         GalOnly 高校专属通道
                     </button>
-                    <div class="lang-switch-group">
-    <button id="langZhBtn" class="lang-btn">
-        <span class="lang-icon">🇨🇳</span>
-        <span class="lang-text">中文</span>
-    </button>
-    <button id="langJaBtn" class="lang-btn">
-        <span class="lang-icon">🇯🇵</span>
-        <span class="lang-text">日本語</span>
-    </button>
-</div>
                 </div>
-                <p class="card-body gpl-text" style="margin-top: 8px; font-size: 11px; text-align: center;">
+                <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
                     基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a>
                 </p>
-                <p class="card-body gpl-text" style="margin-top: 4px; font-size: 11px; text-align: center;">
+                <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
                     <a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a>
+                </p>
+                <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
+                    <span style="opacity:0.7;">友情链接：</span><a href="https://www.cngal.org/" target="_blank" rel="noopener noreferrer">CnGal</a>
+                </p>
+                <p class="card-body gpl-text" style="margin-top: 6px; font-size: 10px; text-align: left;">
+                    <button id="qqGroupBtn" class="qq-group-link" type="button">反馈交流群 185057101</button>
                 </p>
             </div>
         </section>
@@ -241,7 +863,7 @@
         <!-- 详情卡片（移动端抽屉） -->
         <section id="selectedCard" class="md3-card">
             <div class="drawer-expand-tab" id="drawerExpandBtn">
-                <span class="tab-arrow">◀</span>
+                <span class="tab-arrow"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-chevron-left"></use></svg></span></span>
                 <span>展开</span>
             </div>
 
@@ -307,11 +929,11 @@
                   <a id="listAdminBtn" class="top-admin-btn" href="admin/club_manager.html" style="display:none;">管理</a>
                   <a class="top-admin-btn" href="./club_square.html">广场</a>
                 </div>
-                <button id="listMenuBtn" class="list-menu-btn" type="button" aria-label="菜单">☰</button>
+                <button id="listMenuBtn" class="list-menu-btn" type="button" aria-label="菜单"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-menu"></use></svg></span></button>
                 <div class="display-switch-container">
                   <div class="mode-switch">
-                    <button class="mode-tab active" data-mode="map" role="tab" aria-selected="true"><span class="mode-tab-icon">🗺️</span><span class="mode-tab-label">地图</span></button>
-                    <button class="mode-tab" data-mode="list" role="tab" aria-selected="false"><span class="mode-tab-icon">📋</span><span class="mode-tab-label">列表</span></button>
+                    <button class="mode-tab active" data-mode="map" role="tab" aria-selected="true"><span class="mode-tab-icon vn-icon" aria-hidden="true"><svg><use href="#vn-icon-map"></use></svg></span><span class="mode-tab-label">地图</span></button>
+                    <button class="mode-tab" data-mode="list" role="tab" aria-selected="false"><span class="mode-tab-icon vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span><span class="mode-tab-label">列表</span></button>
                   </div>
                 </div>
               </div>
@@ -321,7 +943,7 @@
                 <button class="user-nav-btn" data-action="overseas">海外同好会</button>
                 <button class="user-nav-btn" data-action="calendar">活动日历</button>
                 <button class="user-nav-btn" data-action="project-hub">企划枢纽</button>
-                <button class="user-nav-btn" data-action="starmap">星图</button>
+                <button class="user-nav-btn" data-action="forum">论坛（beta）</button>
               </div>
             </div>
 
@@ -329,34 +951,20 @@
             <div class="list-body">
 
               <!-- 左侧：简介 + 常用操作 + 公告 -->
-              <aside class="list-left" id="listLeftPanel">
+              <aside class="list-left">
                 <div class="list-panel-heading">站点信息</div>
                 <div class="list-intro">
                   <h2 class="list-intro-title" id="listIntroTitle">全国Galgame同好会地图</h2>
                   <p class="list-intro-desc">本网站用于聚合展示全国各省、高校及海外地区的 Galgame / 视觉小说同好组织信息，支持地图缩放、拖拽、分省查看、切换分类与一键复制联系方式，帮助同好快速找到组织。</p>
                   <p class="list-intro-desc">数据来自各高校同好会及公开信息，欢迎提交新的同好会资料。</p>
                   <img id="listIntroLogo" class="list-intro-logo" src="./images/VNF.png" alt="VNFest 视觉小说高校学园祭" loading="lazy" />
-                  <label class="md3-switch list-switch">
-                    <input id="listInvertCtrl" type="checkbox" />
-                    <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-                    <span class="md3-switch-label">反转操作（默认关）</span>
-                  </label>
-                  <label class="md3-switch list-switch">
-                    <input id="listThemeSwitch" type="checkbox" />
-                    <span class="md3-switch-track"><span class="md3-switch-thumb"></span></span>
-                    <span class="md3-switch-label">暗黑模式（跟随系统）</span>
-                  </label>
                   <div class="list-intro-links">
                     <div class="submit-buttons">
-                      <button id="listSubmitClubBtn" class="submit-btn" type="button">📝 提交同好会信息</button>
+                      <button id="listSubmitClubBtn" class="submit-btn" type="button"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-pen"></use></svg></span> 提交同好会信息</button>
                       <button id="listSubmitEventBtn" class="submit-btn" type="button">企划枢纽</button>
                       <button id="listSubmitPublicationBtn" class="submit-btn" type="button" style="display:none;">企划枢纽</button>
                       <button id="listSubmitGalonlyBtn" class="submit-btn" type="button">GalOnly 高校专属通道</button>
-                      <div class="lang-switch-group" id="listLangSwitchGroup">
-                        <button id="listLangZhBtn" class="lang-btn"><span class="lang-icon">🇨🇳</span><span class="lang-text">中文</span></button>
-                        <button id="listLangJaBtn" class="lang-btn"><span class="lang-icon">🇯🇵</span><span class="lang-text">日本語</span></button>
-                      </div>
-                      <a class="submit-btn" href="https://github.com/kokubunshu/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer">📦 开源仓库</a>
+                      <a class="submit-btn" href="https://github.com/VNFestMap/china-visualnovelcircle-maps" target="_blank" rel="noopener noreferrer"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-box"></use></svg></span> 开源仓库</a>
                     </div>
                     <p class="list-intro-gpl">基于 <a href="https://github.com/HELPMEEADICE/china-bandori-maps" target="_blank">china-bandori-maps</a> 二次开发，遵循 <a href="./LICENSE" target="_blank">GPLv3</a></p>
                     <p class="list-intro-gpl"><a href="./wiki/index.html">VNFest WIKI</a> · <a href="./feedback.html">Bug 反馈与功能建议</a></p>
@@ -370,7 +978,7 @@
               </aside>
 
               <!-- 中间：省份索引 -->
-              <nav class="list-center" id="listCenterPanel">
+              <nav class="list-center">
                 <div class="list-province-header">
                   <span>地区索引</span>
                   <small>按收录数量排序</small>
@@ -418,10 +1026,28 @@
         <!-- 地图气泡 -->
         <div id="badgeBubble" class="map-bubble" aria-live="polite"></div>
 
+        <!-- 江苏地区：右键/长按展开菜单 -->
+        <div id="jiangsuContextMenu" class="jiangsu-context-menu" role="menu" aria-label="江苏地区操作" hidden>
+            <div class="jiangsu-context-header">
+                <span class="jiangsu-context-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2V6Z"/><path d="M8 4v13"/><path d="M16 7v13"/></svg></span>
+                <div class="jiangsu-context-heading">
+                    <div class="jiangsu-context-title">江苏 <span class="jiangsu-context-badge">13 市</span></div>
+                    <div class="jiangsu-context-sub">展开江苏 13 地级市视图</div>
+                </div>
+            </div>
+            <div class="jiangsu-context-divider"></div>
+            <button type="button" class="jiangsu-context-action" data-action="expand-jiangsu" role="menuitem">
+                <span class="vn-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 6 5-2 8 3 5-2v13l-5 2-8-3-5 2V6Z"/><path d="M8 4v13"/><path d="M16 7v13"/></svg></span>
+                <span>展开江苏地区</span>
+                <svg class="jiangsu-context-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <div class="jiangsu-context-hint">右键其他省份可刷新数据</div>
+        </div>
+
         <!-- 反馈弹窗 -->
         <div id="feedbackModal" class="feedback-modal" aria-hidden="true">
             <div class="feedback-modal-card" role="dialog" aria-modal="true">
-                <button id="feedbackModalClose" class="feedback-modal-close" type="button">×</button>
+                <button id="feedbackModalClose" class="feedback-modal-close" type="button" aria-label="关闭反馈弹窗">×</button>
                 <img src="./images/VNF.png" alt="VNFest" class="feedback-modal-image" loading="lazy" />
                 <a href="./feedback.html" class="feedback-modal-link">前往反馈页面</a>
             </div>
@@ -430,8 +1056,8 @@
         <!-- 彩蛋弹窗 -->
         <div id="easterModal" class="easter-modal" aria-hidden="true">
             <div class="easter-modal-card" role="dialog" aria-modal="true">
-                <button id="easterModalClose" class="easter-modal-close" type="button">×</button>
-                <h3 class="easter-title">🎉 彩蛋</h3>
+                <button id="easterModalClose" class="easter-modal-close" type="button" aria-label="关闭彩蛋弹窗">×</button>
+                <h3 class="easter-title"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-spark"></use></svg></span> 彩蛋</h3>
                 <p id="easterText" class="easter-text"></p>
             </div>
         </div>
@@ -491,19 +1117,19 @@
         <!-- 刊物弹窗 -->
         <div id="publicationModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" style="max-width: 800px;">
-                <button id="publicationModalClose" class="calendar-modal-close" type="button">×</button>
+                <button id="publicationModalClose" class="calendar-modal-close" type="button" aria-label="关闭刊物弹窗">×</button>
                 <div class="calendar-modal-scroll">
-                    <h3 class="calendar-title" style="margin-top: 30px;">📖 同好会刊物制作列表</h3>
+                    <h3 class="calendar-title" style="margin-top: 30px;"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-book"></use></svg></span> 同好会刊物制作列表</h3>
                     <div class="pub-filter-tabs" id="pubFilterTabs">
-                        <button class="pub-filter-btn active" data-filter="all">📋 全部</button>
-                        <button class="pub-filter-btn" data-filter="writing">✍️ 征稿中</button>
-                        <button class="pub-filter-btn" data-filter="planning">📋 策划中</button>
-                        <button class="pub-filter-btn" data-filter="editing">🔧 编辑中</button>
-                        <button class="pub-filter-btn" data-filter="publishing">📢 即将发布</button>
-                        <button class="pub-filter-btn" data-filter="completed">✅ 已发布</button>
+                        <button class="pub-filter-btn active" data-filter="all"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span> 全部</button>
+                        <button class="pub-filter-btn" data-filter="writing"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-pen"></use></svg></span> 征稿中</button>
+                        <button class="pub-filter-btn" data-filter="planning"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span> 策划中</button>
+                        <button class="pub-filter-btn" data-filter="editing"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-gear"></use></svg></span> 编辑中</button>
+                        <button class="pub-filter-btn" data-filter="publishing"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-megaphone"></use></svg></span> 即将发布</button>
+                        <button class="pub-filter-btn" data-filter="completed"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-check"></use></svg></span> 已发布</button>
                     </div>
                     <div id="publicationList" class="publication-list"></div>
-                    <button id="addPublicationBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;">➕ 添加刊物征稿</button>
+                    <button id="addPublicationBtn" class="md3-btn" style="margin-top: 20px; width: 100%; display: none;"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-plus"></use></svg></span> 添加刊物征稿</button>
                 </div>
             </div>
         </div>
@@ -511,7 +1137,7 @@
 <!-- 刊物编辑弹窗 -->
 <div id="publicationEditorModal" class="calendar-modal" aria-hidden="true">
     <div class="calendar-modal-card" style="max-width: 500px;">
-        <button id="publicationEditorClose" class="calendar-modal-close" type="button">×</button>
+        <button id="publicationEditorClose" class="calendar-modal-close" type="button" aria-label="关闭刊物编辑弹窗">×</button>
         <div class="calendar-modal-scroll">
             <h3 id="publicationEditorTitle" class="calendar-title" style="margin-top: 30px;">添加刊物</h3>
             <input type="hidden" id="pubEditId">
@@ -536,12 +1162,12 @@
             <div style="margin: 12px 0;">
                 <label style="display: block; margin-bottom: 6px; font-weight: 600;">制作状况 *</label>
                 <select id="pubStatus" class="md3-select" style="width: 100%;">
-                    <option value="planning">📋 策划中</option>
-                    <option value="writing">✍️ 征稿中</option>
-                    <option value="editing">🔧 编辑中</option>
-                    <option value="publishing">📢 即将发布</option>
-                    <option value="completed">✅ 已发布</option>
-                    <option value="suspended">⏸️ 暂停</option>
+                    <option value="planning">策划中</option>
+                    <option value="writing">征稿中</option>
+                    <option value="editing">编辑中</option>
+                    <option value="publishing">即将发布</option>
+                    <option value="completed">已发布</option>
+                    <option value="suspended">暂停</option>
                 </select>
             </div>
             <div style="margin: 12px 0;">
@@ -560,7 +1186,7 @@
                     <img id="pubImagePreview" src="" alt="" style="width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; background: var(--md-surface-container-high); display: none; margin-bottom: 4px;">
                     <input type="hidden" id="pubImageUrl" />
                     <input type="file" id="pubImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
-                    <button id="pubImageBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px;">📷 上传图片</button>
+                    <button id="pubImageBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px;"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-camera"></use></svg></span> 上传图片</button>
                     <button id="pubImageRemoveBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px; color: #e74c3c; display: none;">移除</button>
                     <span id="pubImageStatus" style="font-size: 11px; color: #999;"></span>
                 </div>
@@ -583,7 +1209,7 @@
         <!-- 刊物详情弹窗（二级菜单） -->
         <div id="publicationDetailModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" style="max-width: 620px;">
-                <button id="pubDetailClose" class="calendar-modal-close" type="button">×</button>
+                <button id="pubDetailClose" class="calendar-modal-close" type="button" aria-label="关闭刊物详情弹窗">×</button>
                 <div class="calendar-modal-scroll" id="pubDetailScroll">
                     <!-- 封面素材 -->
                     <div id="pubDetailCover" class="pub-detail-cover" style="display:none;"></div>
@@ -633,30 +1259,51 @@
                 </div>
                 <div class="hub-body">
                     <aside class="hub-sidebar">
-                        <div class="hub-filter-bar" id="hubTypeFilterBar">
-                            <button class="hub-filter-type active" type="button" data-type="all">全部</button>
-                            <button class="hub-filter-type" type="button" data-type="publication">刊物</button>
-                            <button class="hub-filter-type" type="button" data-type="activity">活动</button>
-                            <button class="hub-filter-type" type="button" data-type="content">征集</button>
-                            <button class="hub-filter-type" type="button" data-type="recruit">协力</button>
-                            <button class="hub-filter-type" type="button" data-type="other">其他</button>
-                        </div>
-                        <div class="hub-status-row" id="hubStatusFilterBar">
-                            <button class="hub-filter-status active" type="button" data-status="all">全部</button>
-                            <button class="hub-filter-status" type="button" data-status="draft">草稿</button>
-                            <button class="hub-filter-status" type="button" data-status="collecting">征集中</button>
-                            <button class="hub-filter-status" type="button" data-status="ongoing">进行中</button>
-                            <button class="hub-filter-status" type="button" data-status="completed">已完成</button>
-                            <button class="hub-filter-status" type="button" data-status="archived">已归档</button>
+                        <div class="hub-filter-summary" id="hubFilterSummaryWrap">
+                            <button class="hub-filter-trigger" id="hubFilterToggle" type="button" aria-expanded="false" aria-controls="hubFilterPanel">
+                                <span class="hub-filter-trigger-label"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span> 筛选</span>
+                                <span class="hub-filter-trigger-value" id="hubFilterSummary">全部类型 · 全部状态</span>
+                                <span class="hub-filter-trigger-chevron vn-icon" aria-hidden="true"><svg><use href="#vn-icon-chevron-down"></use></svg></span>
+                            </button>
+                            <button class="hub-filter-backdrop" id="hubFilterBackdrop" type="button" hidden aria-label="关闭筛选面板"></button>
+                            <section class="hub-filter-panel" id="hubFilterPanel" hidden aria-label="筛选企划">
+                                <div class="hub-filter-panel-head">
+                                    <strong>筛选企划</strong>
+                                    <button class="hub-filter-reset" id="hubFilterReset" type="button">重置</button>
+                                </div>
+                                <div class="hub-filter-group" role="group" aria-label="企划类型">
+                                    <span class="hub-filter-group-label">类型</span>
+                                    <div class="hub-filter-options type-options" id="hubTypeFilterBar">
+                                        <button class="hub-filter-type active" type="button" data-type="all">全部</button>
+                                        <button class="hub-filter-type" type="button" data-type="publication">刊物</button>
+                                        <button class="hub-filter-type" type="button" data-type="activity">活动</button>
+                                        <button class="hub-filter-type" type="button" data-type="content">征集</button>
+                                        <button class="hub-filter-type" type="button" data-type="recruit">协力</button>
+                                        <button class="hub-filter-type" type="button" data-type="other">其他</button>
+                                    </div>
+                                </div>
+                                <div class="hub-filter-group" role="group" aria-label="企划状态">
+                                    <span class="hub-filter-group-label">状态</span>
+                                    <div class="hub-filter-options status-options" id="hubStatusFilterBar">
+                                        <button class="hub-filter-status active" type="button" data-status="all">全部</button>
+                                        <button class="hub-filter-status" type="button" data-status="draft">草稿</button>
+                                        <button class="hub-filter-status" type="button" data-status="collecting">征集中</button>
+                                        <button class="hub-filter-status" type="button" data-status="ongoing">进行中</button>
+                                        <button class="hub-filter-status" type="button" data-status="completed">已完成</button>
+                                        <button class="hub-filter-status" type="button" data-status="archived">已归档</button>
+                                    </div>
+                                </div>
+                                <button class="hub-filter-done" id="hubFilterDone" type="button">完成</button>
+                            </section>
                         </div>
                         <div class="hub-list-wrap" id="hubProjectList"></div>
                         <div class="create-btn-wrap">
-                            <button class="create-btn" id="hubCreateBtn" type="button">＋ 发起新企划</button>
+                            <button class="create-btn" id="hubCreateBtn" type="button"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-plus"></use></svg></span> 发起新企划</button>
                         </div>
                     </aside>
                     <section class="hub-detail">
                         <div class="hub-detail-empty" id="hubDetailEmpty">
-                            <div class="empty-icon">◈</div>
+                            <div class="empty-icon"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-spark"></use></svg></span></div>
                             <div class="empty-text">选择一个企划查看详情</div>
                         </div>
                         <div id="hubDetailContent"></div>
@@ -666,87 +1313,10 @@
         </div>
         <div id="hubFormModal" class="calendar-modal" aria-hidden="true"></div>
 
-        <!-- 活动编辑器弹窗（管理员） -->
-        <div id="eventEditorModal" class="calendar-modal" aria-hidden="true">
-            <div class="calendar-modal-card" style="max-width: 500px;" role="dialog" aria-modal="true">
-                <button id="eventEditorCancelBtn" class="calendar-modal-close" type="button">×</button>
-                <div class="calendar-modal-scroll">
-                    <h3 id="eventEditorTitle" class="calendar-title" style="margin-top: 30px;">添加活动</h3>
-                    <input type="hidden" id="eventEditorId">
-                    <div style="margin: 16px 0 12px;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动名称 *</label>
-                        <input type="text" id="eventEditorName" class="md3-input" placeholder="例：樱之诗·春之祭典" style="width: 100%;">
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">开始日期 *</label>
-                        <input type="date" id="eventEditorDate" class="md3-input" style="width: 100%;">
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">结束日期 <span style="font-weight: 400; color: var(--md-on-surface-variant);">(可选，多日活动)</span></label>
-                        <input type="date" id="eventEditorDateEnd" class="md3-input" style="width: 100%;">
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动简介</label>
-                        <textarea id="eventEditorRawText" class="md3-input" rows="2" placeholder="简短的活动介绍..." style="width: 100%; resize: vertical;"></textarea>
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">海报图片</label>
-                        <img id="eventImagePreview" src="" alt="" style="width: 100%; max-height: 240px; object-fit: contain; border-radius: 12px; background: var(--md-surface-container-high); display: none; margin-bottom: 8px;">
-                        <input type="hidden" id="eventEditorImage" />
-                        <input type="file" id="eventImageInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;">
-                        <div style="display: flex; gap: 8px;">
-                            <button id="eventImageBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px;">📷 上传海报</button>
-                            <button id="eventImageRemoveBtn" type="button" style="padding: 6px 14px; border-radius: 8px; border: 1px solid var(--md-outline); background: var(--md-surface); cursor: pointer; font-size: 12px; color: #e74c3c; display: none;">移除</button>
-                            <span id="eventImageStatus" style="font-size: 11px; color: var(--md-on-surface-variant);"></span>
-                        </div>
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">活动链接</label>
-                        <input type="url" id="eventEditorLink" class="md3-input" placeholder="https://..." style="width: 100%;">
-                    </div>
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">详细介绍</label>
-                        <textarea id="eventEditorDescription" class="md3-input" rows="4" placeholder="详细的活动内容、参与方式等..." style="width: 100%; resize: vertical;"></textarea>
-                    </div>
-                    <div id="eventOfficialWrap" style="margin: 12px 0; display: flex; align-items: center; gap: 12px;">
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="eventEditorOfficial"> 官方活动
-                        </label>
-                    </div>
-                    <div style="display: flex; gap: 12px; margin-top: 20px;">
-                        <button id="eventEditorSaveBtn" class="md3-btn" style="flex: 1;">保存</button>
-                        <button id="eventEditorDeleteBtn" class="md3-btn md3-btn-tonal" style="flex: 1; background: #e74c3c; color: white; display: none;">删除</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 活动详情弹窗 -->
-        <div id="eventDetailModal" class="calendar-modal" aria-hidden="true">
-            <div class="calendar-modal-card" style="max-width: 480px;" role="dialog" aria-modal="true">
-                <button id="eventDetailClose" class="calendar-modal-close" type="button">×</button>
-                <div class="calendar-modal-scroll">
-                    <h3 id="eventDetailTitle" class="event-poster-title" style="margin-bottom: 12px;"></h3>
-                    <p id="eventDetailDate" style="color: var(--md-primary); font-size: 14px; margin-bottom: 16px;"></p>
-                    <img id="eventDetailImage" class="event-poster-image" alt="活动宣传图" style="display: none;" loading="lazy" />
-                    <p id="eventDetailDescription" class="event-poster-text" style="margin: 16px 0; line-height: 1.8;"></p>
-                    <a id="eventDetailLink" href="#" target="_blank" rel="noopener noreferrer" class="feedback-modal-link" style="display: none; text-decoration: none; text-align: center;">🔗 访问活动页面</a>
-                    <div id="eventDetailRegSection" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--md-outline-variant); display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                        <span id="eventDetailRegCount" style="font-size: 13px; color: var(--md-on-surface-variant);"></span>
-                        <button id="eventDetailRegBtn" class="md3-btn" style="display: none; flex-shrink: 0; padding: 6px 16px; font-size: 13px;">📝 报名</button>
-                    </div>
-                    <div style="display: flex; gap: 12px; margin-top: 20px;">
-                        <button id="eventDetailEditBtn" class="md3-btn" style="flex: 1; display: none;">✏️ 编辑</button>
-                        <button id="eventDetailDeleteBtn" class="md3-btn" style="flex: 1; background: #e74c3c; display: none;">🗑️ 删除</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- 同好会详情弹窗 -->
         <div id="clubDetailModal" aria-hidden="true">
             <div class="club-detail-modal-card" role="dialog" aria-modal="true">
-                <button id="clubDetailClose" class="club-detail-modal-close" type="button">×</button>
+                <button id="clubDetailClose" class="club-detail-modal-close" type="button" aria-label="关闭同好会详情弹窗">×</button>
                 <div class="club-detail-modal-scroll">
                     <div id="clubDetailContent" class="club-detail-grid"></div>
                 </div>
@@ -756,9 +1326,9 @@
         <!-- 同好会绑定申请弹窗 -->
         <div id="membershipApplyModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 450px;">
-                <button id="membershipApplyClose" class="calendar-modal-close" type="button">×</button>
+                <button id="membershipApplyClose" class="calendar-modal-close" type="button" aria-label="关闭绑定申请弹窗">×</button>
                 <div class="calendar-modal-scroll">
-                    <h3 class="calendar-title" style="margin-top: 30px;">📝 申请绑定同好会</h3>
+                    <h3 class="calendar-title" style="margin-top: 30px;"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-pen"></use></svg></span> 申请绑定同好会</h3>
                     <div id="membershipApplyClubName" style="text-align: center; font-size: 16px; font-weight: 600; margin: 12px 0 20px; color: var(--md-on-surface);"></div>
                     <div class="membership-apply-tabs" role="tablist" aria-label="加入方式">
                         <button class="membership-apply-tab active" type="button" data-join-method="school_no_code">本校无绑定码</button>
@@ -809,9 +1379,9 @@
         <!-- 绑定审批弹窗 -->
         <div id="membershipModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 500px;">
-                <button id="membershipModalClose" class="calendar-modal-close" type="button">×</button>
+                <button id="membershipModalClose" class="calendar-modal-close" type="button" aria-label="关闭绑定审批弹窗">×</button>
                 <div class="calendar-modal-scroll">
-                    <h3 class="calendar-title" style="margin-top: 30px;">📋 绑定审批</h3>
+                    <h3 class="calendar-title" style="margin-top: 30px;"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span> 绑定审批</h3>
                     <div id="membershipPendingList" style="margin-top: 16px;">
                         <p style="text-align: center; color: var(--md-on-surface-variant);">加载中...</p>
                     </div>
@@ -822,54 +1392,78 @@
         <!-- 账号管理弹窗 -->
         <div id="accountModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 480px;">
-                <button id="accountModalClose" class="calendar-modal-close" type="button">×</button>
+                <button id="accountModalClose" class="calendar-modal-close" type="button" aria-label="关闭账号弹窗">×</button>
                 <div class="calendar-modal-scroll">
-                    <!-- 登录界面 -->
-                    <div id="accountLoginForm">
-                        <h3 class="calendar-title" style="margin-top: 30px;">登录</h3>
-                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                            <input type="text" id="accLoginUsername" class="md3-input" placeholder="用户名 / 邮箱" />
-                            <input type="password" id="accLoginPassword" class="md3-input" placeholder="密码" />
-                            <button id="accLoginBtn" class="submit-btn primary" type="button">登录</button>
-                            <div id="accLoginMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
+                    <!-- 登录界面（与 login.html 共用统一认证组件） -->
+                    <div id="accountLoginForm" class="auth-view">
+                        <div class="auth-title">
+                            <h2>登录</h2>
+                            <p>登录后继续管理社团资料、活动投稿与个人账号。</p>
+                        </div>
+                        <div class="auth-stack">
+                            <div class="auth-field">
+                                <label for="accLoginUsername">用户名 / 邮箱</label>
+                                <input type="text" id="accLoginUsername" class="auth-input" placeholder="用户名或邮箱" autocomplete="username" />
+                            </div>
+                            <div class="auth-field">
+                                <label for="accLoginPassword">密码</label>
+                                <input type="password" id="accLoginPassword" class="auth-input" placeholder="密码" autocomplete="current-password" />
+                            </div>
+                            <button id="accLoginBtn" class="auth-btn auth-btn-primary" type="button">登录</button>
+                            <div id="accLoginMessage" class="auth-msg" style="min-height: 20px;"></div>
                             <!-- 第三方登录 -->
                             <div id="accSocialLogin" style="display: none;">
-                                <div class="social-login-divider"><span>其他方式</span></div>
-                                <div class="social-login-buttons">
-                                    <button id="qqLoginBtn" class="social-btn social-btn-qq" type="button">QQ 登录</button>
-                                    <button id="discordLoginBtn" class="social-btn social-btn-discord" type="button">Discord 登录</button>
+                                <div class="auth-divider"><span>其他方式</span></div>
+                                <div class="auth-social-row">
+                                    <button id="qqLoginBtn" class="auth-btn auth-btn-qq" type="button">QQ 登录</button>
+                                    <button id="discordLoginBtn" class="auth-btn auth-btn-discord" type="button">Discord 登录</button>
                                 </div>
                             </div>
-                            <hr style="border: none; border-top: 1px solid var(--md-outline); margin: 8px 0;" />
-                            <p style="text-align: center; font-size: 13px; color: var(--md-on-surface-variant);">还没有账号？</p>
-                            <button id="accShowRegisterBtn" class="submit-btn" type="button">注册新账号</button>
+                            <div class="auth-switch">
+                                还没有账号？<a id="accShowRegisterBtn" style="cursor:pointer;">注册新账号</a>
+                            </div>
                         </div>
                     </div>
-                    <!-- 注册界面 -->
-                    <div id="accountRegisterForm" style="display: none;">
-                        <h3 class="calendar-title" style="margin-top: 30px;">注册</h3>
-                        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                            <input type="text" id="accRegUsername" class="md3-input" placeholder="用户名" />
-                            <input type="password" id="accRegPassword" class="md3-input" placeholder="密码" />
-                            <div style="display: flex; gap: 8px;">
-                                <input type="email" id="accRegEmail" class="md3-input" placeholder="邮箱" style="flex: 1;" />
-                                <button id="accRegSendCodeBtn" class="submit-btn" type="button" style="width: auto; padding: 8px 16px; font-size: 13px; white-space: nowrap;">发送验证码</button>
+                    <!-- 注册界面（与 login.html 共用统一认证组件） -->
+                    <div id="accountRegisterForm" class="auth-view" style="display: none;">
+                        <div class="auth-title">
+                            <h2>注册</h2>
+                            <p>使用邮箱验证码完成注册，之后可参与活动与社团管理。</p>
+                        </div>
+                        <div class="auth-stack">
+                            <div class="auth-field">
+                                <label for="accRegUsername">用户名</label>
+                                <input type="text" id="accRegUsername" class="auth-input" placeholder="用户名" autocomplete="username" />
                             </div>
-                            <input type="text" id="accRegCode" class="md3-input" placeholder="邮箱验证码" maxlength="6" />
-                            <button id="accRegisterBtn" class="submit-btn primary" type="button">注册</button>
-                            <div id="accRegMessage" style="font-size: 13px; text-align: center; min-height: 20px;"></div>
-                            <hr style="border: none; border-top: 1px solid var(--md-outline); margin: 8px 0;" />
-                            <p style="text-align: center; font-size: 13px; color: var(--md-on-surface-variant);">已有账号？</p>
-                            <button id="accShowLoginBtn" class="submit-btn" type="button">返回登录</button>
+                            <div class="auth-field">
+                                <label for="accRegPassword">密码</label>
+                                <input type="password" id="accRegPassword" class="auth-input" placeholder="密码" autocomplete="new-password" />
+                            </div>
+                            <div class="auth-field">
+                                <label for="accRegEmail">邮箱</label>
+                                <div class="auth-input-row">
+                                    <input type="email" id="accRegEmail" class="auth-input" placeholder="邮箱" autocomplete="email" />
+                                    <button id="accRegSendCodeBtn" class="auth-btn auth-code-btn" type="button">发送验证码</button>
+                                </div>
+                            </div>
+                            <div class="auth-field">
+                                <label for="accRegCode">验证码</label>
+                                <input type="text" id="accRegCode" class="auth-input" placeholder="邮箱验证码" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+                            </div>
+                            <button id="accRegisterBtn" class="auth-btn auth-btn-primary" type="button">注册</button>
+                            <div id="accRegMessage" class="auth-msg" style="min-height: 20px;"></div>
+                            <div class="auth-switch">
+                                已有账号？<a id="accShowLoginBtn" style="cursor:pointer;">返回登录</a>
+                            </div>
                         </div>
                     </div>
                     <!-- 个人设置主页（三标签结构） -->
                     <div id="accountSettings" style="display: none;">
                         <!-- 标签栏 -->
                         <div class="vn-tab-bar">
-                            <button class="vn-tab active" data-tab="profile">📋 档案</button>
-                            <button class="vn-tab" data-tab="collection">🏆 图鉴</button>
-                            <button class="vn-tab" data-tab="settings">⚙️ 设置</button>
+                            <button class="vn-tab active" data-tab="profile"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-list"></use></svg></span> 档案</button>
+                            <button class="vn-tab" data-tab="collection"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-trophy"></use></svg></span> 图鉴</button>
+                            <button class="vn-tab" data-tab="settings"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-gear"></use></svg></span> 设置</button>
                         </div>
 
                         <!-- Tab 1: 社团成员档案 -->
@@ -924,7 +1518,7 @@
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 20px;">
                                 <div id="accAvatarWrap" style="position: relative; cursor: pointer;">
                                 <img id="accUserAvatar" src="" alt="" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover;" />
-                                <div style="position: absolute; bottom: 0; right: -4px; background: var(--md-primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid var(--md-surface);">📷</div>
+                                <div style="position: absolute; bottom: 0; right: -4px; background: var(--md-primary); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; border: 2px solid var(--md-surface);"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-camera"></use></svg></span></div>
                             </div>
                             <input type="file" id="accAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" />
                             <div id="accAvatarStatus" style="font-size: 12px; min-height: 18px;"></div>
@@ -1063,7 +1657,7 @@
 
         <!-- 管理员编辑面板 -->
         <div id="adminPanel" class="admin-panel">
-            <button id="adminPanelClose" class="admin-panel-close" type="button">×</button>
+            <button id="adminPanelClose" class="admin-panel-close" type="button" aria-label="关闭管理面板">×</button>
             <h3 id="adminPanelTitle">编辑同好会</h3>
             <input type="hidden" id="editId">
 
@@ -1075,7 +1669,7 @@
                     <div class="edit-avatar-actions">
                         <input type="file" id="editClubAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display: none;" />
                         <input type="hidden" id="editClubAvatarUrl" />
-                        <button id="editClubAvatarBtn" type="button" class="edit-avatar-btn">📷 上传头像</button>
+                        <button id="editClubAvatarBtn" type="button" class="edit-avatar-btn"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-camera"></use></svg></span> 上传头像</button>
                         <button id="editClubAvatarRemoveBtn" type="button" class="edit-avatar-btn edit-avatar-remove" style="display: none;">移除</button>
                         <span id="editClubAvatarStatus" class="edit-avatar-status"></span>
                     </div>
@@ -1088,9 +1682,9 @@
 
                 <!-- 国家选择 -->
                 <select id="editCountry">
-                    <option value="china">🇨🇳 中国</option>
-                    <option value="japan">🇯🇵 日本</option>
-                    <option value="overseas">🌍 海外</option>
+                    <option value="china">中国</option>
+                    <option value="japan">日本</option>
+                    <option value="overseas">海外</option>
                 </select>
 
                 <input type="text" id="editName" placeholder="组织名称 *">
@@ -1118,6 +1712,28 @@
                     </div>
                 </div>
 
+                <!-- 江苏城市：仅当中国同好会选择江苏省时开放 -->
+                <div id="cityGroup" style="display: none;">
+                    <label for="editCity">城市（江苏）</label>
+                    <select id="editCity">
+                        <option value="">请选择城市</option>
+                        <option value="南京">南京</option>
+                        <option value="无锡">无锡</option>
+                        <option value="徐州">徐州</option>
+                        <option value="常州">常州</option>
+                        <option value="苏州">苏州</option>
+                        <option value="南通">南通</option>
+                        <option value="连云港">连云港</option>
+                        <option value="淮安">淮安</option>
+                        <option value="盐城">盐城</option>
+                        <option value="扬州">扬州</option>
+                        <option value="镇江">镇江</option>
+                        <option value="泰州">泰州</option>
+                        <option value="宿迁">宿迁</option>
+                    </select>
+                    <div class="field-hint">仅江苏省份开放；城市用于江苏 13 市地图归类。</div>
+                </div>
+
                 <!-- 日本都道府县下拉 -->
                 <div id="prefectureGroup" style="display: none;">
                     <select id="editPrefecture">
@@ -1138,81 +1754,81 @@
                     <div class="ext-link-row">
                         <select class="ext-link-platform" data-index="0">
                             <option value="">选择平台</option>
-                            <option value="B站">📺 B站/Bilibili</option>
-                            <option value="Twitter">🐦 Twitter/X</option>
-                            <option value="Bangumi">📖 Bangumi</option>
-                            <option value="微博">📱 微博</option>
-                            <option value="Discord">💬 Discord</option>
-                            <option value="QQ">💬 QQ</option>
-                            <option value="微信">💬 微信</option>
-                            <option value="GitHub">💻 GitHub</option>
-                            <option value="知乎">📕 知乎</option>
-                            <option value="小红书">📕 小红书</option>
-                            <option value="豆瓣">📕 豆瓣</option>
-                            <option value="贴吧">📕 贴吧</option>
-                            <option value="Niconico">🎵 Niconico</option>
-                            <option value="YouTube">▶️ YouTube</option>
-                            <option value="Pixiv">🎨 Pixiv</option>
-                            <option value="Lofter">📝 Lofter</option>
-                            <option value="Fanbox">💝 Fanbox</option>
-                            <option value="Patreon">💝 Patreon</option>
-                            <option value="Fantia">💝 Fantia</option>
-                            <option value="官网">🌐 官网</option>
-                            <option value="其他">🔗 其他</option>
+                            <option value="B站">B站/Bilibili</option>
+                            <option value="Twitter">Twitter/X</option>
+                            <option value="Bangumi">Bangumi</option>
+                            <option value="微博">微博</option>
+                            <option value="Discord">Discord</option>
+                            <option value="QQ">QQ</option>
+                            <option value="微信">微信</option>
+                            <option value="GitHub">GitHub</option>
+                            <option value="知乎">知乎</option>
+                            <option value="小红书">小红书</option>
+                            <option value="豆瓣">豆瓣</option>
+                            <option value="贴吧">贴吧</option>
+                            <option value="Niconico">Niconico</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Pixiv">Pixiv</option>
+                            <option value="Lofter">Lofter</option>
+                            <option value="Fanbox">Fanbox</option>
+                            <option value="Patreon">Patreon</option>
+                            <option value="Fantia">Fantia</option>
+                            <option value="官网">官网</option>
+                            <option value="其他">其他</option>
                         </select>
                         <input type="text" class="ext-link-url" data-index="0" placeholder="链接 URL（https://...）">
                     </div>
                     <div class="ext-link-row">
                         <select class="ext-link-platform" data-index="1">
                             <option value="">选择平台</option>
-                            <option value="B站">📺 B站/Bilibili</option>
-                            <option value="Twitter">🐦 Twitter/X</option>
-                            <option value="Bangumi">📖 Bangumi</option>
-                            <option value="微博">📱 微博</option>
-                            <option value="Discord">💬 Discord</option>
-                            <option value="QQ">💬 QQ</option>
-                            <option value="微信">💬 微信</option>
-                            <option value="GitHub">💻 GitHub</option>
-                            <option value="知乎">📕 知乎</option>
-                            <option value="小红书">📕 小红书</option>
-                            <option value="豆瓣">📕 豆瓣</option>
-                            <option value="贴吧">📕 贴吧</option>
-                            <option value="Niconico">🎵 Niconico</option>
-                            <option value="YouTube">▶️ YouTube</option>
-                            <option value="Pixiv">🎨 Pixiv</option>
-                            <option value="Lofter">📝 Lofter</option>
-                            <option value="Fanbox">💝 Fanbox</option>
-                            <option value="Patreon">💝 Patreon</option>
-                            <option value="Fantia">💝 Fantia</option>
-                            <option value="官网">🌐 官网</option>
-                            <option value="其他">🔗 其他</option>
+                            <option value="B站">B站/Bilibili</option>
+                            <option value="Twitter">Twitter/X</option>
+                            <option value="Bangumi">Bangumi</option>
+                            <option value="微博">微博</option>
+                            <option value="Discord">Discord</option>
+                            <option value="QQ">QQ</option>
+                            <option value="微信">微信</option>
+                            <option value="GitHub">GitHub</option>
+                            <option value="知乎">知乎</option>
+                            <option value="小红书">小红书</option>
+                            <option value="豆瓣">豆瓣</option>
+                            <option value="贴吧">贴吧</option>
+                            <option value="Niconico">Niconico</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Pixiv">Pixiv</option>
+                            <option value="Lofter">Lofter</option>
+                            <option value="Fanbox">Fanbox</option>
+                            <option value="Patreon">Patreon</option>
+                            <option value="Fantia">Fantia</option>
+                            <option value="官网">官网</option>
+                            <option value="其他">其他</option>
                         </select>
                         <input type="text" class="ext-link-url" data-index="1" placeholder="链接 URL（https://...）">
                     </div>
                     <div class="ext-link-row">
                         <select class="ext-link-platform" data-index="2">
                             <option value="">选择平台</option>
-                            <option value="B站">📺 B站/Bilibili</option>
-                            <option value="Twitter">🐦 Twitter/X</option>
-                            <option value="Bangumi">📖 Bangumi</option>
-                            <option value="微博">📱 微博</option>
-                            <option value="Discord">💬 Discord</option>
-                            <option value="QQ">💬 QQ</option>
-                            <option value="微信">💬 微信</option>
-                            <option value="GitHub">💻 GitHub</option>
-                            <option value="知乎">📕 知乎</option>
-                            <option value="小红书">📕 小红书</option>
-                            <option value="豆瓣">📕 豆瓣</option>
-                            <option value="贴吧">📕 贴吧</option>
-                            <option value="Niconico">🎵 Niconico</option>
-                            <option value="YouTube">▶️ YouTube</option>
-                            <option value="Pixiv">🎨 Pixiv</option>
-                            <option value="Lofter">📝 Lofter</option>
-                            <option value="Fanbox">💝 Fanbox</option>
-                            <option value="Patreon">💝 Patreon</option>
-                            <option value="Fantia">💝 Fantia</option>
-                            <option value="官网">🌐 官网</option>
-                            <option value="其他">🔗 其他</option>
+                            <option value="B站">B站/Bilibili</option>
+                            <option value="Twitter">Twitter/X</option>
+                            <option value="Bangumi">Bangumi</option>
+                            <option value="微博">微博</option>
+                            <option value="Discord">Discord</option>
+                            <option value="QQ">QQ</option>
+                            <option value="微信">微信</option>
+                            <option value="GitHub">GitHub</option>
+                            <option value="知乎">知乎</option>
+                            <option value="小红书">小红书</option>
+                            <option value="豆瓣">豆瓣</option>
+                            <option value="贴吧">贴吧</option>
+                            <option value="Niconico">Niconico</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Pixiv">Pixiv</option>
+                            <option value="Lofter">Lofter</option>
+                            <option value="Fanbox">Fanbox</option>
+                            <option value="Patreon">Patreon</option>
+                            <option value="Fantia">Fantia</option>
+                            <option value="官网">官网</option>
+                            <option value="其他">其他</option>
                         </select>
                         <input type="text" class="ext-link-url" data-index="2" placeholder="链接 URL（https://...）">
                     </div>
@@ -1258,10 +1874,10 @@
             </div>
 
             <div class="admin-panel-buttons">
-                <button id="adminSaveBtn" class="btn-primary admin-save-btn">💾 保存</button>
+                <button id="adminSaveBtn" class="btn-primary admin-save-btn">保存</button>
                 <div class="admin-panel-secondary-row">
                     <button id="adminCancelBtn" class="btn-secondary">取消</button>
-                    <button id="adminDeleteBtn" class="btn-danger" style="display: none;">🗑 删除</button>
+                    <button id="adminDeleteBtn" class="btn-danger" style="display: none;">删除</button>
                 </div>
             </div>
         </div>
@@ -1270,7 +1886,7 @@
         <!-- 成员名单模态框 -->
         <div id="memberListModal" class="calendar-modal" aria-hidden="true">
             <div class="calendar-modal-card" role="dialog" aria-modal="true" style="max-width: 500px;">
-                <button id="memberListModalClose" class="calendar-modal-close" type="button">×</button>
+                <button id="memberListModalClose" class="calendar-modal-close" type="button" aria-label="关闭成员列表弹窗">×</button>
                 <div class="calendar-modal-scroll">
                     <h3 class="calendar-title" style="margin-top: 30px;">成员名单</h3>
                     <div id="memberListContent" style="margin-top: 16px; min-height: 100px;">
@@ -1280,17 +1896,8 @@
             </div>
         </div>
 
-        <!-- 主题选择器 -->
-        <div class="theme-selector" id="themeSelector">
-            <div class="theme-dot theme-red" data-theme="red" title="红色主题"></div>
-            <div class="theme-dot theme-blue" data-theme="blue" title="蓝色主题"></div>
-            <div class="theme-dot theme-green" data-theme="green" title="绿色主题"></div>
-            <div class="theme-dot theme-purple" data-theme="purple" title="紫色主题"></div>
-            <div class="theme-dot theme-orange" data-theme="orange" title="橙色主题"></div>
-        </div>
-
         <!-- 右键刷新按钮 -->
-        <button id="refreshApiBtn" class="context-refresh-btn" type="button">🔄 刷新数据</button>
+        <button id="refreshApiBtn" class="context-refresh-btn" type="button"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-refresh"></use></svg></span> 刷新数据</button>
         
         <!-- 工具提示 -->
         <div id="tooltip"></div>
@@ -1311,16 +1918,15 @@
         ];
         var appScripts = [
             { src: './js/app-core.js' },
-            { src: './js/china.js' },
+            { src: './js/china.js?v=20260814-jiangsu-v7' },
+            { src: './js/jiangsu.js?v=20260814-jiangsu-v7' },
             { src: './js/japan.js' },
-            { src: './js/app.js?v=20260519-user-center' },
+            { src: './js/app.js?v=20260814-jiangsu-v7' },
             { src: './js/calendar.js?v=20260530' },
-            { src: './js/project-hub.js?v=20260601' },
+            { src: './js/project-hub.js?v=20260702-hub-switch' },
             {
-                src: 'js/page-background.js?v=20260519-map-after-render',
+                src: 'js/page-background.js?v=20260812-preferences',
                 attrs: {
-                    'data-picker': 'compact',
-                    'data-anchor': 'introCard',
                     'data-after-map': ''
                 }
             }
@@ -1450,38 +2056,92 @@
                     window.open('./Galgame_events/galgameonly_list.html', '_blank');
                 });
             }
+
+            // QQ群二维码二级弹窗
+            var qqGroupBtn = document.getElementById('qqGroupBtn');
+            var qqGroupOverlay = document.getElementById('qqGroupOverlay');
+            var qqGroupClose = document.getElementById('qqGroupClose');
+            function openQqGroupModal() {
+                qqGroupOverlay.style.display = 'flex';
+                requestAnimationFrame(function() {
+                    qqGroupOverlay.classList.add('visible');
+                });
+                qqGroupOverlay.setAttribute('aria-hidden', 'false');
+            }
+            function closeQqGroupModal() {
+                qqGroupOverlay.classList.remove('visible');
+                qqGroupOverlay.setAttribute('aria-hidden', 'true');
+                setTimeout(function() {
+                    if (!qqGroupOverlay.classList.contains('visible')) {
+                        qqGroupOverlay.style.display = 'none';
+                    }
+                }, 280);
+            }
+            if (qqGroupBtn && qqGroupOverlay) {
+                qqGroupBtn.addEventListener('click', openQqGroupModal);
+                if (qqGroupClose) qqGroupClose.addEventListener('click', closeQqGroupModal);
+                qqGroupOverlay.addEventListener('click', function(e) {
+                    if (e.target === qqGroupOverlay) closeQqGroupModal();
+                });
+            }
         });
     </script>
+
+    <!-- ===== QQ群二维码二级弹窗 ===== -->
+    <div id="qqGroupOverlay" class="qq-group-overlay" aria-hidden="true">
+        <div class="qq-group-card">
+            <button class="qq-group-card-close" id="qqGroupClose" type="button" aria-label="关闭">&times;</button>
+            <p class="qq-group-card-title">反馈交流群</p>
+            <img src="/qrcode.jpg" alt="QQ群 185057101 二维码" class="qq-group-card-qr" />
+            <p class="qq-group-card-hint">扫码加入反馈交流群</p>
+            <p class="qq-group-card-id">群号：185057101</p>
+            <a href="https://qm.qq.com/q/EqB5BExL8W" target="_blank" rel="noopener noreferrer" class="qq-group-join-btn">前往加群链接</a>
+        </div>
+    </div>
 
     <!-- ===== 通知中心弹窗 ===== -->
     <div class="notif-center-overlay" id="notifCenterOverlay">
         <div class="notif-center-modal">
             <div class="notif-center-header">
-                <h2><span>🔔</span> 通知中心</h2>
+                <h2><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-bell"></use></svg></span> 通知中心</h2>
                 <div class="notif-center-actions">
-                    <button class="notif-center-all-read" id="notifCenterMarkAll">全部已读</button>
-                    <button class="notif-center-close" id="notifCenterClose">✕</button>
+                    <button class="notif-center-close" id="notifCenterClose" type="button" aria-label="关闭通知中心"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-close"></use></svg></span></button>
                 </div>
             </div>
-            <div class="notif-center-tabs">
-                <button class="notif-center-tab active" data-filter="all">全部 <span class="notif-center-tab-count" id="tabCountAll">0</span></button>
-                <button class="notif-center-tab" data-filter="audit">审核通知 <span class="notif-center-tab-count" id="tabCountAudit">0</span></button>
-                <button class="notif-center-tab" data-filter="club">同好会 <span class="notif-center-tab-count" id="tabCountClub">0</span></button>
-                <button class="notif-center-tab" data-filter="system">系统 <span class="notif-center-tab-count" id="tabCountSystem">0</span></button>
+            <div class="notif-center-toolbar">
+                <div class="notif-center-tabs">
+                    <button class="notif-center-tab active" data-filter="all">全部 <span class="notif-center-tab-count" id="tabCountAll">0</span></button>
+                    <button class="notif-center-tab" data-filter="audit">审核 <span class="notif-center-tab-count" id="tabCountAudit">0</span></button>
+                    <button class="notif-center-tab" data-filter="club">同好会 <span class="notif-center-tab-count" id="tabCountClub">0</span></button>
+                    <button class="notif-center-tab" data-filter="system">系统 <span class="notif-center-tab-count" id="tabCountSystem">0</span></button>
+                </div>
+                <div class="notif-center-batch">
+                    <button class="batch-action-btn" id="notifCenterMarkAll">全部已读</button>
+                    <button class="batch-action-btn" id="notifCenterSelectAll">全选</button>
+                    <button class="batch-action-btn" id="notifCenterBatchRead">标记已读</button>
+                </div>
             </div>
-            <div class="notif-center-batch">
-                <button class="batch-action-btn" id="notifCenterSelectAll">全选</button>
-                <button class="batch-action-btn" id="notifCenterBatchRead">标记为已读</button>
+            <div class="notif-center-body">
+                <div class="notif-center-list-pane">
+                    <div class="notif-center-list" id="notifCenterList"></div>
+                </div>
+                <div class="notif-center-detail" id="notifCenterDetail">
+                    <div class="notif-center-detail-empty">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        <span>选择通知查看详情</span>
+                    </div>
+                </div>
             </div>
-            <div class="notif-center-list" id="notifCenterList"></div>
-            <div class="notif-center-pagination" id="notifCenterPagination"></div>
+            <div class="notif-center-footer">
+                <div class="notif-center-pagination" id="notifCenterPagination"></div>
+            </div>
         </div>
     </div>
     <!-- 公告横幅（隐藏的数据容器，供 JS 渲染列表侧栏公告） -->
     <div class="announcement-banner" id="announcementBanner" style="display:none;">
       <div class="announcement-banner-header" id="announcementBannerToggle">
-        <span class="announcement-banner-title">📢 全站公告 <span class="announcement-banner-persistent">长期</span></span>
-        <span class="announcement-banner-arrow" id="announcementBannerArrow">▼</span>
+        <span class="announcement-banner-title"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-megaphone"></use></svg></span> 全站公告 <span class="announcement-banner-persistent">长期</span></span>
+        <span class="announcement-banner-arrow" id="announcementBannerArrow"><span class="vn-icon" aria-hidden="true"><svg><use href="#vn-icon-chevron-down"></use></svg></span></span>
       </div>
       <div class="announcement-banner-body" id="announcementBannerBody"></div>
     </div>

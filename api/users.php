@@ -28,6 +28,23 @@ $action = $_GET['action'] ?? '';
 
 switch ($action) {
 
+    case 'stats':
+        try {
+            $db = getDB();
+            $stats = [
+                'total'         => (int)$db->query("SELECT COUNT(*) FROM users")->fetchColumn(),
+                'super_admins'  => (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'super_admin'")->fetchColumn(),
+                'managers'      => (int)$db->query("SELECT COUNT(*) FROM users WHERE role IN ('representative','manager')")->fetchColumn(),
+                'members'       => (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'member'")->fetchColumn(),
+                'visitors'      => (int)$db->query("SELECT COUNT(*) FROM users WHERE role = 'visitor'")->fetchColumn(),
+                'banned'        => (int)$db->query("SELECT COUNT(*) FROM users WHERE status = 'banned'")->fetchColumn(),
+            ];
+            echo json_encode(['success' => true, 'stats' => $stats], JSON_UNESCAPED_UNICODE);
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => '查询失败', 'error' => $e->getMessage()]);
+        }
+        exit();
+
     case 'list':
         try {
         // 分页列出用户

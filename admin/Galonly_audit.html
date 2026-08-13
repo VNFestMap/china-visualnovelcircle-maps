@@ -248,6 +248,8 @@ body,
 .content {
   padding: 24px;
   flex: 1;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* ── Page Title ── */
@@ -637,6 +639,28 @@ body,
   box-shadow: 0 2px 6px var(--accent-muted);
 }
 
+.booth-image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.booth-image-button {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.booth-image-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 /* ── Vote Section (booth) ── */
 .vote-section {
   margin-top: 16px;
@@ -773,13 +797,19 @@ body,
 
 .app-id { font-size: 12px; color: var(--fg-dim); letter-spacing: 0.04em; }
 
-/* ── Roster Pool Panel ── */
+/* ── Roster Pool Panel ─ */
 .roster-panel {
   background: var(--surface);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
   padding: 20px;
   margin-top: 20px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  width: 100%;
+  min-width: 0;
 }
 
 .roster-header {
@@ -829,10 +859,16 @@ body,
 }
 
 .roster-table-wrap {
-  overflow-x: auto;
+  flex: 1;
+  min-height: 120px;
+  max-height: 55vh;
+  overflow: auto;
+  resize: vertical;
   margin-bottom: 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .roster-table {
@@ -851,6 +887,9 @@ body,
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   letter-spacing: 0.04em;
+  position: sticky;
+  top: 0;
+  z-index: 2;
 }
 
 .roster-table tbody td {
@@ -858,6 +897,7 @@ body,
   color: var(--fg);
   border-bottom: 1px solid var(--border-light);
   vertical-align: middle;
+  word-break: break-word;
 }
 
 .roster-table tbody tr:last-child td {
@@ -902,6 +942,14 @@ body,
   color: var(--fg-soft);
 }
 
+#rosterList {
+  flex: 1;
+  min-height: 0;
+  overflow-x: clip;
+  display: flex;
+  flex-direction: column;
+}
+
 .roster-actions {
   display: flex;
   gap: 8px;
@@ -938,6 +986,10 @@ body,
   padding: 32px;
   text-align: center;
   color: var(--fg-dim);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 14px;
 }
 
@@ -1181,7 +1233,12 @@ body,
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  overflow: hidden;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  width: 100%;
+  min-width: 0;
 }
 
 .preview-toolbar {
@@ -1211,6 +1268,169 @@ body,
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* ── Position Progress Panel ── */
+.pos-progress-panel {
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+  background: var(--surface);
+}
+
+.pos-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pos-progress-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pos-progress-toggle {
+  font-size: 12px;
+  color: var(--fg-dim);
+  transition: transform 0.2s;
+}
+
+.pos-progress-toggle.open {
+  transform: rotate(180deg);
+}
+
+.pos-progress-summary {
+  font-size: 12px;
+  color: var(--fg-muted);
+  margin-bottom: 12px;
+}
+
+.pos-progress-summary strong {
+  color: var(--fg);
+}
+
+.pos-progress-summary .met {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.pos-progress-summary .unmet {
+  color: var(--warning);
+  font-weight: 600;
+}
+
+.pos-progress-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pos-progress-grid.open {
+  max-height: 800px;
+}
+
+.pos-progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  border: 1px solid var(--border-light);
+  transition: border-color 0.2s;
+}
+
+.pos-progress-item.is-met {
+  border-color: var(--success-border);
+}
+
+.pos-progress-item.is-over {
+  border-color: var(--accent-muted);
+}
+
+.pos-progress-item-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--fg-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.pos-progress-item-note {
+  font-size: 10px;
+  color: var(--fg-dim);
+  font-weight: 400;
+}
+
+.pos-progress-item-bar {
+  height: 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pos-progress-item-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pos-progress-item-fill.below {
+  background: var(--warning);
+}
+
+.pos-progress-item-fill.met {
+  background: var(--success);
+}
+
+.pos-progress-item-fill.over {
+  background: var(--accent);
+}
+
+.pos-progress-item-count {
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-muted);
+}
+
+.pos-progress-item-count.met {
+  color: var(--success);
+}
+
+.pos-progress-item-count.over {
+  color: var(--accent);
+}
+
+.pos-progress-item.no-target {
+  opacity: 0.6;
+}
+
+.pos-progress-item.no-target .pos-progress-item-bar {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pos-progress-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .pos-progress-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ── Roster Filters ── */
@@ -1289,9 +1509,80 @@ body,
 }
 
 .preview-table-wrap {
-  overflow-x: auto;
-  max-height: 65vh;
-  overflow-y: auto;
+  overflow: auto;
+  flex: 1;
+  min-height: 120px;
+  max-height: 55vh;
+  resize: vertical;
+  border-top: 1px solid var(--border);
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* ── Viewport Frame (内页镶嵌) shared styling ── */
+.roster-table-wrap,
+.preview-table-wrap {
+  position: relative;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.12);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) transparent;
+}
+.roster-table-wrap::-webkit-scrollbar,
+.preview-table-wrap::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.roster-table-wrap::-webkit-scrollbar-track,
+.preview-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.roster-table-wrap::-webkit-scrollbar-thumb,
+.preview-table-wrap::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: 4px;
+}
+.roster-table-wrap::-webkit-scrollbar-thumb:hover,
+.preview-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: var(--fg-dim);
+}
+
+/* ── Viewport Zoom Controls ── */
+.viewport-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 2px;
+}
+.zoom-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--fg);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.zoom-btn:hover {
+  background: var(--accent-ghost);
+  border-color: var(--accent);
+}
+.zoom-label {
+  font-size: 11px;
+  color: var(--fg-muted);
+  min-width: 40px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.zoom-hint {
+  font-size: 10px;
+  color: var(--fg-dim);
+  margin-left: 4px;
+  opacity: 0.6;
 }
 
 .preview-table {
@@ -1320,7 +1611,7 @@ body,
   color: var(--fg-soft);
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
-  white-space: nowrap;
+  word-break: break-word;
 }
 
 .preview-table tbody tr:hover td {
@@ -1606,6 +1897,8 @@ body,
   /* 10. Roster/Preview tables – gradient fade hint on scroll */
   .roster-table-wrap {
     position: relative;
+    resize: none;
+    max-height: 45vh;
   }
   .roster-table-wrap::after {
     content: '';
@@ -1758,6 +2051,88 @@ body,
     min-height: 44px;
     text-align: center;
   }
+  .preview-table-wrap {
+    overflow: visible;
+    max-height: none;
+    resize: none;
+    min-height: 0;
+    flex: none;
+    box-shadow: none;
+    border-top: none;
+  }
+  .preview-table-wrap::after {
+    display: none;
+  }
+  .viewport-zoom-controls {
+    display: none;
+  }
+  .preview-table {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+  }
+  .preview-table thead {
+    display: none;
+  }
+  .preview-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .preview-table tbody tr {
+    display: grid;
+    gap: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+  }
+  .preview-table tbody tr:hover td {
+    background: transparent;
+  }
+  .preview-table tbody td {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    white-space: normal;
+    min-width: 0;
+    line-height: 1.55;
+  }
+  .preview-table tbody td:last-child {
+    border-bottom: 0;
+  }
+  .preview-table tbody td::before {
+    content: attr(data-label);
+    color: var(--fg-dim);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .preview-table .idx-col,
+  .preview-table .name-col,
+  .preview-table .qq-col,
+  .preview-table .pos-col,
+  .preview-table .cos-col,
+  .preview-table .three-col,
+  .preview-table .remove-col {
+    width: auto;
+    max-width: none;
+    text-align: left;
+  }
+  .preview-table .pos-col {
+    overflow-wrap: anywhere;
+  }
+  .preview-table .remove-col {
+    justify-items: start;
+  }
+  .preview-table .remove-col .btn-preview-remove {
+    min-width: 44px;
+    min-height: 36px;
+    border: 1px solid var(--danger-border);
+    color: var(--danger);
+  }
 
   /* App footer */
   .app-footer {
@@ -1770,6 +2145,88 @@ body,
   .theme-toggle {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  /* Roster table (merged preview) — mobile card layout */
+  .roster-table-wrap {
+    overflow: visible;
+    max-height: none;
+    resize: none;
+    min-height: 0;
+    flex: none;
+    box-shadow: none;
+    border-top: none;
+  }
+  .roster-table-wrap::after {
+    display: none;
+  }
+  .roster-table {
+    display: block;
+    width: 100%;
+    font-size: 13px;
+  }
+  .roster-table thead {
+    display: none;
+  }
+  .roster-table tbody {
+    display: grid;
+    gap: 10px;
+  }
+  .roster-table tbody tr {
+    display: grid;
+    gap: 0;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-raised);
+  }
+  .roster-table tbody tr:hover td {
+    background: transparent;
+  }
+  .roster-table tbody td {
+    display: grid;
+    grid-template-columns: 82px minmax(0, 1fr);
+    gap: 10px;
+    align-items: start;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border-light);
+    white-space: normal;
+    min-width: 0;
+    line-height: 1.55;
+  }
+  .roster-table tbody td:last-child {
+    border-bottom: 0;
+  }
+  .roster-table tbody td::before {
+    content: attr(data-label);
+    color: var(--fg-dim);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .roster-table .roster-avatar-cell,
+  .roster-table .roster-cell-secondary,
+  .roster-table .remove-col {
+    width: auto;
+    max-width: none;
+    text-align: left;
+  }
+  .roster-table .roster-cell-secondary {
+    overflow-wrap: anywhere;
+  }
+  .roster-table .remove-col {
+    justify-items: start;
+  }
+  .roster-table .remove-col .btn-preview-remove {
+    min-width: 44px;
+    min-height: 36px;
+    border: 1px solid var(--danger-border);
+    color: var(--danger);
+  }
+
+  /* 15. iOS 输入聚焦缩放防护：移动端表单控件统一 16px */
+  input, select, textarea {
+    font-size: 16px;
   }
 }
 
@@ -1953,30 +2410,37 @@ body,
   }
 
   /* Roster */
-  .roster-panel {
-    padding: 10px;
-  }
   .roster-table {
     font-size: 12px;
   }
-  .roster-table thead th {
-    padding: 6px 8px;
-    font-size: 10px;
-  }
   .roster-table tbody td {
-    padding: 6px 8px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 12px;
+  }
+  .roster-table tbody tr {
+    padding: 10px;
+  }
+  .roster-table tbody td::before {
+    font-size: 10px;
   }
 
   /* Preview table */
   .preview-table {
-    font-size: 11px;
-  }
-  .preview-table thead th {
-    padding: 5px 6px;
-    font-size: 10px;
+    font-size: 12px;
   }
   .preview-table tbody td {
-    padding: 4px 6px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 8px;
+    padding: 7px 0;
+    font-size: 12px;
+  }
+  .preview-table tbody tr {
+    padding: 10px;
+  }
+  .preview-table tbody td::before {
+    font-size: 10px;
   }
 
   /* Chip */
@@ -2145,6 +2609,185 @@ body,
 .page-title {
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
+
+/* ════════════════════════════════════════════════════════════
+   移动端独立设计（≤767px）
+   手机优先布局：应用栏式顶栏 + 卡片流 + 底部抽屉弹窗，
+   全局杜绝横向溢出。
+   ════════════════════════════════════════════════════════════ */
+@media (max-width: 767px) {
+  /* 1. 全局防溢出 */
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  .main-area,
+  .content,
+  .app-card,
+  .card-body,
+  .roster-panel,
+  .preview-panel {
+    min-width: 0;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  .applicant-name,
+  .applicant-club,
+  .app-field-value,
+  .app-id,
+  .roster-table tbody td,
+  .preview-table tbody td {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* 2. 顶栏：应用栏式，右侧仅保留主题切换 */
+  .top-header {
+    height: 52px;
+    padding: 0 14px;
+  }
+  .main-area {
+    padding-top: 52px;
+  }
+  .breadcrumb {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .header-actions {
+    flex-shrink: 0;
+  }
+
+  /* 3. 统计卡：2×2 紧凑布局 */
+  .stats-row {
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 12px;
+  }
+
+  /* 4. 卡片流 */
+  .app-card {
+    padding: 16px;
+  }
+  .app-card:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  .app-header {
+    gap: 10px;
+  }
+
+  /* 5. 操作按钮：全宽大触控 */
+  .btn,
+  .btn-vote,
+  .btn-single-vote,
+  .btn-roster,
+  .btn-export,
+  .btn-confirm-roster,
+  .btn-config-save,
+  .btn-preview-remove {
+    min-height: 44px;
+  }
+  .vote-actions,
+  .single-vote-actions,
+  .roster-actions,
+  .preview-actions,
+  .modal-footer {
+    gap: 8px;
+  }
+  .vote-actions {
+    flex-direction: row;
+  }
+  .vote-actions .btn-vote,
+  .roster-actions .btn-roster,
+  .preview-actions .btn-export,
+  .preview-actions .btn-confirm-roster,
+  .modal-footer .btn {
+    flex: 1;
+    text-align: center;
+  }
+  .voted-badge {
+    justify-content: center;
+  }
+
+  /* 6. 投票条：占满卡片宽度 */
+  .vote-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .vote-item {
+    min-width: 0;
+    width: 100%;
+  }
+  .vote-bar-track {
+    width: 100%;
+  }
+
+  /* 7. 制品图片：三列网格 */
+  .booth-image-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .booth-image-button {
+    width: 100%;
+  }
+  .booth-image-button img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* 8. 过滤条：全宽控件 */
+  .roster-filters {
+    padding: 12px;
+    gap: 8px;
+  }
+  .roster-filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* 9. 弹窗：底部抽屉式（纯 CSS 动画，无需改 JS） */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+    animation: galonly-overlay-in 0.22s ease both;
+  }
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: galonly-sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @keyframes galonly-sheet-up {
+    from { transform: translateY(48px); opacity: 0; }
+  }
+  @keyframes galonly-overlay-in {
+    from { opacity: 0; }
+  }
+
+  /* 10. Toast：底部安全区内 */
+  .toast {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+
+  /* 11. 动效降级 */
+  @media (prefers-reduced-motion: reduce) {
+    .modal,
+    .modal-overlay {
+      animation: none !important;
+    }
+  }
+}
 </style>
 </head>
 <body>
@@ -2174,8 +2817,8 @@ body,
 
     <!-- Mode Switch -->
     <div class="mode-switch" id="modeSwitch" data-component="mode-switch">
-      <button class="mode-btn active" data-mode="booth">上海GalOnly 摊位申请</button>
-      <button class="mode-btn" data-mode="staff">上海GalOnly 工作人员审核</button>
+      <button class="mode-btn active" data-mode="booth">摊位</button>
+      <button class="mode-btn" data-mode="staff">工作人员</button>
     </div>
 
     <!-- BOOTH MODE -->
@@ -2238,6 +2881,7 @@ body,
 
     <!-- STAFF MODE -->
     <div id="staffMode" style="display:none;" data-component="staff-audit">
+      <div style="margin-bottom:16px;font-size:13px;color:var(--text-muted);" id="staffModeTitle">工作人员审核 · 全部活动</div>
 
       <!-- Staff Stats Row -->
       <div class="stats-row" id="staffStatsRow" data-component="staff-stats">
@@ -2279,6 +2923,7 @@ body,
 
       <!-- Staff Event Filter -->
       <div class="filters-row">
+        <label for="staffEventFilter" style="font-size:12px;color:var(--fg-dim);white-space:nowrap;">活动：</label>
         <select class="filter-select" id="staffEventFilter" onchange="onStaffEventFilterChange()">
           <option value="">全部活动</option>
         </select>
@@ -2296,27 +2941,6 @@ body,
       <!-- Staff App List -->
       <div class="app-list" id="staffAppList" data-component="staff-app-list">
         <div class="empty-state">加载中...</div>
-      </div>
-
-      <!-- Roster Pool Panel -->
-      <div class="roster-panel" id="rosterPanel" style="display:none;" data-component="roster-pool">
-        <div class="roster-header">
-          <div class="roster-title">名单池</div>
-          <div class="roster-progress">
-            <span class="roster-progress-text" id="rosterProgressText">0 / 0</span>
-            <div class="roster-progress-bar">
-              <div class="roster-progress-fill" id="rosterProgressFill" style="width:0%"></div>
-            </div>
-            <span class="roster-frozen-badge" id="rosterFrozenBadge" style="display:none;">名单已冻结</span>
-          </div>
-        </div>
-        <div id="rosterList">
-          <div class="roster-empty">暂无名单池成员</div>
-        </div>
-        <div class="roster-actions" id="rosterActions">
-          <button class="btn-roster save" id="btnSaveRoster" disabled onclick="finalizeRoster()">保存名单</button>
-          <button class="btn-roster unlock" id="btnUnlockRoster" style="display:none;" onclick="unlockRoster()">解锁名单</button>
-        </div>
       </div>
 
     </div>
@@ -2360,29 +2984,6 @@ var currentStaffTab = 'pending';
 var selectedEventId = 0;
 var selectedStaffEventId = 0;
 
-// Roster filter state
-var rosterFilterPosition = '';
-var rosterFilterCosplay = '';
-
-// 15 staff positions for filter dropdown
-var STAFF_POSITIONS = [
-  '检票发票 (布展日)',
-  '检票发票 (开展日)',
-  '场馆搭建搬货 (布展日)',
-  '搭建协助 (开展日)',
-  '物料发放 (游客)',
-  '物料发放 (摊主)',
-  '食品发放与看管',
-  '巡场 (安保/应急)',
-  '巡场检查 (内容合规)',
-  '舞台管理',
-  '问询处',
-  '线上社群管理',
-  '痛车区域管理',
-  'VIP室服务',
-  '交通指引'
-];
-
 var clubNameMapCn = {};
 var clubNameMapJp = {};
 
@@ -2424,18 +3025,57 @@ function getClubName(clubId, country) {
   return map[clubId] || ('同好会 #' + clubId);
 }
 
+function getStaffClubDisplay(app) {
+  var individualLabel = '非高校同好会成员 / 个人申请';
+  if (!app) return individualLabel;
+  if (app.club_country === 'none' || parseInt(app.club_id || 0, 10) <= 0) {
+    return individualLabel;
+  }
+  if (app.club_id) {
+    return (app.club_country === 'japan' ? 'JP ' : 'CN ') + escapeHtml(getClubName(parseInt(app.club_id, 10), app.club_country || 'china'));
+  }
+  var clubs = app.clubs || [];
+  clubs = clubs.filter(function(c) {
+    return c && c.club_country !== 'none' && parseInt(c.club_id || 0, 10) > 0;
+  });
+  return clubs.length > 0
+    ? clubs.map(function(c) { return (c.club_country === 'japan' ? 'JP ' : 'CN ') + escapeHtml(getClubName(parseInt(c.club_id, 10), c.club_country || 'china')); }).join(', ')
+    : individualLabel;
+}
+
 // ====== Mode Switch ======
 function switchMode(mode) {
   currentMode = mode;
   document.querySelectorAll('.mode-btn').forEach(function(btn) {
     btn.classList.toggle('active', btn.dataset.mode === mode);
   });
+  var isStaffMode = mode === 'staff';
   document.getElementById('boothMode').style.display = mode === 'booth' ? '' : 'none';
-  document.getElementById('staffMode').style.display = mode === 'staff' ? '' : 'none';
-  if (mode === 'staff') {
+  document.getElementById('staffMode').style.display = isStaffMode ? '' : 'none';
+  if (isStaffMode) {
+    // 工作人员模式：保留筛选器当前选择（默认「全部活动」），
+    // 由二级活动筛选器分成上海 / 北京
+    syncStaffModeTitle();
     renderStaffCurrentTab();
-    renderRosterPanel();
   }
+}
+
+function isStaffOnlyEvent(eventId) {
+  for (var i = 0; i < allEvents.length; i++) {
+    if (parseInt(allEvents[i].id, 10) === parseInt(eventId, 10)) {
+      return !!(allEvents[i].staff_only || allEvents[i].staff_only === '1');
+    }
+  }
+  return false;
+}
+
+function isBeijingEvent(eventId) {
+  for (var i = 0; i < allEvents.length; i++) {
+    if (parseInt(allEvents[i].id, 10) === parseInt(eventId, 10)) {
+      return String(allEvents[i].event_code || '').toLowerCase() === 'beijing';
+    }
+  }
+  return false;
 }
 
 // ====== Club Name Loading ======
@@ -2444,13 +3084,13 @@ async function loadClubNames() {
     var cnResp = await fetch('../api/clubs.php?t=' + Date.now());
     var cnData = await cnResp.json();
     clubNameMapCn = {};
-    (cnData.data || cnData.clubs || []).forEach(function(c) { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
+    (cnData.data || []).forEach(function(c) { clubNameMapCn[c.id] = c.name || c.school || '未知'; });
   } catch (e) { clubNameMapCn = {}; }
   try {
     var jpResp = await fetch('../api/clubs_japan.php?t=' + Date.now());
     var jpData = await jpResp.json();
     clubNameMapJp = {};
-    (jpData.data || jpData.clubs || []).forEach(function(c) { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
+    (jpData.data || []).forEach(function(c) { clubNameMapJp[c.id] = c.name || c.school || '未知'; });
   } catch (e) { clubNameMapJp = {}; }
 }
 
@@ -2463,7 +3103,7 @@ async function checkAuth() {
       document.getElementById('boothAppList').innerHTML = '<div class="empty-state">请先登录<br><br><a href="../index.html" style="color:var(--accent-blue);">前往登录</a></div>';
       return false;
     }
-    currentUser = data.user || data;
+    currentUser = data;
     return true;
   } catch (e) {
     document.getElementById('boothAppList').innerHTML = '<div class="empty-state">认证请求失败，请刷新页面重试<br><br><a href="../index.html" style="color:var(--accent-blue);">返回首页</a></div>';
@@ -2541,13 +3181,16 @@ async function loadStaffApplications() {
     return;
   }
   renderStaffCurrentTab();
-  renderRosterPanel();
 }
 
 // ====== Booth Stats ======
 function updateBoothStats(applications) {
+  var filtered = applications || [];
+  if (selectedEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id, 10) === selectedEventId; });
+  }
   var pending = 0, approved = 0, rejected = 0, maxVotes = 0;
-  applications.forEach(function(app) {
+  filtered.forEach(function(app) {
     var s = app.status || 'pending';
     if (s === 'pending') pending++;
     else if (s === 'approved') approved++;
@@ -2563,8 +3206,12 @@ function updateBoothStats(applications) {
 
 // ====== Staff Stats ======
 function updateStaffStats(applications) {
+  var filtered = applications || [];
+  if (selectedStaffEventId > 0) {
+    filtered = filtered.filter(function(app) { return parseInt(app.event_id, 10) === selectedStaffEventId; });
+  }
   var pending = 0, pooled = 0, rejected = 0, confirmed = 0;
-  applications.forEach(function(app) {
+  filtered.forEach(function(app) {
     var s = app.status || 'pending';
     if (s === 'pending') pending++;
     else if (s === 'pooled') pooled++;
@@ -2617,6 +3264,63 @@ function renderBoothAppList(applications) {
   appList.innerHTML = html;
 }
 
+function normalizeAuditImageSrc(src) {
+  src = String(src || '').replace(/\\/g, '/').trim();
+  if (!src) return '';
+  if (/^(https?:)?\/\//i.test(src) || /^data:/i.test(src) || /^blob:/i.test(src)) return src;
+  if (src.charAt(0) === '/' || src.indexOf('../') === 0 || src.indexOf('./') === 0) return src;
+  return '../' + src.replace(/^\/+/, '');
+}
+
+function normalizeBoothImageList(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string') return [];
+  var text = value.trim();
+  if (!text) return [];
+  if (text.charAt(0) === '[') {
+    try {
+      var parsed = JSON.parse(text);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      return [];
+    }
+  }
+  return text.split(',').map(function(item) { return item.trim(); }).filter(Boolean);
+}
+
+function getBoothImageItems(app) {
+  var originals = normalizeBoothImageList(app.image_paths);
+  var primaryOriginal = app.display_image || originals[0] || '';
+  var items = [];
+  var seen = {};
+
+  function pushItem(thumb, full) {
+    var thumbSrc = normalizeAuditImageSrc(thumb || full);
+    var fullSrc = normalizeAuditImageSrc(full || thumb);
+    if (!thumbSrc || !fullSrc || seen[fullSrc]) return;
+    seen[fullSrc] = true;
+    items.push({ thumb: thumbSrc, full: fullSrc });
+  }
+
+  pushItem(app.display_thumbnail || primaryOriginal, primaryOriginal || app.display_thumbnail);
+  originals.forEach(function(path) {
+    pushItem(path, path);
+  });
+  return items;
+}
+
+function renderBoothImageHtml(app) {
+  var items = getBoothImageItems(app);
+  if (!items.length) {
+    return '<span style="color:var(--text-muted);">无</span>';
+  }
+  return '<div class="booth-image-list">' + items.map(function(item, index) {
+    return '<button type="button" class="booth-image-button" data-full-src="' + escapeHtml(item.full) + '" onclick="openImageModal(this.dataset.fullSrc)" aria-label="查看制品图片 ' + (index + 1) + '">' +
+      '<img class="app-image-thumb" src="' + escapeHtml(item.thumb) + '" alt="制品图片 ' + (index + 1) + '" loading="lazy">' +
+    '</button>';
+  }).join('') + '</div>';
+}
+
 function renderBoothAppCard(app) {
   var nickname = app.nickname || app.username || '未知';
   var firstChar = (nickname || '?')[0];
@@ -2646,7 +3350,7 @@ function renderBoothAppCard(app) {
   var boothNameDisplay = app.booth_name ? escapeHtml(app.booth_name) : '<span style="color:var(--text-muted);">未填写</span>';
   var jointDisplay = parseInt(app.is_joint) === 1 ? ('是' + (app.joint_name ? ' · ' + escapeHtml(app.joint_name) : '')) : '否';
   var upgradeDisplay = parseInt(app.wants_upgrade) === 1 ? '是' : '否';
-  var imageHtml = '<span style="color:var(--text-muted);">无</span>';
+  var imageHtml = renderBoothImageHtml(app);
   var notesHtml = '';
   if (app.notes && app.notes.trim()) {
     notesHtml = '<div class="app-field full"><div class="app-field-label">备注</div><div class="app-field-value" style="color:var(--text-secondary);">' + escapeHtml(app.notes) + '</div></div>';
@@ -2791,23 +3495,8 @@ function renderPreviewRoster(eventFiltered) {
   // Progress (use full unfiltered pool for progress/completion)
   var poolCount = allPool.length;
   var pct = requiredCount > 0 ? Math.min(100, (poolCount / requiredCount) * 100) : 0;
-  var canConfirm = poolCount > 0 && poolCount >= requiredCount && !isFrozen;
-
-  // Apply filters
-  var displayPool = allPool;
-  if (rosterFilterPosition) {
-    displayPool = displayPool.filter(function(app) {
-      var pos = app.positions || [];
-      return pos.indexOf(rosterFilterPosition) !== -1;
-    });
-  }
-  if (rosterFilterCosplay !== '') {
-    var cosVal = rosterFilterCosplay === 'yes' ? 1 : 0;
-    displayPool = displayPool.filter(function(app) {
-      return app.is_cosplay === cosVal;
-    });
-  }
-  var isFiltered = rosterFilterPosition !== '' || rosterFilterCosplay !== '';
+  var hasSelectedEvent = selectedStaffEventId > 0;
+  var canConfirm = hasSelectedEvent && poolCount > 0 && poolCount >= requiredCount && !isFrozen;
 
   // Summary text
   var summaryHtml = '<span>名单池 <strong>' + poolCount + '</strong> 人</span>';
@@ -2825,54 +3514,44 @@ function renderPreviewRoster(eventFiltered) {
     actionsHtml += '<button class="btn-export" onclick="exportRosterCSV()">导出 CSV</button>';
     if (!isFrozen) {
       actionsHtml += '<button class="btn-confirm-roster" onclick="confirmPreviewRoster()" ' +
-        (canConfirm ? '' : 'disabled title="名单池人数需达到需求人数"') +
+        (canConfirm ? '' : 'disabled title="' + (hasSelectedEvent ? '名单池人数需达到需求人数' : '请先选择具体活动') + '"') +
         '>确定名单</button>';
     } else {
       actionsHtml += '<button class="btn-export" onclick="unlockRoster()" style="color:var(--danger);border-color:var(--danger-border);">解锁名单</button>';
     }
   }
 
-  // Filter bar HTML
-  var posOptions = '<option value="">全部岗位</option>';
-  STAFF_POSITIONS.forEach(function(p) {
-    posOptions += '<option value="' + escapeHtml(p) + '"' +
-      (rosterFilterPosition === p ? ' selected' : '') + '>' + escapeHtml(p) + '</option>';
-  });
-
-  var filterBarHtml = '<div class="roster-filters">' +
-    '<span class="roster-filter-label">筛选</span>' +
-    '<select class="roster-filter-select" id="rosterFilterPos" onchange="onRosterFilterChange()">' + posOptions + '</select>' +
-    '<select class="roster-filter-select" id="rosterFilterCos" onchange="onRosterFilterChange()">' +
-      '<option value=""' + (rosterFilterCosplay === '' ? ' selected' : '') + '>全部 Cos</option>' +
-      '<option value="yes"' + (rosterFilterCosplay === 'yes' ? ' selected' : '') + '>Cos</option>' +
-      '<option value="no"' + (rosterFilterCosplay === 'no' ? ' selected' : '') + '>非Cos</option>' +
-    '</select>' +
-    (isFiltered ? '<span class="roster-filter-count">显示 <strong>' + displayPool.length + '</strong> / ' + allPool.length + ' 人</span>' : '') +
-    (isFiltered ? '<button class="roster-filter-reset" onclick="resetRosterFilters()">重置</button>' : '') +
-  '</div>';
-
   // Table
+  var beijingOnly = isBeijingEvent(selectedStaffEventId);
+  var showBeijingFields = beijingOnly || selectedStaffEventId <= 0;
+  var showThreeDay = !beijingOnly;
   var tableHtml = '';
-  if (displayPool.length === 0) {
-    tableHtml = '<div class="preview-empty">' +
-      (isFiltered ? '没有匹配的筛选结果' : '名单池暂无成员，请先在「待审核」中通过申请') +
-    '</div>';
+  if (allPool.length === 0) {
+    tableHtml = '<div class="preview-empty">名单池暂无成员，请先在「待审核」中通过申请</div>';
   } else {
-    tableHtml = '<div class="preview-table-wrap"><table class="preview-table">' +
+    tableHtml = '<div class="roster-table-wrap"><table class="roster-table">' +
       '<thead><tr>' +
-        '<th class="idx-col">#</th>' +
+        '<th class="roster-avatar-cell"></th>' +
         '<th>CN</th>' +
+        '<th>身份/社团</th>' +
         '<th>QQ号</th>' +
         '<th>报名岗位</th>' +
-        '<th>是否Cos</th>' +
+        (showBeijingFields ? '<th>性别</th>' : '') +
+        (showThreeDay ? '<th>三日</th>' : '') +
         '<th>状态</th>' +
         (!isFrozen ? '<th class="remove-col"></th>' : '') +
       '</tr></thead><tbody>';
 
-    displayPool.forEach(function(app, i) {
+    allPool.forEach(function(app, i) {
+      var cnName = app.cn_name || app.nickname || '未知';
+      var firstChar = (cnName || '?')[0];
+      var clubDisplay = getStaffClubDisplay(app);
       var posArr = app.positions || [];
       var posStr = posArr.length > 0 ? posArr.join('、') : '—';
-      var cosplayStr = app.is_cosplay === 1 ? '是' : '否';
+      var genderStr = app.gender === 'male' ? '男' : app.gender === 'female' ? '女' : (app.gender || '—');
+      var threeDayStr = app.three_day_available === 1 || app.three_day_available === '1'
+        ? '<span style="color:var(--success);">是</span>'
+        : '<span style="color:var(--fg-dim);">—</span>';
       var statusStr = app.status === 'confirmed'
         ? '<span style="color:var(--success);">已确定</span>'
         : '<span style="color:var(--accent);">名单池</span>';
@@ -2881,13 +3560,15 @@ function renderPreviewRoster(eventFiltered) {
         : '';
 
       tableHtml += '<tr style="animation-delay:' + (i * 0.03) + 's">' +
-        '<td class="idx-col">' + (i + 1) + '</td>' +
-        '<td class="name-col">' + escapeHtml(app.cn_name || app.nickname || '未知') + '</td>' +
-        '<td class="qq-col">' + escapeHtml(app.qq_number || '—') + '</td>' +
-        '<td class="pos-col" title="' + escapeHtml(posStr) + '">' + escapeHtml(posStr) + '</td>' +
-        '<td class="cos-col">' + cosplayStr + '</td>' +
-        '<td>' + statusStr + '</td>' +
-        (!isFrozen ? '<td class="remove-col">' + removeBtn + '</td>' : '') +
+        '<td class="roster-avatar-cell" data-label="头像"><span class="roster-avatar">' + escapeHtml(firstChar) + '</span></td>' +
+        '<td data-label="CN">' + escapeHtml(cnName) + '</td>' +
+        '<td data-label="身份/社团">' + clubDisplay + '</td>' +
+        '<td data-label="QQ号">' + escapeHtml(app.qq_number || '—') + '</td>' +
+        '<td class="roster-cell-secondary" data-label="报名岗位" title="' + escapeHtml(posStr) + '">' + escapeHtml(posStr) + '</td>' +
+        (showBeijingFields ? '<td class="roster-cell-secondary" data-label="性别">' + genderStr + '</td>' : '') +
+        (showThreeDay ? '<td class="roster-cell-secondary" data-label="三日">' + threeDayStr + '</td>' : '') +
+        '<td data-label="状态">' + statusStr + '</td>' +
+        (!isFrozen ? '<td class="remove-col" data-label="操作">' + removeBtn + '</td>' : '') +
       '</tr>';
     });
 
@@ -2899,28 +3580,18 @@ function renderPreviewRoster(eventFiltered) {
       '<div class="preview-summary">' + summaryHtml + '</div>' +
       '<div class="preview-actions">' + actionsHtml + '</div>' +
     '</div>' +
-    filterBarHtml +
     tableHtml +
   '</div>';
-}
 
-// Roster filter handlers
-function onRosterFilterChange() {
-  var posSelect = document.getElementById('rosterFilterPos');
-  var cosSelect = document.getElementById('rosterFilterCos');
-  rosterFilterPosition = posSelect ? posSelect.value : '';
-  rosterFilterCosplay = cosSelect ? cosSelect.value : '';
-  renderStaffCurrentTab();
-}
-
-function resetRosterFilters() {
-  rosterFilterPosition = '';
-  rosterFilterCosplay = '';
-  renderStaffCurrentTab();
+  initViewportZoom(previewEl.querySelector('.roster-table-wrap'));
 }
 
 // ====== Confirm roster from preview ======
 async function confirmPreviewRoster() {
+  if (selectedStaffEventId <= 0) {
+    showToast('请先选择具体活动', 'error');
+    return;
+  }
   if (!confirm('确定要确认当前名单吗？确认后名单将被冻结，并向所有已确定的 staff 发出通知。')) return;
 
   try {
@@ -2938,18 +3609,7 @@ async function confirmPreviewRoster() {
     showToast('名单已确认并冻结，通知已发送', 'success');
     await loadStaffApplications();
   } catch (e) {
-    // Preview fallback
-    allStaffApplications.forEach(function(app) {
-      if (app.status === 'pooled' && parseInt(app.event_id) === selectedStaffEventId) {
-        app.status = 'confirmed';
-      }
-    });
-    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
-    if (ev) ev.staff_roster_finalized = 1;
-    showToast('名单已确认（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
-    renderStaffEventConfig();
+    showToast('确认失败：' + (e.message || '网络错误'), 'error');
   }
 }
 
@@ -2972,16 +3632,7 @@ async function removeFromPool(applicationId) {
     showToast('已移回待审核', 'success');
     await loadStaffApplications();
   } catch (e) {
-    // Preview fallback
-    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
-    if (app) {
-      app.status = 'pending';
-      app.voted_by = null;
-      app.vote = null;
-    }
-    showToast('已移回待审核（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
+    showToast('移回待审核失败：' + (e.message || '网络错误'), 'error');
   }
 }
 
@@ -3002,22 +3653,34 @@ function exportRosterCSV() {
 
   // Build CSV with BOM for Excel UTF-8 compatibility
   var BOM = '\uFEFF';
-  var headers = ['序号', 'CN', 'QQ号', '手机号', '报名岗位', '是否Cosplay', '自我介绍', '状态'];
+  var beijingOnly = isBeijingEvent(selectedStaffEventId);
+  var showBeijingFields = beijingOnly || selectedStaffEventId <= 0;
+  var showThreeDay = !beijingOnly;
+  var headers = ['序号', 'CN', 'QQ号', '手机号', '报名岗位'];
+  headers.splice(2, 0, '身份/社团');
+  if (showBeijingFields) headers.push('性别', 'Staff经验', '技能特长', '邮箱');
+  if (showThreeDay) headers.push('三日参与');
+  headers.push('自我介绍', '状态');
   var rows = allPool.map(function(app, i) {
     var posArr = app.positions || [];
     var posStr = posArr.join('/');
-    var cosplay = app.is_cosplay === 1 ? '是' : '否';
+    var genderStr = app.gender === 'male' ? '男' : app.gender === 'female' ? '女' : (app.gender || '');
+    var staffExpStr = (app.staff_experience === 1 || app.staff_experience === '1') ? '有' : '无';
+    var skillsStr = (app.skills || '').replace(/\n/g, ' ');
+    var threeDay = app.three_day_available === 1 || app.three_day_available === '1' ? '是' : '否';
     var status = app.status === 'confirmed' ? '已确定' : '名单池';
-    return [
+    var row = [
       i + 1,
       app.cn_name || app.nickname || '',
+      getStaffClubDisplay(app),
       app.qq_number || '',
       app.phone_number || '',
-      posStr,
-      cosplay,
-      (app.self_intro || '').replace(/\n/g, ' '),
-      status
+      posStr
     ];
+  if (showBeijingFields) row.push(genderStr, staffExpStr, skillsStr, (app.email || '').replace(/\n/g, ' '));
+    if (showThreeDay) row.push(threeDay);
+    row.push((app.self_intro || '').replace(/\n/g, ' '), status);
+    return row;
   });
 
   var csvContent = BOM + headers.join(',') + '\n';
@@ -3063,6 +3726,7 @@ function renderStaffCard(app) {
   } else {
     clubDisplay = '未关联同好会';
   }
+  clubDisplay = getStaffClubDisplay(app);
   var statusMap = {
     pending: { cls: 'app-status-pending', text: '待审核' },
     pooled: { cls: 'app-status-pooled', text: '名单池' },
@@ -3086,8 +3750,28 @@ function renderStaffCard(app) {
   var positionDisplay = posArr.length > 0
     ? '<div class="chip-group">' + posArr.map(function(p) { return '<span class="chip">' + escapeHtml(p) + '</span>'; }).join('') + '</div>'
     : '<span style="color:var(--fg-dim);">未选择</span>';
-  var cosplayDisplay = app.is_cosplay === 1 ? '是' : '否';
+  var threeDayDisplay = app.three_day_available === 1 || app.three_day_available === '1'
+    ? '<span style="color:var(--success);font-weight:500;">三日均可</span>'
+    : '<span style="color:var(--fg-dim);">未确认</span>';
   var scheduleDisplay = '两天全天 ✓';
+  var isBeijing = isBeijingEvent(app.event_id);
+  var scheduleFieldsHtml = '';
+  if (!isBeijing) {
+    scheduleFieldsHtml =
+      '<div class="app-field"><div class="app-field-label">三日参与</div><div class="app-field-value">' + threeDayDisplay + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">服务时间</div><div class="app-field-value">' + scheduleDisplay + '</div></div>';
+  }
+  var beijingExtraHtml = '';
+  if (isBeijing) {
+    var genderText = app.gender === 'male' ? '男' : app.gender === 'female' ? '女' : (app.gender || '保密');
+    var staffExpText = (app.staff_experience === 1 || app.staff_experience === '1') ? '有' : '无';
+    var skillsText = app.skills ? escapeHtml(app.skills) : '<span style="color:var(--fg-dim);">未填写</span>';
+    beijingExtraHtml =
+      '<div class="app-field"><div class="app-field-label">性别</div><div class="app-field-value">' + genderText + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">Staff经验</div><div class="app-field-value">' + staffExpText + '</div></div>' +
+      '<div class="app-field full"><div class="app-field-label">技能/特长</div><div class="app-field-value">' + skillsText + '</div></div>' +
+      '<div class="app-field"><div class="app-field-label">邮箱</div><div class="app-field-value">' + escapeHtml(app.email || '—') + '</div></div>';
+  }
   var introHtml = '';
   if (app.self_intro && app.self_intro.trim()) {
     introHtml = '<div class="app-field full"><div class="app-field-label">自我介绍</div><div class="app-field-value" style="color:var(--text-secondary);">' + escapeHtml(app.self_intro) + '</div></div>';
@@ -3129,8 +3813,8 @@ function renderStaffCard(app) {
       '<div class="app-field"><div class="app-field-label">手机号</div><div class="app-field-value">' + phoneDisplay + '</div></div>' +
       '<div class="app-field"><div class="app-field-label">所属社团</div><div class="app-field-value">' + clubDisplay + '</div></div>' +
       '<div class="app-field full"><div class="app-field-label">报名岗位</div><div class="app-field-value">' + positionDisplay + '</div></div>' +
-      '<div class="app-field"><div class="app-field-label">是否Cosplay</div><div class="app-field-value">' + cosplayDisplay + '</div></div>' +
-      '<div class="app-field"><div class="app-field-label">服务时间</div><div class="app-field-value">' + scheduleDisplay + '</div></div>' +
+      scheduleFieldsHtml +
+      beijingExtraHtml +
       introHtml +
     '</div>' +
     voteActionsHtml +
@@ -3138,85 +3822,6 @@ function renderStaffCard(app) {
       '<span class="app-id">Staff #' + app.id + ' · 提交: ' + formatDate(app.created_at) + '</span>' +
     '</div>' +
   '</div>';
-}
-
-// ====== Roster Pool Panel ======
-function renderRosterPanel() {
-  var panel = document.getElementById('rosterPanel');
-  // Hide old roster panel when preview tab is active (preview replaces it)
-  if (currentStaffTab === 'preview') {
-    panel.style.display = 'none';
-    return;
-  }
-  var filtered = allStaffApplications;
-  if (selectedStaffEventId > 0) {
-    filtered = filtered.filter(function(app) { return parseInt(app.event_id) === selectedStaffEventId; });
-  }
-  var pooled = filtered.filter(function(app) { return app.status === 'pooled'; });
-  var confirmed = filtered.filter(function(app) { return app.status === 'confirmed'; });
-  var allPool = pooled.concat(confirmed);
-  var requiredCount = 0;
-  var isFrozen = false;
-  if (selectedStaffEventId > 0) {
-    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
-    if (ev) {
-      requiredCount = ev.staff_required_count || 0;
-      isFrozen = !!ev.staff_roster_finalized;
-    }
-  }
-  if (selectedStaffEventId <= 0) {
-    panel.style.display = 'none';
-    return;
-  }
-  panel.style.display = '';
-  var poolCount = allPool.length;
-  var pct = requiredCount > 0 ? Math.min(100, (poolCount / requiredCount) * 100) : 0;
-  document.getElementById('rosterProgressText').textContent = poolCount + ' / ' + requiredCount;
-  document.getElementById('rosterProgressFill').style.width = pct + '%';
-  document.getElementById('rosterFrozenBadge').style.display = isFrozen ? '' : 'none';
-  var listEl = document.getElementById('rosterList');
-  if (allPool.length === 0) {
-    listEl.innerHTML = '<div class="roster-empty">暂无名单池成员</div>';
-  } else {
-    listEl.innerHTML = '<div class="roster-table-wrap"><table class="roster-table">' +
-      '<thead><tr>' +
-        '<th class="roster-avatar-cell"></th>' +
-        '<th>CN</th>' +
-        '<th>QQ号</th>' +
-        '<th>报名岗位</th>' +
-        '<th>是否Cosplay</th>' +
-        '<th>状态</th>' +
-      '</tr></thead>' +
-      '<tbody>' +
-      allPool.map(function(app, i) {
-        var cnName = app.cn_name || app.nickname || '未知';
-        var firstChar = (cnName || '?')[0];
-        var statusClass = app.status === 'confirmed' ? 'roster-status-confirmed' : 'roster-status-pooled';
-        var statusText = app.status === 'confirmed' ? '已确定' : '名单池';
-        var posArr = app.positions || [];
-        var posText = posArr.length > 0 ? posArr.join('、') : '—';
-        var cosplayText = app.is_cosplay === 1 ? '是' : '否';
-        return '<tr style="animation-delay:' + (i * 0.03) + 's">' +
-          '<td class="roster-avatar-cell"><span class="roster-avatar">' + escapeHtml(firstChar) + '</span></td>' +
-          '<td>' + escapeHtml(cnName) + '</td>' +
-          '<td>' + escapeHtml(app.qq_number || '—') + '</td>' +
-          '<td class="roster-cell-secondary">' + escapeHtml(posText) + '</td>' +
-          '<td class="roster-cell-secondary">' + cosplayText + '</td>' +
-          '<td><span class="' + statusClass + '">' + statusText + '</span></td>' +
-        '</tr>';
-      }).join('') +
-      '</tbody></table></div>';
-  }
-  var btnSave = document.getElementById('btnSaveRoster');
-  var btnUnlock = document.getElementById('btnUnlockRoster');
-  if (isFrozen) {
-    btnSave.style.display = 'none';
-    btnUnlock.style.display = '';
-  } else {
-    btnSave.style.display = '';
-    btnUnlock.style.display = 'none';
-    btnSave.disabled = poolCount < requiredCount;
-  }
 }
 
 // ====== Staff Event Config ======
@@ -3230,13 +3835,17 @@ function toggleStaffEventMgr() {
 function renderStaffEventConfig() {
   var list = document.getElementById('staffEventConfigList');
   var count = document.getElementById('staffEventMgrCount');
-  if (!allEvents || allEvents.length === 0) {
+  var visibleEvents = allEvents;
+  if (selectedStaffEventId > 0) {
+    visibleEvents = allEvents.filter(function(ev) { return parseInt(ev.id, 10) === selectedStaffEventId; });
+  }
+  if (!visibleEvents || visibleEvents.length === 0) {
     list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;">暂无活动</div>';
     if (count) count.textContent = '';
     return;
   }
-  if (count) count.textContent = allEvents.length + ' 个活动';
-  list.innerHTML = allEvents.map(function(ev) {
+  if (count) count.textContent = visibleEvents.length + ' 个活动';
+  list.innerHTML = visibleEvents.map(function(ev) {
     var name = escapeHtml(ev.name || ev.title || '未命名');
     var dateStr = ev.date || '';
     var deadline = ev.staff_deadline || '';
@@ -3310,22 +3919,12 @@ async function saveStaffEventConfig(eventId, btn) {
         ev.staff_required_count = payload.staff_required_count;
         ev.staff_registration_open = payload.staff_registration_open;
       }
-      renderRosterPanel();
       updateStaffStats(allStaffApplications);
     } else {
       showToast(data.message || '保存失败', 'error');
     }
   } catch (e) {
-    showToast('配置已保存（预览模式）', 'success');
-    var ev = allEvents.find(function(e) { return e.id === eventId; });
-    if (ev) {
-      ev.staff_deadline = payload.staff_deadline;
-      ev.staff_max_applicants = payload.staff_max_applicants;
-      ev.staff_required_count = payload.staff_required_count;
-      ev.staff_registration_open = payload.staff_registration_open;
-    }
-    renderRosterPanel();
-    updateStaffStats(allStaffApplications);
+    showToast('配置保存失败：' + (e.message || '网络错误'), 'error');
   }
   btn.disabled = false;
 }
@@ -3350,15 +3949,7 @@ async function castStaffVote(applicationId, vote) {
     showToast(vote === 'approve' ? '已通过，进入名单池' : '已拒绝', 'success');
     await loadStaffApplications();
   } catch (e) {
-    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
-    if (app) {
-      app.status = vote === 'approve' ? 'pooled' : 'rejected';
-      app.voted_by = 99;
-      app.vote = vote;
-    }
-    showToast(vote === 'approve' ? '已通过，进入名单池（预览）' : '已拒绝（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
+    showToast('操作失败：' + (e.message || '网络错误'), 'error');
     btns.forEach(function(b) { b.disabled = false; });
   }
 }
@@ -3380,51 +3971,16 @@ async function withdrawStaffVote(applicationId) {
     showToast('已撤回', 'success');
     await loadStaffApplications();
   } catch (e) {
-    var app = allStaffApplications.find(function(a) { return a.id === applicationId; });
-    if (app) {
-      app.status = 'pending';
-      app.voted_by = null;
-      app.vote = null;
-    }
-    showToast('已撤回（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
+    showToast('撤回失败：' + (e.message || '网络错误'), 'error');
   }
 }
 
-// ====== Roster Finalize / Unlock ======
-async function finalizeRoster() {
-  if (!confirm('确定要保存并冻结当前名单吗？冻结后将向已确定的 staff 发出通知。')) return;
-  try {
-    var r = await fetch('../api/galonly.php?action=finalize_staff_roster', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({ event_id: selectedStaffEventId })
-    });
-    var data = await r.json();
-    if (!data.success) {
-      showToast(data.message || '保存失败', 'error');
-      return;
-    }
-    showToast('名单已保存并冻结，通知已发送', 'success');
-    await loadStaffApplications();
-  } catch (e) {
-    allStaffApplications.forEach(function(app) {
-      if (app.status === 'pooled' && parseInt(app.event_id) === selectedStaffEventId) {
-        app.status = 'confirmed';
-      }
-    });
-    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
-    if (ev) ev.staff_roster_finalized = 1;
-    showToast('名单已保存并冻结（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
-    renderStaffEventConfig();
-  }
-}
-
+// ====== Roster Unlock ======
 async function unlockRoster() {
+  if (selectedStaffEventId <= 0) {
+    showToast('请先选择具体活动', 'error');
+    return;
+  }
   if (!confirm('确定要解锁名单吗？已确定的 staff 将恢复为名单池状态，可继续修改。')) return;
   try {
     var r = await fetch('../api/galonly.php?action=unlock_staff_roster', {
@@ -3441,17 +3997,7 @@ async function unlockRoster() {
     showToast('名单已解锁', 'success');
     await loadStaffApplications();
   } catch (e) {
-    allStaffApplications.forEach(function(app) {
-      if (app.status === 'confirmed' && parseInt(app.event_id) === selectedStaffEventId) {
-        app.status = 'pooled';
-      }
-    });
-    var ev = allEvents.find(function(e) { return e.id === selectedStaffEventId; });
-    if (ev) ev.staff_roster_finalized = 0;
-    showToast('名单已解锁（预览）', 'success');
-    renderStaffCurrentTab();
-    renderRosterPanel();
-    renderStaffEventConfig();
+    showToast('名单解锁失败：' + (e.message || '网络错误'), 'error');
   }
 }
 
@@ -3527,8 +4073,23 @@ function onStaffEventFilterChange() {
   var val = document.getElementById('staffEventFilter').value;
   selectedStaffEventId = val ? parseInt(val) : 0;
   renderStaffCurrentTab();
-  renderRosterPanel();
   updateStaffStats(allStaffApplications);
+  syncStaffModeTitle();
+}
+
+function syncStaffModeTitle() {
+  var title = document.getElementById('staffModeTitle');
+  if (!title) return;
+  var eventName = null;
+  if (selectedStaffEventId > 0) {
+    for (var i = 0; i < allEvents.length; i++) {
+      if (parseInt(allEvents[i].id, 10) === selectedStaffEventId) {
+        eventName = allEvents[i].title || allEvents[i].name || '';
+        break;
+      }
+    }
+  }
+  title.textContent = eventName ? '工作人员审核 · ' + eventName : '工作人员审核 · 全部活动';
 }
 
 // ====== Tab Switch ======
@@ -3569,6 +4130,7 @@ function renderEventMgr() {
     var isOpen = ev.registration_open == 1;
     var name = escapeHtml(ev.name || ev.title || '未命名');
     var dateStr = ev.date || '';
+    var dateValue = ev.date ? String(ev.date).slice(0, 10) : '';
     var statusHtml = isOpen
       ? '<span class="app-status-badge app-status-approved">开放申请</span>'
       : '<span class="app-status-badge app-status-rejected">已熔断</span>';
@@ -3581,10 +4143,41 @@ function renderEventMgr() {
         '<div class="staff-config-date">' + escapeHtml(dateStr) + '</div>' +
       '</div>' +
       '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<input type="date" class="config-input" value="' + dateValue + '" data-event-date="' + ev.id + '" aria-label="活动日期" style="width:150px;">' +
+        '<button class="btn-config-save" onclick="saveEventDate(' + ev.id + ', this)">保存日期</button>' +
         statusHtml + btnHtml +
       '</div>' +
     '</div>';
   }).join('');
+}
+
+async function saveEventDate(eventId, btn) {
+  var input = document.querySelector('[data-event-date="' + eventId + '"]');
+  if (!input || !input.value) {
+    showToast('请先选择日期', 'error');
+    return;
+  }
+  btn.disabled = true;
+  try {
+    var r = await fetch('../api/galonly.php?action=update_event', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ event_id: eventId, date: input.value })
+    });
+    var data = await r.json();
+    if (!data.success) {
+      showToast(data.message || '保存失败', 'error');
+      return;
+    }
+    showToast('活动日期已更新', 'success');
+    await loadEvents();
+    renderEventMgr();
+  } catch (e) {
+    showToast('网络错误，保存失败', 'error');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function toggleRegistration(eventId, currentlyOpen) {
@@ -3672,6 +4265,93 @@ function updateThemeIcon(theme) {
     updateThemeIcon(document.documentElement.getAttribute('data-theme') || 'dark');
   });
 })();
+
+// ====== Viewport Zoom (内页缩放) ======
+var viewportZoomStates = {};
+
+function initViewportZoom(wrapEl) {
+  if (!wrapEl) return;
+  var table = wrapEl.querySelector('table');
+  if (!table) return;
+
+  var id = wrapEl.className + '-' + (wrapEl.closest('[id]') ? wrapEl.closest('[id]').id : 'x');
+  var state = viewportZoomStates[id] || { scale: 1 };
+  viewportZoomStates[id] = state;
+
+  // Remove existing controls if any
+  var existing = wrapEl.querySelector('.viewport-zoom-controls');
+  if (existing) existing.remove();
+
+  // Create controls
+  var controls = document.createElement('div');
+  controls.className = 'viewport-zoom-controls';
+  controls.innerHTML =
+    '<button class="zoom-btn" data-dir="out" title="缩小">−</button>' +
+    '<span class="zoom-label">' + Math.round(state.scale * 100) + '%</span>' +
+    '<button class="zoom-btn" data-dir="in" title="放大">+</button>' +
+    '<button class="zoom-btn" data-dir="reset" title="重置" style="font-size:12px;">↺</button>' +
+    '<span class="zoom-hint">Ctrl + 滚轮缩放</span>';
+
+  // Insert controls at the top of the wrap, before the table
+  wrapEl.insertBefore(controls, wrapEl.firstChild);
+
+  var label = controls.querySelector('.zoom-label');
+
+  function applyZoom(newScale) {
+    newScale = Math.round(newScale * 10) / 10;
+    newScale = Math.max(0.5, Math.min(2.0, newScale));
+    state.scale = newScale;
+    table.style.transform = 'scale(' + newScale + ')';
+    table.style.transformOrigin = 'top left';
+    table.style.width = (100 / newScale) + '%';
+    label.textContent = Math.round(newScale * 100) + '%';
+  }
+
+  // Button clicks
+  controls.addEventListener('click', function(e) {
+    var btn = e.target.closest('.zoom-btn');
+    if (!btn) return;
+    var dir = btn.dataset.dir;
+    if (dir === 'in') applyZoom(state.scale + 0.1);
+    else if (dir === 'out') applyZoom(state.scale - 0.1);
+    else if (dir === 'reset') applyZoom(1);
+  });
+
+  // Ctrl + wheel zoom
+  wrapEl.addEventListener('wheel', function(e) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? -0.1 : 0.1;
+    applyZoom(state.scale + delta);
+  }, { passive: false });
+
+  // Touch pinch zoom
+  var touchState = { dist: 0, scale: 1 };
+  wrapEl.addEventListener('touchstart', function(e) {
+    if (e.touches.length === 2) {
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      touchState.dist = Math.sqrt(dx * dx + dy * dy);
+      touchState.scale = state.scale;
+    }
+  }, { passive: true });
+
+  wrapEl.addEventListener('touchmove', function(e) {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      var dx = e.touches[0].clientX - e.touches[1].clientX;
+      var dy = e.touches[0].clientY - e.touches[1].clientY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (touchState.dist > 0) {
+        var ratio = dist / touchState.dist;
+        applyZoom(touchState.scale * ratio);
+      }
+    }
+  }, { passive: false });
+
+  // Apply saved zoom state
+  if (state.scale !== 1) applyZoom(state.scale);
+}
 
 // ====== Start ======
 init();

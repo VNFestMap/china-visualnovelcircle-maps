@@ -1,7 +1,6 @@
 (function () {
   'use strict';
 
-  var STORAGE_KEY = 'language';
   var translations = {
     '返回地图': '地図に戻る',
     '返回': '戻る',
@@ -183,33 +182,33 @@
   };
 
   function getLang() {
-    try {
-      return localStorage.getItem(STORAGE_KEY) === 'ja' ? 'ja' : 'zh';
-    } catch (error) {
-      return 'zh';
-    }
+    return window.VNFLanguage && typeof window.VNFLanguage.getLanguage === 'function'
+      ? window.VNFLanguage.getLanguage()
+      : 'zh';
   }
 
   function setLang(lang) {
-    var previous = getLang();
-    var next = lang === 'ja' ? 'ja' : 'zh';
-    try { localStorage.setItem(STORAGE_KEY, lang === 'ja' ? 'ja' : 'zh'); } catch (error) {}
-    if (previous === 'ja' && next === 'zh') {
-      window.location.reload();
-      return;
+    if (!window.VNFLanguage || typeof window.VNFLanguage.setPreference !== 'function') {
+      return Promise.resolve({ success: false, language: getLang(), error: 'Language runtime unavailable' });
     }
-    apply();
-    installObserver();
-    window.dispatchEvent(new CustomEvent('language:changed', { detail: { language: getLang() } }));
+    return window.VNFLanguage.setPreference(lang);
   }
 
   function translate(value) {
     if (getLang() !== 'ja') return value;
+    var countMatch = typeof value === 'string' ? value.match(/^(\d+)\s*个条目$/) : null;
+    if (countMatch) return countMatch[1] + '件';
+    var pageMatch = typeof value === 'string' ? value.match(/^(\d+)\s*页$/) : null;
+    if (pageMatch) return pageMatch[1] + 'ページ';
+    if (window.VNFJapaneseText && Object.prototype.hasOwnProperty.call(window.VNFJapaneseText, value)) {
+      return window.VNFJapaneseText[value];
+    }
     return Object.prototype.hasOwnProperty.call(translations, value) ? translations[value] : value;
   }
 
   function translateText(value) {
     if (getLang() !== 'ja' || !value) return value;
+    if (!value.trim()) return value;
     var leading = value.match(/^\s*/)[0];
     var trailing = value.match(/\s*$/)[0];
     var core = value.trim();
@@ -219,7 +218,7 @@
   function shouldSkip(node) {
     var parent = node.parentElement;
     if (!parent) return true;
-    return !!parent.closest('script,style,textarea,code,pre,[data-i18n-skip]');
+    return !!parent.closest('script,style,textarea,code,pre,svg,canvas,[data-i18n-skip]');
   }
 
   function applyText(root) {
@@ -255,31 +254,26 @@
   }
 
   function updateButtons() {
-    document.querySelectorAll('[data-i18n-lang]').forEach(function (button) {
-      var active = button.getAttribute('data-i18n-lang') === getLang();
-      button.classList.toggle('active', active);
-      button.setAttribute('aria-pressed', active ? 'true' : 'false');
-    });
+    // Display-language controls live exclusively in the signed-in user center.
   }
 
   function installStyles() {
-    if (document.getElementById('pageI18nStyle')) return;
-    var style = document.createElement('style');
-    style.id = 'pageI18nStyle';
-    style.textContent = [
-      '.page-lang-switch{display:inline-flex;align-items:center;gap:3px;padding:3px;border:1px solid var(--border,rgba(0,0,0,.14));border-radius:8px;background:var(--input-bg,rgba(255,255,255,.35));}',
-      '.page-lang-switch button{min-height:28px;padding:4px 9px;border:0;border-radius:6px;background:transparent;color:var(--muted,#6c665f);font:inherit;font-size:12px;font-weight:800;cursor:pointer;}',
-      '.page-lang-switch button.active{background:var(--primary,#d94135);color:#fff;}',
-      '.page-lang-switch button:focus-visible{outline:2px solid var(--primary,#d94135);outline-offset:2px;}'
-    ].join('');
-    document.head.appendChild(style);
+    // Legacy switch styling was removed with the page-local language controls.
   }
 
   function apply() {
     document.documentElement.lang = getLang() === 'ja' ? 'ja' : 'zh-CN';
-    installStyles();
+    if (window.VNFLanguage && typeof window.VNFLanguage.apply === 'function') {
+      window.VNFLanguage.apply(document);
+    }
     applyText(document.body);
     applyAttrs(document);
+    if (document.title) document.title = translate(document.title);
+    document.querySelectorAll('meta[name="description"],meta[property="og:title"],meta[property="og:description"]').forEach(function (meta) {
+      var content = meta.getAttribute('content');
+      var next = translate(content);
+      if (next !== content) meta.setAttribute('content', next);
+    });
     updateButtons();
   }
 
@@ -301,7 +295,7 @@
     if (!node) return null;
     if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
     if (!node || !node.closest) return null;
-    if (node.closest('script,style,textarea,code,pre,[data-i18n-skip]')) return null;
+    if (node.closest('script,style,textarea,code,pre,svg,canvas,[data-i18n-skip]')) return null;
     return node;
   }
 
@@ -323,11 +317,18 @@
       }
       uniqueRoots.push(root);
     });
-    uniqueRoots.forEach(function (root) {
-      applyText(root);
-      applyAttrs(root);
-    });
-    updateButtons();
+    if (observer) observer.disconnect();
+    try {
+      uniqueRoots.forEach(function (root) {
+        applyText(root);
+        applyAttrs(root);
+      });
+      updateButtons();
+    } finally {
+      if (observer && getLang() === 'ja' && document.body) {
+        observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+      }
+    }
   }
 
   function installObserver() {
@@ -361,11 +362,23 @@
 
   window.PageI18n = { t: translate, apply: apply, getLang: getLang, setLang: setLang };
 
-  document.addEventListener('click', function (event) {
-    var button = event.target.closest('[data-i18n-lang]');
-    if (!button) return;
-    setLang(button.getAttribute('data-i18n-lang'));
-  });
+  var lastLanguage = getLang();
+  if (window.VNFLanguage && typeof window.VNFLanguage.subscribe === 'function') {
+    window.VNFLanguage.subscribe(function (detail) {
+      var next = detail && detail.language === 'ja' ? 'ja' : 'zh';
+      if (lastLanguage === 'ja' && next === 'zh') {
+        if (document.body && document.body.getAttribute('data-language-managed') === 'react') {
+          lastLanguage = next;
+          return;
+        }
+        window.location.reload();
+        return;
+      }
+      lastLanguage = next;
+      apply();
+      installObserver();
+    });
+  }
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {

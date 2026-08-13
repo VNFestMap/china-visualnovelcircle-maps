@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
+  <script src="../js/language-runtime.js?v=20260813-language"></script>
+  <script src="../js/language-catalog.js?v=20260813-language"></script>
+  <script src="../js/language-static-ja.js?v=20260813-account-language"></script>
+  <script defer src="../js/page-i18n.js?v=20260813-language"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../js/theme-runtime.js?v=20260702-theme"></script>
 <title>Staff 申请</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -987,6 +992,10 @@ body{
         <select class="form-select" id="club_id" required>
           <option value="">请选择社团</option>
         </select>
+        <label class="confirm-row" style="margin-top:10px;">
+          <input type="checkbox" id="is_individual_applicant">
+          <span>非高校同好会成员 / 个人申请</span>
+        </label>
       </div>
 
       <!-- 6. 报名岗位 (multi-select checkboxes) -->
@@ -1004,10 +1013,11 @@ body{
           <label class="checkbox-row"><input type="checkbox" name="position[]" value="巡场检查 (内容合规)"> 巡场检查 (内容合规)</label>
           <label class="checkbox-row"><input type="checkbox" name="position[]" value="舞台管理"> 舞台管理</label>
           <label class="checkbox-row"><input type="checkbox" name="position[]" value="问询处"> 问询处</label>
-          <label class="checkbox-row"><input type="checkbox" name="position[]" value="线上社群管理"> 线上社群管理</label>
           <label class="checkbox-row"><input type="checkbox" name="position[]" value="痛车区域管理"> 痛车区域管理</label>
-          <label class="checkbox-row"><input type="checkbox" name="position[]" value="VIP室服务"> VIP室服务</label>
           <label class="checkbox-row"><input type="checkbox" name="position[]" value="交通指引"> 交通指引</label>
+          <label class="checkbox-row"><input type="checkbox" name="position[]" value="VIP室服务"> VIP室服务</label>
+          <label class="checkbox-row"><input type="checkbox" name="position[]" value="活动摊位负责人员"> 活动摊位负责人员</label>
+          <label class="checkbox-row"><input type="checkbox" name="position[]" value="副屏控制"> 副屏控制</label>
         </div>
       </div>
 
@@ -1015,7 +1025,7 @@ body{
       <div class="form-group">
         <label class="confirm-row" id="confirm-schedule-label">
           <input type="checkbox" id="confirm_schedule">
-          <span>我确认可以参加两天全天服务（7月25日-26日，08:00-18:00 轮岗）</span>
+          <span>我确认可以参加两天全天服务（7月25日-26日，09:00-18:00 轮岗）</span>
         </label>
       </div>
 
@@ -1025,6 +1035,17 @@ body{
         <div class="radio-group" id="cosplay-group">
           <label class="radio-row"><input type="radio" name="is_cosplay" value="1"> 是</label>
           <label class="radio-row"><input type="radio" name="is_cosplay" value="0"> 否</label>
+        </div>
+      </div>
+
+      <!-- 8b. 三日参与 -->
+      <div class="form-group">
+        <div class="confirm-row" style="background:var(--accent-ghost);border-color:var(--accent-muted);">
+          <input type="checkbox" id="three_day_available">
+          <label for="three_day_available">
+            <span style="font-weight:500;">三日都能参与（优先招募）</span>
+            <span style="display:block;font-size:12px;color:var(--fg-dim);margin-top:2px;">布展日7.24 + 开展日7.25-7.26，三日都能到场的工作人员优先录取</span>
+          </label>
         </div>
       </div>
 
@@ -1066,21 +1087,21 @@ body{
     <div class="modal-body">
       <h4>工作时间</h4>
       <ul>
-        <li>布展日：7月24日 14:00-18:00</li>
-        <li>开展日：7月25-26日 08:00-18:00（同一批人轮岗）</li>
+        <li>布展日：7月24日 14:00-18:00（同时进行岗前培训，要求全员尽可能到场）</li>
+        <li>开展日：7月25-26日 09:00-18:00（同一批人轮岗）</li>
         <li>需两天全天服务，岗位为两天同一批人</li>
       </ul>
       <h4>任职要求</h4>
       <ul>
-        <li>年满18周岁，身体健康，无重大疾病史</li>
-        <li>热爱视觉小说文化，有责任心，积极主动</li>
-        <li>具备良好的沟通能力和团队协作精神</li>
-        <li>能够遵守主办方的工作安排和各项规章制度</li>
+        <li>热爱视觉小说文化、有责任心、沟通能力强、身体健康，能适应高强度工作</li>
+        <li>年龄原则上要求18周岁及以上，大学生及 VNF 会员优先</li>
+        <li>必要时候需要接受组织方的指挥完成提出的职责</li>
+        <li>岗位暂时空闲时可正常游玩参展，具体以后续排班表和现场负责人指挥为准</li>
       </ul>
       <h4>待遇与福利</h4>
       <ul>
-        <li>午餐补贴 + 公共交通费用补贴</li>
-        <li>统一工作痛衣 + 工牌</li>
+        <li>午餐补贴 + 公共交通费用补贴（室外岗另有高温补贴）</li>
+        <li>免费提供统一工作痛衣 + 工牌</li>
         <li>饮用水及零食补给</li>
         <li>活动纪念品/周边一份</li>
         <li>免费双日联票（工作半天自由游玩半天）</li>
@@ -1093,7 +1114,7 @@ body{
       </ul>
       <div class="info-box">
         报名信息须真实有效。主办方保留对本次招募活动的最终解释权。<br>
-        如有疑问请联系：阜文（QQ 1178526797）或咨询QQ群 996163137
+        如有疑问请联系：阜文（QQ 1178526797）或咨询QQ群 1097885812
       </div>
     </div>
     <div class="modal-footer">
@@ -1125,33 +1146,24 @@ body{
 </div>
 
 <script>
-/* Theme toggle - early init to avoid flash */
-(function() {
-  try {
-    var saved = localStorage.getItem('galonly-theme');
-    if (saved === 'light' || saved === 'dark') {
-      document.documentElement.setAttribute('data-theme', saved);
-    }
-  } catch(e) {}
-  document.addEventListener('DOMContentLoaded', function() {
-    updateThemeIcon(document.documentElement.getAttribute('data-theme') || 'dark');
-  });
-})();
+/* ========== THEME TOGGLE（与主站 themePreference 同步） ========== */
 function toggleTheme() {
-  var html = document.documentElement;
-  var current = html.getAttribute('data-theme') || 'dark';
-  var next = current === 'dark' ? 'light' : 'dark';
-  html.setAttribute('data-theme', next);
-  try { localStorage.setItem('galonly-theme', next); } catch(e) {}
-  updateThemeIcon(next);
+  if (window.VNFTheme && typeof window.VNFTheme.toggle === 'function') {
+    window.VNFTheme.toggle();
+  }
 }
 function updateThemeIcon(theme) {
   var btn = document.getElementById('themeToggle');
   if (!btn) return;
   btn.textContent = theme === 'dark' ? '\u263E' : '\u2600';
 }
+if (window.VNFTheme && typeof window.VNFTheme.subscribe === 'function') {
+  window.VNFTheme.subscribe(function(detail) {
+    updateThemeIcon(detail.theme);
+  });
+}
 </script>
-<script src="../js/page-background.js" data-picker="compact"></script>
+<script src="../js/page-background.js?v=20260812-centralized-preferences"></script>
 <script>
 (function(){
   'use strict';
@@ -1162,6 +1174,7 @@ function updateThemeIcon(theme) {
   var isEditMode = false;
   var eventData = null;
   var clubCountry = '';
+  var currentMemberships = [];
   var circuitBreakerActive = false;
 
   /* ---------- DOM refs ---------- */
@@ -1173,6 +1186,7 @@ function updateThemeIcon(theme) {
   var qqNumberInput     = document.getElementById('qq_number');
   var phoneNumberInput  = document.getElementById('phone_number');
   var clubIdSelect      = document.getElementById('club_id');
+  var individualApplicantCheckbox = document.getElementById('is_individual_applicant');
   var positionsGroup    = document.getElementById('positions-group');
   var confirmSchedule   = document.getElementById('confirm_schedule');
   var cosplayGroup      = document.getElementById('cosplay-group');
@@ -1203,10 +1217,11 @@ function updateThemeIcon(theme) {
       /* check login */
       var meRes = await fetch('../api/auth.php?action=me',{credentials:'same-origin'});
       var meData = await meRes.json();
-      if(!meData.logged_in){
-        window.location.href = '../login.html?redirect=' + encodeURIComponent(window.location.href);
+      if(!(meData.logged_in || meData.success)){
+        window.location.href = '../login.html?redirect=' + encodeURIComponent(getLoginRedirectTarget());
         return;
       }
+      currentMemberships = normalizeMembershipRows(meData.memberships || []);
 
       /* load events to find this event */
       var evRes = await fetch('../api/galonly.php?action=list_events',{credentials:'same-origin'});
@@ -1259,35 +1274,63 @@ function updateThemeIcon(theme) {
 
   /* ---------- load clubs ---------- */
   async function loadClubs(){
+    var clubs = [];
     try{
-      /* try domestic clubs first */
-      var res = await fetch('../api/clubs.php',{credentials:'same-origin'});
-      if(!res.ok) throw new Error('clubs.php unavailable');
-      var data = await res.json();
-      var clubs = data.clubs || data.data || [];
-      if(clubs.length > 0){
-        clubCountry = 'china';
-        populateClubs(clubs);
-        return;
+      var cnRes = await fetch('../api/clubs.php',{credentials:'same-origin'});
+      if(cnRes.ok){
+        var cnData = await cnRes.json();
+        clubs = clubs.concat(normalizeClubRows(cnData, 'china'));
       }
-    }catch(e){
-      /* try japan clubs as fallback */
-      try{
-        var res2 = await fetch('../api/clubs_japan.php',{credentials:'same-origin'});
-        if(res2.ok){
-          var data2 = await res2.json();
-          var clubs2 = data2.clubs || data2.data || [];
-          if(clubs2.length > 0){
-            clubCountry = 'japan';
-            populateClubs(clubs2);
-            return;
-          }
-        }
-      }catch(e2){
-        /* both club APIs failed - select remains with default option only */
+    }catch(e){}
+
+    try{
+      var jpRes = await fetch('../api/clubs_japan.php',{credentials:'same-origin'});
+      if(jpRes.ok){
+        var jpData = await jpRes.json();
+        clubs = clubs.concat(normalizeClubRows(jpData, 'japan'));
       }
-    }
-    /* if we reach here, club select has only the default placeholder */
+    }catch(e2){}
+
+    populateClubs(filterJoinedClubs(clubs));
+  }
+
+  function normalizeMembershipRows(rows){
+    if(!Array.isArray(rows)) return [];
+    return rows.filter(function(row){
+      return row && String(row.status || 'active') === 'active' && String(row.role || '') !== 'external';
+    }).map(function(row){
+      return {
+        club_id: parseInt(row.club_id, 10),
+        country: row.country || 'china'
+      };
+    }).filter(function(row){
+      return row.club_id > 0;
+    });
+  }
+
+  function membershipKey(country, id){
+    return (country || 'china') + ':' + parseInt(id, 10);
+  }
+
+  function filterJoinedClubs(clubs){
+    var joined = {};
+    currentMemberships.forEach(function(row){
+      joined[membershipKey(row.country, row.club_id)] = true;
+    });
+    return clubs.filter(function(club){
+      return joined[membershipKey(club.country || 'china', club.id)];
+    });
+  }
+
+  function normalizeClubRows(data, country){
+    if(!data || data.success === false) return [];
+    var rows = data.clubs || data.data || [];
+    if(!Array.isArray(rows)) return [];
+    return rows.map(function(club){
+      var copy = Object.assign({}, club);
+      copy.country = copy.country || country;
+      return copy;
+    });
   }
 
   function populateClubs(clubs){
@@ -1298,11 +1341,37 @@ function updateThemeIcon(theme) {
     defaultOpt.textContent = '请选择社团';
     clubIdSelect.appendChild(defaultOpt);
 
+    if(!clubs.length){
+      defaultOpt.textContent = '暂无已加入的同好会';
+      return;
+    }
+
     for(var i=0;i<clubs.length;i++){
       var opt = document.createElement('option');
-      opt.value = clubs[i].id;
-      opt.textContent = clubs[i].name || clubs[i].club_name || ('社团 #' + clubs[i].id);
+      var country = clubs[i].country || 'china';
+      opt.value = country + ':' + clubs[i].id;
+      opt.dataset.clubId = clubs[i].id;
+      opt.dataset.country = country;
+      var countryLabel = country === 'japan' ? '日本' : '中国';
+      opt.textContent = '[' + countryLabel + '] ' + (clubs[i].display_name || clubs[i].name || clubs[i].club_name || clubs[i].school || ('社团 #' + clubs[i].id));
       clubIdSelect.appendChild(opt);
+    }
+    updateIndividualApplicantState();
+  }
+
+  function isIndividualApplicant(){
+    return !!(individualApplicantCheckbox && individualApplicantCheckbox.checked);
+  }
+
+  function updateIndividualApplicantState(){
+    if(!individualApplicantCheckbox) return;
+    if(isIndividualApplicant()){
+      clubIdSelect.value = '';
+      clubIdSelect.disabled = true;
+      clubIdSelect.required = false;
+    }else{
+      clubIdSelect.disabled = false;
+      clubIdSelect.required = true;
     }
   }
 
@@ -1321,14 +1390,6 @@ function updateThemeIcon(theme) {
       if(new Date() > deadline){
         reasons.push('Staff 报名已于 ' + eventData.staff_deadline + ' 截止');
       }
-    }
-
-    /* headcount hint */
-    if(eventData.staff_max_applicants){
-      var hint = document.createElement('div');
-      hint.className = 'staff-max-hint';
-      hint.textContent = '最大报名人数：' + eventData.staff_max_applicants + ' 人';
-      eventNameField.parentNode.appendChild(hint);
     }
 
     if(reasons.length > 0 && !isEditMode){
@@ -1369,8 +1430,11 @@ function updateThemeIcon(theme) {
       phoneNumberInput.value = app.phone_number || app.phone || app.contact || '';
 
       /* club */
-      if(app.club_id){
-        clubIdSelect.value = String(app.club_id);
+      if(app.club_country === 'none' || parseInt(app.club_id || 0, 10) <= 0){
+        individualApplicantCheckbox.checked = true;
+        updateIndividualApplicantState();
+      }else if(app.club_id){
+        clubIdSelect.value = (app.club_country || 'china') + ':' + app.club_id;
       }
 
       /* positions */
@@ -1397,6 +1461,12 @@ function updateThemeIcon(theme) {
         }
       }
 
+      /* three day availability */
+      var threeDayCheckbox = document.getElementById('three_day_available');
+      if(threeDayCheckbox && (app.three_day_available === 1 || app.three_day_available === '1')){
+        threeDayCheckbox.checked = true;
+      }
+
       /* self intro */
       selfIntroInput.value = app.self_intro || '';
 
@@ -1420,6 +1490,9 @@ function updateThemeIcon(theme) {
 
   confirmSchedule.addEventListener('change', updateSubmitState);
   confirmInfo.addEventListener('change', updateSubmitState);
+  if(individualApplicantCheckbox){
+    individualApplicantCheckbox.addEventListener('change', updateIndividualApplicantState);
+  }
 
   /* ---------- form submission ---------- */
   var pendingPayload = null;
@@ -1458,11 +1531,14 @@ function updateThemeIcon(theme) {
     }
 
     /* validation: club_id */
-    var clubId = clubIdSelect.value;
-    if(!clubId){
+    var selectedClub = getSelectedClub();
+    if(!selectedClub && !isIndividualApplicant()){
       showError('请选择所属高校社团');
       clubIdSelect.focus();
       return;
+    }
+    if(isIndividualApplicant()){
+      selectedClub = { id: 0, country: 'none' };
     }
 
     /* validation: positions (at least 1) */
@@ -1505,11 +1581,12 @@ function updateThemeIcon(theme) {
       cn_name: cnName,
       qq_number: qqNumber,
       phone_number: phoneNumber,
-      club_id: parseInt(clubId, 10),
-      club_country: clubCountry,
+      club_id: selectedClub.id,
+      club_country: selectedClub.country,
       positions: positions,
       confirm_schedule: 1,
       is_cosplay: isCosplay,
+      three_day_available: document.getElementById('three_day_available').checked ? 1 : 0,
       self_intro: selfIntroInput.value.trim()
     };
 
@@ -1618,6 +1695,21 @@ function updateThemeIcon(theme) {
     var d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  function getLoginRedirectTarget(){
+    return 'Galgame_events/galonly_staff_submit.html' + window.location.search;
+  }
+
+  function getSelectedClub(){
+    var opt = clubIdSelect.options[clubIdSelect.selectedIndex];
+    if(!opt || !opt.value) return null;
+    var id = parseInt(opt.dataset.clubId || opt.value.split(':').pop(), 10);
+    if(!id) return null;
+    return {
+      id: id,
+      country: opt.dataset.country || opt.value.split(':')[0] || clubCountry || 'china'
+    };
   }
 
 })();
