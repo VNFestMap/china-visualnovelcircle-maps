@@ -716,6 +716,13 @@ function botRequireClubAccess(?array $club): array {
     return $club;
 }
 
+function botRequireClubPublicAccess(?array $club): array {
+    if (!$club) botRespond(['success' => false, 'error' => '未找到该同好会'], 404);
+    // 跨同好会查询：club token 也可以读取任意同好会的公开资料。
+    // 隐私字段（联系方式、备注、成员名单）由顶部 full/include_private 拦截保证。
+    return $club;
+}
+
 function botClubFromRequestOrAuth(): ?array {
     if (botIsClubAuth()) {
         global $BOT_AUTH;
@@ -985,19 +992,19 @@ switch ($action) {
         botRespond([
             'success' => true,
             'auth' => $BOT_AUTH,
-            'actions' => ['clubs', 'club', 'club_share', 'club_activity', 'search', 'events', 'publications', 'wiki', 'star_unions', 'moe_contests', 'announcements', 'membership_applications', 'membership_approve', 'membership_reject', 'stats', 'admin_summary', 'bot_tokens_list', 'bot_tokens_create', 'bot_tokens_revoke'],
-            'params' => ['token', 'action', 'country', 'id', 'q', 'region', 'type', 'status', 'limit', 'full', 'scope', 'club_key', 'since_id', 'order', 'membership_id'],
+            'actions' => ['clubs', 'club', 'club_share', 'club_activity', 'search', 'events', 'publications', 'wiki', 'star_unions', 'moe_contests', 'announcements', 'membership_applications', 'membership_approve', 'membership_reject', 'stats', 'admin_summary', 'galonly_events', 'galonly_applications', 'galonly_staff_applications', 'bot_tokens_list', 'bot_tokens_create', 'bot_tokens_revoke'],
+            'params' => ['token', 'action', 'country', 'id', 'q', 'region', 'type', 'status', 'limit', 'full', 'scope', 'club_key', 'since_id', 'order', 'membership_id', 'event_id'],
         ]);
 
     case 'clubs':
     case 'search':
-        $country = botIsClubAuth() ? ($BOT_AUTH['country'] ?? 'china') : botCountry();
+        // 跨同好会查询已开放：club token 可按 country 参数浏览全站公开资料（full 隐私数据由顶部拦截）
+        $country = botCountry();
         $regionFilter = botString($_GET['region'] ?? $_GET['province'] ?? $_GET['prefecture'] ?? '');
         $typeFilter = botString($_GET['type'] ?? '');
         $memberCounts = botMemberCounts();
         $items = [];
         foreach (botLoadClubs($country) as $club) {
-            if (!botClubMatchesAuth($club)) continue;
             $clubCountry = $club['country'] ?? 'china';
             if ($typeFilter !== '' && botString($club['type'] ?? '') !== $typeFilter) continue;
             if ($regionFilter !== '') {
@@ -1022,7 +1029,7 @@ switch ($action) {
                 }
             }
         }
-        $club = botRequireClubAccess($club);
+        $club = botRequireClubPublicAccess($club);
         $memberCounts = botMemberCounts();
         $row = botClubRow($club, $full, $memberCounts);
         $country = $club['country'] ?? 'china';
@@ -1066,7 +1073,7 @@ switch ($action) {
         botRespond(['success' => true, 'data' => $summary]);
 
     case 'events':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问
         $rows = array_reverse(botRows(__DIR__ . '/../data/events.json', 'events'));
         $items = [];
         foreach (botFilterRows($rows, $query, ['event', 'date', 'date_end', 'description', 'link'], $limit) as $row) {
@@ -1075,7 +1082,7 @@ switch ($action) {
         botRespond(['success' => true, 'total' => count($items), 'data' => $items]);
 
     case 'publications':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问（投稿联系方式仍由 full 控制）
         $status = botString($_GET['status'] ?? '');
         $items = [];
         foreach (botRows(__DIR__ . '/../data/publications.json', 'publications') as $row) {
@@ -1087,7 +1094,7 @@ switch ($action) {
         botRespond(['success' => true, 'total' => count($items), 'data' => $items]);
 
     case 'wiki':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问
         $items = [];
         foreach (botWikiIndex() as $key => $row) {
             if (!is_array($row)) continue;
@@ -1100,7 +1107,7 @@ switch ($action) {
         botRespond(['success' => true, 'total' => count($items), 'data' => $items]);
 
     case 'star_unions':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问
         $db = botDb();
         if (!$db) botRespond(['success' => true, 'total' => 0, 'data' => []]);
         try {
@@ -1134,7 +1141,7 @@ switch ($action) {
         }
 
     case 'moe_contests':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问
         botRespond([
             'success' => true,
             'total' => 0,
@@ -1144,7 +1151,7 @@ switch ($action) {
         ]);
 
     case 'announcements':
-        botRequireGlobalAuth();
+        // 公开只读数据：global 与 club token 均可访问
         $db = botDb();
         if (!$db) botRespond(['success' => true, 'total' => 0, 'data' => []]);
         try {
@@ -1281,6 +1288,219 @@ switch ($action) {
                 'total_wiki_pages' => count(botWikiIndex()),
             ],
         ]);
+
+    case 'galonly_events':
+        botRequireGlobalAuth();
+        {
+            $db = botDb();
+            if (!$db) botRespond(['success' => false, 'error' => 'database unavailable'], 500);
+            try {
+                $events = $db->query("SELECT id, name, location, date, registration_open, staff_only, event_code, description FROM galonly_events ORDER BY date ASC")->fetchAll(PDO::FETCH_ASSOC);
+                $boothCounts = [];
+                try {
+                    foreach ($db->query("SELECT event_id, COUNT(*) AS cnt FROM galonly_applications WHERE status = 'pending' GROUP BY event_id")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                        $boothCounts[(int)$row['event_id']] = (int)$row['cnt'];
+                    }
+                } catch (Throwable $e) {}
+                $staffCounts = [];
+                try {
+                    foreach ($db->query("SELECT event_id, COUNT(*) AS cnt FROM galonly_staff_applications WHERE status IN ('pending','pooled') GROUP BY event_id")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                        $staffCounts[(int)$row['event_id']] = (int)$row['cnt'];
+                    }
+                } catch (Throwable $e) {}
+                foreach ($events as &$event) {
+                    $event['pending_booths'] = $boothCounts[(int)$event['id']] ?? 0;
+                    $event['pending_staff'] = $staffCounts[(int)$event['id']] ?? 0;
+                }
+                unset($event);
+                botRespond(['success' => true, 'total' => count($events), 'data' => $events]);
+            } catch (Throwable $e) {
+                botRespond(['success' => true, 'total' => 0, 'data' => []]);
+            }
+        }
+
+    case 'galonly_applications':
+        botRequireGlobalAuth();
+        {
+            $db = botDb();
+            if (!$db) botRespond(['success' => false, 'error' => 'database unavailable'], 500);
+            $status = strtolower(botString($_GET['status'] ?? 'pending'));
+            $sinceId = max(0, (int)($_GET['since_id'] ?? 0));
+            $order = strtolower(botString($_GET['order'] ?? 'desc'));
+            $limit = botLimit(20, 50);
+            $eventId = (int)($_GET['event_id'] ?? 0);
+            $appId = (int)($_GET['id'] ?? 0);
+            $params = [];
+            $where = [];
+            if ($appId > 0) {
+                $where[] = 'a.id = ?';
+                $params[] = $appId;
+            }
+            if ($eventId > 0) {
+                $where[] = 'a.event_id = ?';
+                $params[] = $eventId;
+            }
+            if ($status !== '' && $status !== 'all' && $appId <= 0) {
+                $where[] = 'a.status = ?';
+                $params[] = $status;
+            }
+            if ($sinceId > 0 && $appId <= 0) {
+                $where[] = 'a.id > ?';
+                $params[] = $sinceId;
+            }
+            $sql = "SELECT a.*, u.nickname, u.username, e.name AS event_name
+                    FROM galonly_applications a
+                    LEFT JOIN users u ON u.id = a.user_id
+                    LEFT JOIN galonly_events e ON e.id = a.event_id";
+            if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+            if ($appId > 0) {
+                $sql .= ' LIMIT 1';
+            } else {
+                $sql .= ' ORDER BY a.id ' . ($order === 'desc' ? 'DESC' : 'ASC') . ' LIMIT ' . (int)$limit;
+            }
+            try {
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
+                $items = [];
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                    $imageUrls = [];
+                    $rawImages = botString($row['image_path'] ?? '');
+                    if ($rawImages !== '') {
+                        $decoded = json_decode($rawImages, true);
+                        $paths = is_array($decoded) ? $decoded : [$rawImages];
+                        foreach ($paths as $p) {
+                            $abs = botAbsUrl(botString($p));
+                            if ($abs !== '') $imageUrls[] = $abs;
+                        }
+                    }
+                    $clubs = [];
+                    try {
+                        $cStmt = $db->prepare("SELECT club_id, club_country FROM galonly_application_clubs WHERE application_id = ?");
+                        $cStmt->execute([(int)$row['id']]);
+                        foreach ($cStmt->fetchAll(PDO::FETCH_ASSOC) as $c) {
+                            $club = botFindClub((int)$c['club_id'], botString($c['club_country'] ?? 'china') ?: 'china');
+                            $clubs[] = [
+                                'club_id' => (int)$c['club_id'],
+                                'club_country' => botString($c['club_country'] ?? 'china') ?: 'china',
+                                'club_name' => $club ? botString($club['display_name'] ?? $club['name'] ?? ('同好会#' . (int)$c['club_id'])) : ('同好会#' . (int)$c['club_id']),
+                            ];
+                        }
+                    } catch (Throwable $e) {}
+                    $items[] = [
+                        'id' => (int)($row['id'] ?? 0),
+                        'event_id' => (int)($row['event_id'] ?? 0),
+                        'event_name' => botString($row['event_name'] ?? ''),
+                        'booth_name' => botString($row['booth_name'] ?? ''),
+                        'is_joint' => (int)($row['is_joint'] ?? 0),
+                        'joint_name' => botString($row['joint_name'] ?? ''),
+                        'wants_upgrade' => (int)($row['wants_upgrade'] ?? 0),
+                        'contact' => botString($row['contact'] ?? ''),
+                        'notes' => botString($row['notes'] ?? ''),
+                        'status' => botString($row['status'] ?? ''),
+                        'image_paths' => $imageUrls,
+                        'display_image' => botAbsUrl(botString($row['display_image'] ?? '')),
+                        'clubs' => $clubs,
+                        'applicant_name' => botString($row['nickname'] ?? '') ?: (botString($row['username'] ?? '') ?: ('用户#' . (int)($row['user_id'] ?? 0))),
+                        'username' => botString($row['username'] ?? ''),
+                        'user_id' => (int)($row['user_id'] ?? 0),
+                        'created_at' => botString($row['created_at'] ?? ''),
+                        'updated_at' => botString($row['updated_at'] ?? ''),
+                    ];
+                }
+                botRespond(['success' => true, 'total' => count($items), 'data' => $items]);
+            } catch (Throwable $e) {
+                botRespond(['success' => false, 'error' => 'galonly application query failed'], 400);
+            }
+        }
+
+    case 'galonly_staff_applications':
+        botRequireGlobalAuth();
+        {
+            $db = botDb();
+            if (!$db) botRespond(['success' => false, 'error' => 'database unavailable'], 500);
+            $status = strtolower(botString($_GET['status'] ?? 'pending'));
+            $sinceId = max(0, (int)($_GET['since_id'] ?? 0));
+            $order = strtolower(botString($_GET['order'] ?? 'desc'));
+            $limit = botLimit(20, 50);
+            $eventId = (int)($_GET['event_id'] ?? 0);
+            $appId = (int)($_GET['id'] ?? 0);
+            $params = [];
+            $where = [];
+            if ($appId > 0) {
+                $where[] = 'a.id = ?';
+                $params[] = $appId;
+            }
+            if ($eventId > 0) {
+                $where[] = 'a.event_id = ?';
+                $params[] = $eventId;
+            }
+            if ($status !== '' && $status !== 'all' && $appId <= 0) {
+                $where[] = 'a.status = ?';
+                $params[] = $status;
+            }
+            if ($sinceId > 0 && $appId <= 0) {
+                $where[] = 'a.id > ?';
+                $params[] = $sinceId;
+            }
+            $sql = "SELECT a.*, u.nickname, u.username, e.name AS event_name
+                    FROM galonly_staff_applications a
+                    LEFT JOIN users u ON u.id = a.user_id
+                    LEFT JOIN galonly_events e ON e.id = a.event_id";
+            if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+            if ($appId > 0) {
+                $sql .= ' LIMIT 1';
+            } else {
+                $sql .= ' ORDER BY a.id ' . ($order === 'desc' ? 'DESC' : 'ASC') . ' LIMIT ' . (int)$limit;
+            }
+            try {
+                $stmt = $db->prepare($sql);
+                $stmt->execute($params);
+                $items = [];
+                foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                    $positions = [];
+                    $rawPositions = botString($row['positions'] ?? '');
+                    if ($rawPositions !== '') {
+                        $decoded = json_decode($rawPositions, true);
+                        $positions = is_array($decoded) ? array_values(array_map('strval', $decoded)) : [];
+                    }
+                    $clubName = '';
+                    $clubId = (int)($row['club_id'] ?? 0);
+                    if ($clubId > 0) {
+                        $club = botFindClub($clubId, botString($row['club_country'] ?? 'china') ?: 'china');
+                        $clubName = $club ? botString($club['display_name'] ?? $club['name'] ?? ('同好会#' . $clubId)) : ('同好会#' . $clubId);
+                    }
+                    $items[] = [
+                        'id' => (int)($row['id'] ?? 0),
+                        'event_id' => (int)($row['event_id'] ?? 0),
+                        'event_name' => botString($row['event_name'] ?? ''),
+                        'cn_name' => botString($row['cn_name'] ?? ''),
+                        'qq_number' => botString($row['qq_number'] ?? ''),
+                        'phone_number' => botString($row['phone_number'] ?? ''),
+                        'email' => botString($row['email'] ?? ''),
+                        'club_id' => $clubId,
+                        'club_country' => botString($row['club_country'] ?? 'china') ?: 'china',
+                        'club_name' => $clubName,
+                        'positions' => $positions,
+                        'confirm_schedule' => (int)($row['confirm_schedule'] ?? 0),
+                        'is_cosplay' => (int)($row['is_cosplay'] ?? 0),
+                        'three_day_available' => (int)($row['three_day_available'] ?? 0),
+                        'self_intro' => botString($row['self_intro'] ?? ''),
+                        'gender' => botString($row['gender'] ?? ''),
+                        'staff_experience' => (int)($row['staff_experience'] ?? 0),
+                        'skills' => botString($row['skills'] ?? ''),
+                        'status' => botString($row['status'] ?? ''),
+                        'applicant_name' => botString($row['nickname'] ?? '') ?: (botString($row['username'] ?? '') ?: ('用户#' . (int)($row['user_id'] ?? 0))),
+                        'username' => botString($row['username'] ?? ''),
+                        'user_id' => (int)($row['user_id'] ?? 0),
+                        'created_at' => botString($row['created_at'] ?? ''),
+                        'updated_at' => botString($row['updated_at'] ?? ''),
+                    ];
+                }
+                botRespond(['success' => true, 'total' => count($items), 'data' => $items]);
+            } catch (Throwable $e) {
+                botRespond(['success' => false, 'error' => 'galonly staff application query failed'], 400);
+            }
+        }
 
     default:
         botRespond(['success' => false, 'error' => '未知 action', 'action' => $action], 400);
